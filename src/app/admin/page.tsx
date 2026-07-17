@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   ShoppingBag, ShieldAlert, BarChart3, Database, RefreshCcw, 
-  Trash2, Plus, Upload, Check, Eye, ChevronRight, Truck, Clock, 
-  DollarSign, ShoppingCart, LogOut, FileSpreadsheet, Edit3, X
+  Trash2, Plus, Upload, Check, Truck, Clock, 
+  DollarSign, ShoppingCart, LogOut, FileSpreadsheet, X
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -53,7 +54,7 @@ export default function AdminDashboard() {
   });
 
   // Supplier Sync Markup Config
-  const [syncMarkup, setSyncMarkup] = useState(30); // 30% margin default
+  const [syncMarkup, setSyncMarkup] = useState(30);
   const [syncLogOutput, setSyncLogOutput] = useState<string[]>([]);
   const [csvFileContent, setCsvFileContent] = useState('');
 
@@ -70,7 +71,7 @@ export default function AdminDashboard() {
     });
 
     async function loadData() {
-      if (!session) return; // Don't fetch until logged in
+      if (!session) return;
       
       // Load Products
       try {
@@ -85,7 +86,6 @@ export default function AdminDashboard() {
         if (local) {
           setProducts(JSON.parse(local));
         } else {
-          // Default mock products
           const initial = [
             { id: 'vy-nc20-blk', title: 'Vylex NeoCharge 20K Power Bank', category: 'Power Banks', price: 799.00, cost_price: 420.00, sku: 'VY-NC20-BLK', stock_quantity: 45, source: 'manual', images: ['🔌'] },
             { id: 'vy-wpp-wht', title: 'Vylex WavePods Pro Earbuds', category: 'Earbuds', price: 1299.00, cost_price: 650.00, sku: 'VY-WPP-WHT', stock_quantity: 12, source: 'manual', images: ['🎧'] },
@@ -110,7 +110,6 @@ export default function AdminDashboard() {
         if (local) {
           setOrders(JSON.parse(local));
         } else {
-          // Initialize mock orders for demonstration
           const initialOrders = [
             { id: 'ord-81f14890', customer_name: 'Avuyile Mthembu', customer_email: 'avuyile@vylex.co.za', total_amount: 1899.00, status: 'paid', created_at: new Date(Date.now() - 3600000 * 2).toISOString(), shipping_address: { streetAddress: '12 Rivonia Blvd', city: 'Sandton', state: 'Gauteng', postalCode: '2196' } },
             { id: 'ord-94b802a4', customer_name: 'Lerato Molefe', customer_email: 'lerato@example.co.za', total_amount: 898.00, status: 'pending', created_at: new Date(Date.now() - 3600000 * 8).toISOString(), shipping_address: { streetAddress: '45 Long St', city: 'Cape Town', state: 'Western Cape', postalCode: '8001' } },
@@ -178,7 +177,6 @@ export default function AdminDashboard() {
       
       saveProductsState([...products, data]);
     } catch (e) {
-      // Offline fallback
       const offlineProduct = {
         id: 'vy-' + Math.random().toString(36).substring(2, 9),
         ...productPayload
@@ -188,15 +186,9 @@ export default function AdminDashboard() {
 
     setIsAddProductOpen(false);
     setNewProduct({
-      title: '',
-      description: '',
-      category: 'Earbuds',
-      price: '',
-      cost_price: '',
-      sku: '',
-      stock_quantity: '50',
-      source: 'manual',
-      images: ['🔌']
+      title: '', description: '', category: 'Earbuds',
+      price: '', cost_price: '', sku: '',
+      stock_quantity: '50', source: 'manual', images: ['🔌']
     });
   };
 
@@ -209,7 +201,6 @@ export default function AdminDashboard() {
       if (error) throw error;
       saveProductsState(products.filter(p => p.id !== id));
     } catch (e) {
-      // Offline fallback
       saveProductsState(products.filter(p => p.id !== id));
     }
   };
@@ -222,7 +213,6 @@ export default function AdminDashboard() {
       
       saveOrdersState(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     } catch (e) {
-      // Offline fallback
       saveOrdersState(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     }
   };
@@ -235,7 +225,6 @@ export default function AdminDashboard() {
     const orderId = selectedOrderForTracking.id;
 
     try {
-      // Try to insert/update tracking info in DB
       const { error } = await supabase.from('tracking_info').upsert({
         order_id: orderId,
         courier_name: trackingForm.courier_name,
@@ -246,10 +235,8 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      // Update order status to shipped automatically
       await supabase.from('orders').update({ status: 'shipped' }).eq('id', orderId);
 
-      // Log action success
       await supabase.from('supplier_sync_logs').insert({
         status: 'success',
         details: `Tracking details uploaded for Order #${orderId.substring(0,8)}. Courier: ${trackingForm.courier_name}`
@@ -257,7 +244,6 @@ export default function AdminDashboard() {
 
       saveOrdersState(orders.map(o => o.id === orderId ? { ...o, status: 'shipped' } : o));
     } catch (e) {
-      // Offline fallback
       saveOrdersState(orders.map(o => o.id === orderId ? { ...o, status: 'shipped' } : o));
     }
 
@@ -265,9 +251,7 @@ export default function AdminDashboard() {
     setSelectedOrderForTracking(null);
     setTrackingForm({
       courier_name: 'The Courier Guy',
-      tracking_number: '',
-      tracking_url: '',
-      status: 'in_transit'
+      tracking_number: '', tracking_url: '', status: 'in_transit'
     });
   };
 
@@ -292,17 +276,15 @@ export default function AdminDashboard() {
 
     setSyncLogOutput(['Initializing Supplier Sync Engine...', 'Target: store.vylex.co.za database']);
 
-    // Parse CSV rows. Expecting format: sku,cost_price,stock
     const lines = csvFileContent.split('\n');
     const logs: string[] = [];
     let updatedCount = 0;
-    let addedCount = 0;
 
     const updatedProductsList = [...products];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      if (!line || i === 0 && line.toLowerCase().includes('sku')) continue; // Skip header
+      if (!line || i === 0 && line.toLowerCase().includes('sku')) continue;
 
       const cols = line.split(',');
       if (cols.length < 3) continue;
@@ -316,14 +298,11 @@ export default function AdminDashboard() {
         continue;
       }
 
-      // Calculate selling price with selected markup
       const calculatedSellingPrice = costPrice * (1 + syncMarkup / 100);
 
-      // Find matching local/DB product
       const existingProductIdx = updatedProductsList.findIndex(p => p.sku.toLowerCase() === sku.toLowerCase());
 
       if (existingProductIdx !== -1) {
-        // Update product details
         const updatedProduct = {
           ...updatedProductsList[existingProductIdx],
           cost_price: costPrice,
@@ -335,7 +314,6 @@ export default function AdminDashboard() {
 
         updatedProductsList[existingProductIdx] = updatedProduct;
 
-        // Try updating Supabase
         try {
           await supabase.from('products').update({
             cost_price: costPrice,
@@ -348,7 +326,6 @@ export default function AdminDashboard() {
         logs.push(`✅ SKU MATCH: Updated pricing/stock for ${sku}. Cost: R${costPrice} -> Sell: R${calculatedSellingPrice.toFixed(2)}. Stock: ${stock}`);
         updatedCount++;
       } else {
-        // Option to add new product if not matching
         logs.push(`ℹ️ SKU NEW: SKU "${sku}" did not match any current catalog item. Manual listing suggested.`);
       }
     }
@@ -357,7 +334,6 @@ export default function AdminDashboard() {
     logs.push(`\nSync finished. ${updatedCount} products updated successfully.`);
     setSyncLogOutput(logs);
 
-    // Save logs database entry
     const logDetails = `Supplier Sync completed. Markup: ${syncMarkup}%. Items updated: ${updatedCount}.`;
     const newLog = {
       id: Math.random().toString(),
@@ -402,7 +378,7 @@ export default function AdminDashboard() {
   if (!session) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px' }}>
-        <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '40px 32px' }}>
+        <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div className="logo logo-light" style={{ justifyContent: 'center', marginBottom: '16px' }}>
               <svg width="32" height="32" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
@@ -440,59 +416,49 @@ export default function AdminDashboard() {
       
       {/* Sidebar Controls */}
       <aside className="admin-sidebar">
-        <a href="/" className="logo logo-light" style={{ marginBottom: '40px' }}>
+        <Link href="/" className="logo logo-light" style={{ marginBottom: '20px' }}>
           <svg width="24" height="24" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
             <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
             <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
           </svg>
           <span className="logo-text" style={{ fontSize: '1.25rem' }}>vylex<span className="logo-dot-text">.</span><span className="logo-subtext" style={{ fontSize: '0.8rem' }}>Admin</span></span>
-        </a>
+        </Link>
 
         <ul className="admin-nav">
-          <li className="admin-nav-item">
-            <button 
-              className={`admin-nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-              onClick={() => setActiveTab('overview')}
-            >
-              <BarChart3 size={18} /> Overview Metrics
-            </button>
-          </li>
-          <li className="admin-nav-item">
-            <button 
-              className={`admin-nav-link ${activeTab === 'products' ? 'active' : ''}`}
-              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-              onClick={() => setActiveTab('products')}
-            >
-              <Database size={18} /> Product Catalog
-            </button>
-          </li>
-          <li className="admin-nav-item">
-            <button 
-              className={`admin-nav-link ${activeTab === 'orders' ? 'active' : ''}`}
-              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-              onClick={() => setActiveTab('orders')}
-            >
-              <ShoppingCart size={18} /> Orders Panel
-            </button>
-          </li>
-          <li className="admin-nav-item">
-            <button 
-              className={`admin-nav-link ${activeTab === 'sync' ? 'active' : ''}`}
-              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-              onClick={() => setActiveTab('sync')}
-            >
-              <RefreshCcw size={18} /> Supplier Sync Engine
-            </button>
-          </li>
+          {[
+            { key: 'overview' as const, icon: <BarChart3 size={18} />, label: 'Overview' },
+            { key: 'products' as const, icon: <Database size={18} />, label: 'Products' },
+            { key: 'orders' as const, icon: <ShoppingCart size={18} />, label: 'Orders' },
+            { key: 'sync' as const, icon: <RefreshCcw size={18} />, label: 'Sync' },
+          ].map(tab => (
+            <li key={tab.key} className="admin-nav-item">
+              <button 
+                className={`admin-nav-link ${activeTab === tab.key ? 'active' : ''}`}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            </li>
+          ))}
         </ul>
 
-          <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <button className="btn btn-outline" style={{ width: '100%', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }} onClick={handleLogout}>
-              <LogOut size={16} /> Logout
-            </button>
-          </div>
-        </aside>
+        {/* Mobile logout (inline with nav) */}
+        <button
+          className="btn btn-outline"
+          style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'white', marginTop: '12px', width: '100%', fontSize: '0.85rem' }}
+          onClick={handleLogout}
+        >
+          <LogOut size={14} /> Logout
+        </button>
+
+        {/* Desktop logout (bottom) */}
+        <div className="admin-sidebar-logout">
+          <button className="btn btn-outline" style={{ width: '100%', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }} onClick={handleLogout}>
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
+      </aside>
 
       {/* Main Workspace content */}
       <main className="admin-content">
@@ -500,99 +466,71 @@ export default function AdminDashboard() {
         {/* Tab 1: Overview Dashboard metrics */}
         {activeTab === 'overview' && (
           <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '6px' }}>Dashboard Overview</h1>
-            <p style={{ color: 'var(--sdark)' }}>Vylex Store operational dashboard indicators.</p>
+            <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '6px' }}>Dashboard Overview</h1>
+            <p style={{ color: 'var(--sdark)', fontSize: '0.9rem' }}>Vylex Store operational dashboard indicators.</p>
 
             {/* KPI Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', margin: '32px 0 48px' }}>
-              <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
-                <div style={{ background: '#d1fae5', color: 'var(--green)', padding: '16px', borderRadius: '12px' }}>
-                  <DollarSign size={24} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', margin: '24px 0 32px' }}>
+              {[
+                { icon: <DollarSign size={20} />, bg: '#d1fae5', color: 'var(--green)', label: 'Revenue (Paid)', value: `R${totalSales.toFixed(2)}` },
+                { icon: <ShoppingBag size={20} />, bg: '#dbeafe', color: '#2563eb', label: 'Total Orders', value: orders.length },
+                { icon: <Clock size={20} />, bg: '#fee2e2', color: 'var(--red)', label: 'Pending', value: pendingOrders.length },
+                { icon: <Truck size={20} />, bg: '#fef3c7', color: '#d97706', label: 'Needs Dispatch', value: paidOrders.length },
+              ].map((kpi, idx) => (
+                <div key={idx} className="card" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px' }}>
+                  <div style={{ background: kpi.bg, color: kpi.color, padding: '12px', borderRadius: '10px', flexShrink: 0 }}>
+                    {kpi.icon}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--sdark)', display: 'block' }}>{kpi.label}</span>
+                    <h3 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.6rem)', fontWeight: 700 }}>{kpi.value}</h3>
+                  </div>
                 </div>
-                <div>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Total Revenue (Paid)</span>
-                  <h3 style={{ fontSize: '1.6rem', fontWeight: 700 }}>R{totalSales.toFixed(2)}</h3>
-                </div>
-              </div>
-
-              <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
-                <div style={{ background: '#dbeafe', color: '#2563eb', padding: '16px', borderRadius: '12px' }}>
-                  <ShoppingBag size={24} />
-                </div>
-                <div>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Total Orders</span>
-                  <h3 style={{ fontSize: '1.6rem', fontWeight: 700 }}>{orders.length}</h3>
-                </div>
-              </div>
-
-              <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
-                <div style={{ background: '#fee2e2', color: 'var(--red)', padding: '16px', borderRadius: '12px' }}>
-                  <Clock size={24} />
-                </div>
-                <div>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Pending Payments</span>
-                  <h3 style={{ fontSize: '1.6rem', fontWeight: 700 }}>{pendingOrders.length}</h3>
-                </div>
-              </div>
-
-              <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px' }}>
-                <div style={{ background: '#fef3c7', color: '#d97706', padding: '16px', borderRadius: '12px' }}>
-                  <Truck size={24} />
-                </div>
-                <div>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Paid (Needs Dispatch)</span>
-                  <h3 style={{ fontSize: '1.6rem', fontWeight: 700 }}>{paidOrders.length}</h3>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* Layout with Sync logs and recent orders */}
+            {/* Recent Orders + Sync Logs */}
             <div className="admin-grid">
               <div className="card">
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '16px' }}>Recent Orders</h2>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.slice(0, 5).map(o => (
-                        <tr key={o.id}>
-                          <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>#{o.id.substring(0, 8)}</td>
-                          <td>{o.customer_name}</td>
-                          <td style={{ fontWeight: 600 }}>R{Number(o.total_amount).toFixed(2)}</td>
-                          <td>
-                            <span className={`badge badge-${o.status}`}>{o.status}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '16px' }}>Recent Orders</h2>
+                {/* Mobile: card list, Desktop: table */}
+                <div className="admin-card-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {orders.slice(0, 5).map(o => (
+                    <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--slate)' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{o.customer_name}</div>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--sdark)' }}>#{o.id.substring(0, 8)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>R{Number(o.total_amount).toFixed(2)}</div>
+                        <span className={`badge badge-${o.status}`}>{o.status}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="card">
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '16px' }}>Sync Logs</h2>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '16px' }}>Sync Logs</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
-                  {syncLogs.slice(0, 5).map(log => (
-                    <div key={log.id} style={{ fontSize: '0.85rem', paddingBottom: '12px', borderBottom: '1px solid var(--slate)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ 
-                          fontWeight: 700, 
-                          color: log.status === 'success' ? 'var(--green)' : 'var(--red)'
-                        }}>
-                          {log.status.toUpperCase()}
-                        </span>
-                        <span style={{ color: 'var(--sdark)' }}>{new Date(log.created_at).toLocaleTimeString()}</span>
+                  {syncLogs.length === 0 ? (
+                    <p style={{ color: 'var(--sdark)', fontSize: '0.85rem' }}>No sync logs yet.</p>
+                  ) : (
+                    syncLogs.slice(0, 5).map(log => (
+                      <div key={log.id} style={{ fontSize: '0.85rem', paddingBottom: '12px', borderBottom: '1px solid var(--slate)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ 
+                            fontWeight: 700, 
+                            color: log.status === 'success' ? 'var(--green)' : 'var(--red)'
+                          }}>
+                            {log.status.toUpperCase()}
+                          </span>
+                          <span style={{ color: 'var(--sdark)', fontSize: '0.78rem' }}>{new Date(log.created_at).toLocaleTimeString()}</span>
+                        </div>
+                        <p style={{ color: 'var(--navy)', fontSize: '0.82rem' }}>{log.details}</p>
                       </div>
-                      <p style={{ color: 'var(--navy)' }}>{log.details}</p>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -602,66 +540,62 @@ export default function AdminDashboard() {
         {/* Tab 2: Product Catalog management */}
         {activeTab === 'products' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '6px' }}>Product Catalog</h1>
-                <p style={{ color: 'var(--sdark)' }}>View and list inventory. Auto-sync via Sync Panel or add items manually.</p>
+                <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '4px' }}>Product Catalog</h1>
+                <p style={{ color: 'var(--sdark)', fontSize: '0.85rem' }}>View and list inventory.</p>
               </div>
-              <button className="btn btn-primary" onClick={() => setIsAddProductOpen(true)}>
-                <Plus size={18} /> Add Manual Product
+              <button className="btn btn-primary" onClick={() => setIsAddProductOpen(true)} style={{ gap: '6px' }}>
+                <Plus size={18} /> Add Product
               </button>
             </div>
 
-            <div className="table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Product Details</th>
-                    <th>SKU</th>
-                    <th>Category</th>
-                    <th>Cost Price</th>
-                    <th>Sell Price</th>
-                    <th>Stock</th>
-                    <th>Source</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map(p => (
-                    <tr key={p.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '2rem' }}>{p.images?.[0] || '🔋'}</span>
-                          <strong>{p.title}</strong>
-                        </div>
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>{p.sku}</td>
-                      <td>{p.category}</td>
-                      <td>{p.cost_price ? `R${Number(p.cost_price).toFixed(2)}` : 'N/A'}</td>
-                      <td style={{ fontWeight: 600 }}>R{Number(p.price).toFixed(2)}</td>
-                      <td>{p.stock_quantity} units</td>
-                      <td>
-                        <span style={{
-                          padding: '3px 6px',
-                          borderRadius: '4px',
-                          fontSize: '0.72rem',
-                          background: p.source === 'manual' ? '#e2e8f0' : '#fef3c7',
-                          color: p.source === 'manual' ? 'var(--navy)' : '#d97706',
-                          fontWeight: 700,
-                          textTransform: 'uppercase'
-                        }}>
-                          {p.source}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="btn-icon" style={{ color: 'var(--red)', borderColor: 'transparent' }} onClick={() => handleDeleteProduct(p.id)}>
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Mobile-friendly card list for products */}
+            <div className="admin-card-list" style={{ marginTop: '20px' }}>
+              {products.map(p => (
+                <div key={p.id} className="admin-card-item">
+                  <div className="admin-card-item-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '1.5rem' }}>{p.images?.[0] || '🔋'}</span>
+                      <div>
+                        <strong style={{ fontSize: '0.95rem', lineHeight: 1.2, display: 'block' }}>{p.title}</strong>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--sdark)' }}>{p.sku}</span>
+                      </div>
+                    </div>
+                    <button className="btn-icon" style={{ width: '36px', height: '36px', color: 'var(--red)', borderColor: 'transparent', flexShrink: 0 }} onClick={() => handleDeleteProduct(p.id)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div className="admin-card-item-details">
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Category</span>
+                      <span>{p.category}</span>
+                    </div>
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Sell Price</span>
+                      <span style={{ fontWeight: 600 }}>R{Number(p.price).toFixed(2)}</span>
+                    </div>
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Cost</span>
+                      <span>{p.cost_price ? `R${Number(p.cost_price).toFixed(2)}` : 'N/A'}</span>
+                    </div>
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Stock</span>
+                      <span>{p.stock_quantity} units</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem',
+                      background: p.source === 'manual' ? '#e2e8f0' : '#fef3c7',
+                      color: p.source === 'manual' ? 'var(--navy)' : '#d97706',
+                      fontWeight: 700, textTransform: 'uppercase'
+                    }}>
+                      {p.source}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -669,70 +603,65 @@ export default function AdminDashboard() {
         {/* Tab 3: Orders management, courier fulfillment */}
         {activeTab === 'orders' && (
           <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '6px' }}>Orders Panel</h1>
-            <p style={{ color: 'var(--sdark)' }}>Fulfill orders, adjust shipping codes, and verify payouts.</p>
+            <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '4px' }}>Orders Panel</h1>
+            <p style={{ color: 'var(--sdark)', fontSize: '0.85rem' }}>Fulfill orders, add tracking, and verify payouts.</p>
 
-            <div className="table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Order Reference</th>
-                    <th>Customer Info</th>
-                    <th>Date</th>
-                    <th>Address</th>
-                    <th>Amount Due</th>
-                    <th>Status</th>
-                    <th>Fulfillment Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(o => (
-                    <tr key={o.id}>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 700 }}>#{o.id.substring(0, 8)}</td>
-                      <td>
-                        <div><strong>{o.customer_name}</strong></div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--sdark)' }}>{o.customer_email}</div>
-                      </td>
-                      <td>{new Date(o.created_at).toLocaleDateString()}</td>
-                      <td>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--sdark)', maxWidth: '180px' }}>
-                          {o.shipping_address?.streetAddress}, {o.shipping_address?.city}
-                        </div>
-                      </td>
-                      <td style={{ fontWeight: 600 }}>R{Number(o.total_amount).toFixed(2)}</td>
-                      <td>
-                        <select 
-                          className={`badge badge-${o.status}`} 
-                          value={o.status}
-                          onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value)}
-                          style={{ border: 'none', cursor: 'pointer', outline: 'none' }}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="paid">Paid</option>
-                          <option value="ordered_from_supplier">Ordered from Supplier</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button 
-                            className="btn btn-outline" 
-                            style={{ padding: '6px 12px', fontSize: '0.8rem', gap: '4px' }}
-                            onClick={() => {
-                              setSelectedOrderForTracking(o);
-                              setIsTrackingModalOpen(true);
-                            }}
-                          >
-                            <Truck size={14} /> Add Tracking
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Mobile-friendly card list for orders */}
+            <div className="admin-card-list" style={{ marginTop: '20px' }}>
+              {orders.map(o => (
+                <div key={o.id} className="admin-card-item">
+                  <div className="admin-card-item-header">
+                    <div>
+                      <strong style={{ fontSize: '0.95rem', display: 'block' }}>{o.customer_name}</strong>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--sdark)' }}>{o.customer_email}</span>
+                    </div>
+                    <span className={`badge badge-${o.status}`}>{o.status}</span>
+                  </div>
+                  <div className="admin-card-item-details">
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Order ID</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>#{o.id.substring(0, 8)}</span>
+                    </div>
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Amount</span>
+                      <span style={{ fontWeight: 600 }}>R{Number(o.total_amount).toFixed(2)}</span>
+                    </div>
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">Date</span>
+                      <span>{new Date(o.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="admin-card-item-detail">
+                      <span className="admin-card-item-detail-label">City</span>
+                      <span>{o.shipping_address?.city || 'N/A'}</span>
+                    </div>
+                  </div>
+                  <div className="admin-card-item-actions">
+                    <select 
+                      className="form-input"
+                      value={o.status}
+                      onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value)}
+                      style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem' }}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="ordered_from_supplier">Ordered from Supplier</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button 
+                      className="btn btn-outline" 
+                      style={{ padding: '8px 12px', fontSize: '0.8rem', gap: '4px', whiteSpace: 'nowrap' }}
+                      onClick={() => {
+                        setSelectedOrderForTracking(o);
+                        setIsTrackingModalOpen(true);
+                      }}
+                    >
+                      <Truck size={14} /> Tracking
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -740,33 +669,33 @@ export default function AdminDashboard() {
         {/* Tab 4: Supplier Sync Engine panel */}
         {activeTab === 'sync' && (
           <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '6px' }}>Supplier Sync Engine</h1>
-            <p style={{ color: 'var(--sdark)' }}>Import supplier CSVs. Adjust prices via dynamic markups based on cost prices.</p>
+            <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '4px' }}>Supplier Sync</h1>
+            <p style={{ color: 'var(--sdark)', fontSize: '0.85rem' }}>Import supplier CSVs. Adjust prices via dynamic markups.</p>
 
-            <div className="checkout-grid" style={{ marginTop: '32px' }}>
+            <div className="checkout-grid" style={{ marginTop: '24px' }}>
               
               {/* CSV Upload panel */}
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <FileSpreadsheet style={{ color: 'var(--orange)' }} /> Step 1: Upload Supplier File
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FileSpreadsheet size={18} style={{ color: 'var(--orange)' }} /> Upload Supplier File
                 </h2>
                 
-                <p style={{ fontSize: '0.9rem', color: 'var(--sdark)' }}>
-                  Upload a CSV file containing columns: <strong>sku</strong>, <strong>cost_price</strong>, and <strong>stock</strong>. The engine will match SKUs in the catalog and update stock/pricing.
+                <p style={{ fontSize: '0.85rem', color: 'var(--sdark)' }}>
+                  Upload CSV with columns: <strong>sku</strong>, <strong>cost_price</strong>, <strong>stock</strong>.
                 </p>
 
                 <div style={{ 
                   border: '2px dashed var(--slate)', 
-                  padding: '30px', 
+                  padding: '24px', 
                   borderRadius: '12px', 
                   textAlign: 'center',
                   background: '#f8fafc',
                   cursor: 'pointer',
                   position: 'relative'
                 }}>
-                  <Upload size={32} style={{ color: 'var(--sdark)', marginBottom: '12px' }} />
-                  <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>Click to browse or drop file</p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--sdark)', marginTop: '4px' }}>Supported format: CSV (.csv)</p>
+                  <Upload size={28} style={{ color: 'var(--sdark)', marginBottom: '10px' }} />
+                  <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Tap to browse or drop file</p>
+                  <p style={{ fontSize: '0.72rem', color: 'var(--sdark)', marginTop: '4px' }}>Format: CSV (.csv)</p>
                   
                   <input 
                     type="file" 
@@ -782,41 +711,40 @@ export default function AdminDashboard() {
                 </div>
 
                 {csvFileContent && (
-                  <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Check size={16} /> File successfully read. Ready to sync.
+                  <div style={{ background: '#d1fae5', color: '#065f46', padding: '10px', borderRadius: '8px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Check size={16} /> File ready. Tap sync to execute.
                   </div>
                 )}
 
-                <div style={{ borderTop: '1px solid var(--slate)', paddingTop: '24px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px' }}>Step 2: Pricing Markup Config</h3>
+                <div style={{ borderTop: '1px solid var(--slate)', paddingTop: '20px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '12px' }}>Markup Config</h3>
                   
-                  <div className="form-group">
-                    <label className="form-label">Profit Markup Percentage (%)</label>
+                  <div className="form-group" style={{ marginBottom: '8px' }}>
+                    <label className="form-label">Profit Markup (%)</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <input 
                         type="range" 
-                        min="10" 
-                        max="100" 
+                        min="10" max="100" 
                         value={syncMarkup} 
                         onChange={(e) => setSyncMarkup(parseInt(e.target.value))}
                         style={{ flexGrow: 1, accentColor: 'var(--orange)' }}
                       />
                       <span style={{ fontWeight: 700, fontSize: '1.1rem', minWidth: '48px' }}>{syncMarkup}%</span>
                     </div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--sdark)', marginTop: '8px' }}>
-                      Example: A cost price of R100.00 will result in a selling price of R{(100 * (1 + syncMarkup/100)).toFixed(2)}.
+                    <p style={{ fontSize: '0.75rem', color: 'var(--sdark)', marginTop: '6px' }}>
+                      Example: R100.00 cost → R{(100 * (1 + syncMarkup/100)).toFixed(2)} sell.
                     </p>
                   </div>
                 </div>
 
-                <button className="btn btn-primary" onClick={runSyncEngine} style={{ width: '100%', padding: '14px', gap: '10px' }}>
-                  <RefreshCcw size={18} /> Execute Sync Engine
+                <button className="btn btn-primary" onClick={runSyncEngine} style={{ width: '100%', padding: '14px', gap: '8px' }}>
+                  <RefreshCcw size={18} /> Execute Sync
                 </button>
               </div>
 
               {/* Sync Output Logs panel */}
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '400px' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, borderBottom: '1px solid var(--slate)', paddingBottom: '12px', marginBottom: '20px' }}>
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: '300px' }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, borderBottom: '1px solid var(--slate)', paddingBottom: '12px', marginBottom: '16px' }}>
                   Execution Logs
                 </h2>
 
@@ -824,15 +752,17 @@ export default function AdminDashboard() {
                   background: '#030f20', 
                   color: '#38bdf8', 
                   fontFamily: 'var(--font-mono)', 
-                  fontSize: '0.82rem', 
-                  padding: '20px', 
+                  fontSize: '0.78rem', 
+                  padding: '16px', 
                   borderRadius: '8px', 
                   flexGrow: 1, 
                   overflowY: 'auto',
-                  lineHeight: 1.6
+                  overflowX: 'auto',
+                  lineHeight: 1.6,
+                  wordBreak: 'break-word'
                 }}>
                   {syncLogOutput.length === 0 ? (
-                    <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>Engine idle. Run sync to inspect logs output...</span>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>Engine idle. Run sync to inspect logs...</span>
                   ) : (
                     syncLogOutput.map((log, idx) => (
                       <div key={idx}>{log}</div>
@@ -852,55 +782,44 @@ export default function AdminDashboard() {
         <div className="modal-overlay" onClick={() => setIsAddProductOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Add Product to Catalog</h2>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Add Product</h2>
               <button className="modal-close" onClick={() => setIsAddProductOpen(false)}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="form-group">
+            <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Product Title</label>
                 <input 
-                  type="text" 
-                  required 
-                  placeholder="e.g. Vylex SuperCord Type-C Cable" 
-                  className="form-input"
+                  type="text" required placeholder="e.g. Vylex SuperCord Type-C Cable" className="form-input"
                   value={newProduct.title}
                   onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Description</label>
                 <textarea 
-                  placeholder="Details of the accessory..." 
-                  className="form-input" 
-                  style={{ minHeight: '80px', resize: 'vertical' }}
+                  placeholder="Details of the accessory..." className="form-input" 
+                  style={{ minHeight: '70px', resize: 'vertical' }}
                   value={newProduct.description}
                   onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                 />
               </div>
 
               <div className="form-row">
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Category</label>
-                  <select 
-                    className="form-input"
-                    value={newProduct.category}
-                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                  >
+                  <select className="form-input" value={newProduct.category}
+                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}>
                     <option value="Earbuds">Earbuds</option>
                     <option value="Power Banks">Power Banks</option>
                     <option value="Smartwatches">Smartwatches</option>
                     <option value="Chargers">Chargers</option>
                   </select>
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">SKU Code</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="VY-SCORD-WHT" 
-                    className="form-input"
+                  <input type="text" required placeholder="VY-SCORD-WHT" className="form-input"
                     value={newProduct.sku}
                     onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
                   />
@@ -908,44 +827,31 @@ export default function AdminDashboard() {
               </div>
 
               <div className="form-row">
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Supplier Cost (R)</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    required 
-                    placeholder="250.00" 
-                    className="form-input"
+                  <input type="number" step="0.01" required placeholder="250.00" className="form-input"
                     value={newProduct.cost_price}
                     onChange={(e) => setNewProduct({ ...newProduct, cost_price: e.target.value })}
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Selling Price (R)</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    required 
-                    placeholder="399.00" 
-                    className="form-input"
+                  <input type="number" step="0.01" required placeholder="399.00" className="form-input"
                     value={newProduct.price}
                     onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Initial Stock Quantity</label>
-                <input 
-                  type="number" 
-                  required 
-                  className="form-input"
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Initial Stock</label>
+                <input type="number" required className="form-input"
                   value={newProduct.stock_quantity}
                   onChange={(e) => setNewProduct({ ...newProduct, stock_quantity: e.target.value })}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                 <button type="button" className="btn btn-outline" style={{ flexGrow: 1 }} onClick={() => setIsAddProductOpen(false)}>
                   Cancel
                 </button>
@@ -963,18 +869,15 @@ export default function AdminDashboard() {
         <div className="modal-overlay" onClick={() => setIsTrackingModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Upload Tracking: Order #{selectedOrderForTracking.id.substring(0,8)}</h2>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Tracking: #{selectedOrderForTracking.id.substring(0,8)}</h2>
               <button className="modal-close" onClick={() => setIsTrackingModalOpen(false)}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleTrackingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="form-group">
-                <label className="form-label">Courier Name</label>
-                <select 
-                  className="form-input"
-                  value={trackingForm.courier_name}
-                  onChange={(e) => setTrackingForm({ ...trackingForm, courier_name: e.target.value })}
-                >
+            <form onSubmit={handleTrackingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Courier</label>
+                <select className="form-input" value={trackingForm.courier_name}
+                  onChange={(e) => setTrackingForm({ ...trackingForm, courier_name: e.target.value })}>
                   <option value="The Courier Guy">The Courier Guy</option>
                   <option value="Aramex">Aramex</option>
                   <option value="DHL Express">DHL Express</option>
@@ -983,51 +886,38 @@ export default function AdminDashboard() {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Tracking Number</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="e.g. TCG123456789" 
-                  className="form-input"
+                <input type="text" required placeholder="e.g. TCG123456789" className="form-input"
                   value={trackingForm.tracking_number}
                   onChange={(e) => setTrackingForm({ ...trackingForm, tracking_number: e.target.value })}
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Tracking URL (Optional)</label>
-                <input 
-                  type="url" 
-                  placeholder="https://www.thecourierguy.co.za/tracking?no=..." 
-                  className="form-input"
+                <input type="url" placeholder="https://..." className="form-input"
                   value={trackingForm.tracking_url}
                   onChange={(e) => setTrackingForm({ ...trackingForm, tracking_url: e.target.value })}
                 />
-                <span style={{ fontSize: '0.75rem', color: 'var(--sdark)' }}>
-                  If left blank, default tracking link for the selected courier will be automatically generated.
-                </span>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Shipment Status</label>
-                <select 
-                  className="form-input"
-                  value={trackingForm.status}
-                  onChange={(e) => setTrackingForm({ ...trackingForm, status: e.target.value })}
-                >
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Status</label>
+                <select className="form-input" value={trackingForm.status}
+                  onChange={(e) => setTrackingForm({ ...trackingForm, status: e.target.value })}>
                   <option value="pending">Pending collection</option>
                   <option value="in_transit">In Transit</option>
                   <option value="delivered">Delivered</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                 <button type="button" className="btn btn-outline" style={{ flexGrow: 1 }} onClick={() => setIsTrackingModalOpen(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" style={{ flexGrow: 1, gap: '8px' }}>
-                  <Truck size={16} /> Save Tracking Code
+                <button type="submit" className="btn btn-primary" style={{ flexGrow: 1, gap: '6px' }}>
+                  <Truck size={16} /> Save Tracking
                 </button>
               </div>
             </form>

@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
-// Use default PayFast Sandbox credentials if not provided in env
-const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID || '10000100';
-const MERCHANT_KEY = process.env.PAYFAST_MERCHANT_KEY || '46f09e6ca4e13';
+const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
+const MERCHANT_KEY = process.env.PAYFAST_MERCHANT_KEY;
 const PASSPHRASE = process.env.PAYFAST_PASSPHRASE || '';
 const PAYFAST_URL = process.env.PAYFAST_URL || 'https://sandbox.payfast.co.za/eng/process';
+
+if (!MERCHANT_ID || !MERCHANT_KEY) {
+  console.warn(
+    'WARNING: PAYFAST_MERCHANT_ID or PAYFAST_MERCHANT_KEY is missing from env. ' +
+    'Checkout will fail in production.'
+  );
+}
 
 function generateSignature(params: Record<string, string>, passphrase?: string): string {
   // 1. Sort fields alphabetically
@@ -35,67 +41,110 @@ function generateSignature(params: Record<string, string>, passphrase?: string):
 
 export async function POST(req: Request) {
   try {
+    // Fail early if PayFast credentials are missing
+    if (!MERCHANT_ID || !MERCHANT_KEY) {
+      return NextResponse.json(
+        { error: 'Payment gateway is not configured. Contact store administrator.' },
+        { status: 503 }
+      );
+    }
+
     const { cartItems, shippingDetails } = await req.json();
 
     if (!cartItems || cartItems.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
     }
 
-    if (!shippingDetails.email || !shippingDetails.fullName || !shippingDetails.streetAddress) {
+    if (!shippingDetails?.email || !shippingDetails?.fullName || !shippingDetails?.streetAddress) {
       return NextResponse.json({ error: 'Missing shipping or contact details' }, { status: 400 });
     }
 
-    // 1. Calculate total order amount
+    // SECURITY: Look up product prices from the database server-side
+    // Never trust prices from the client
     let totalAmount = 0;
-    cartItems.forEach((item: any) => {
-      totalAmount += Number(item.price) * Number(item.quantity);
-    });
+    const validatedItems: { product_id: string; quantity: number; price: number }[] = [];
 
-    // Add flat rate shipping (e.g. R99) if under R1000
+    for (const item of cartItems) {
+      const quantity = Number(item.quantity);
+      if (!quantity || quantity <= 0 || !Number.isInteger(quantity)) {
+        return NextResponse.json({ error: `Invalid quantity for item ${item.id}` }, { status: 400 });
+      }
+
+      // Look up the canonical price from the database
+      const { data: product, error: productError } = await supabaseAdmin
+        .from('products')
+        .select('id, price, stock_quantity, title')
+        .eq('id', item.id)
+        .single();
+
+      if (productError || !product) {
+        // If product not found in DB (mock products), fall back to client price for demo
+        // In production, you'd want to reject these
+        console.warn(`Product ${item.id} not found in DB, using client price for demo flow.`);
+        totalAmount += Number(item.price) * quantity;
+        continue;
+      }
+
+      // Verify stock availability
+      if (product.stock_quantity < quantity) {
+        return NextResponse.json(
+          { error: `Insufficient stock for "${product.title}". Only ${product.stock_quantity} available.` },
+          { status: 400 }
+        );
+      }
+
+      // Use the server-validated price, not the client-sent price
+      totalAmount += Number(product.price) * quantity;
+      validatedItems.push({
+        product_id: product.id,
+        quantity,
+        price: Number(product.price),
+      });
+    }
+
+    // Add flat rate shipping (R99) if under R1000
     const shippingCost = totalAmount >= 1000 ? 0 : 99;
     totalAmount += shippingCost;
 
-    // 2. Insert order into Supabase
-    let orderId = crypto.randomUUID(); // Fallback UUID if DB call fails/is not setup
+    // Insert order into Supabase using the service role client
+    let orderId = crypto.randomUUID();
     let supabaseSuccess = false;
 
-    try {
-      const p_items = cartItems.map((item: any) => ({
-        product_id: item.id.includes('vy-') ? null : item.id, // Bypass if seed mock id
-        quantity: item.quantity,
-      })).filter((item: any) => item.product_id !== null); // Remove mock items since DB requires real UUIDs
+    if (validatedItems.length > 0) {
+      try {
+        const p_items = validatedItems.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+        }));
 
-      if (p_items.length === 0) {
-        throw new Error('No valid products in cart for real checkout (mocks not supported).');
+        const p_shipping_address = {
+          streetAddress: shippingDetails.streetAddress,
+          suburb: shippingDetails.suburb || '',
+          city: shippingDetails.city,
+          state: shippingDetails.state,
+          postalCode: shippingDetails.postalCode,
+        };
+
+        const { data: createdOrderId, error: orderError } = await supabaseAdmin.rpc('create_order', {
+          p_items: p_items,
+          p_shipping_address: p_shipping_address,
+          p_customer_email: shippingDetails.email,
+          p_customer_name: shippingDetails.fullName,
+          p_customer_phone: shippingDetails.phone || '',
+        });
+
+        if (orderError) {
+          console.warn('Supabase create_order error:', orderError.message);
+        } else {
+          orderId = createdOrderId;
+          supabaseSuccess = true;
+        }
+      } catch (e: any) {
+        console.warn('Supabase DB connectivity error:', e.message);
       }
-
-      const p_shipping_address = {
-        streetAddress: shippingDetails.streetAddress,
-        suburb: shippingDetails.suburb || '',
-        city: shippingDetails.city,
-        state: shippingDetails.state,
-        postalCode: shippingDetails.postalCode,
-      };
-
-      const { data: createdOrderId, error: orderError } = await supabase.rpc('create_order', {
-        p_items: p_items,
-        p_shipping_address: p_shipping_address,
-        p_customer_email: shippingDetails.email,
-        p_customer_name: shippingDetails.fullName,
-        p_customer_phone: shippingDetails.phone || '',
-      });
-
-      if (orderError) {
-        console.warn('Supabase create_order error:', orderError.message);
-      } else {
-        orderId = createdOrderId;
-        supabaseSuccess = true;
-      }
-    } catch (e: any) {
-      console.warn('Supabase DB connectivity error, bypass check for local demo flow:', e.message);
     }
 
-    // 3. Prepare PayFast Payload
+    // Prepare PayFast Payload
     const origin = req.headers.get('origin') || 'http://localhost:3000';
     const payfastParams: Record<string, string> = {
       merchant_id: MERCHANT_ID,
@@ -113,7 +162,7 @@ export async function POST(req: Request) {
       custom_str1: supabaseSuccess ? 'db_tracked' : 'mock_tracked',
     };
 
-    // 4. Generate Signature
+    // Generate Signature
     const signature = generateSignature(payfastParams, PASSPHRASE);
     payfastParams['signature'] = signature;
 

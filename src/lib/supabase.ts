@@ -10,6 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Client-side Supabase client (uses anon key, subject to RLS)
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder-url.supabase.co',
   supabaseAnonKey || 'placeholder-anon-key'
