@@ -8,13 +8,15 @@ const CART_STORAGE_KEY = 'vylex_cart';
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, 'quantity'>) => void;
-  updateQuantity: (id: string, delta: number) => void;
-  removeItem: (id: string) => void;
+  updateQuantity: (id: string, variant: string | undefined, delta: number) => void;
+  removeItem: (id: string, variant: string | undefined) => void;
   clearCart: () => void;
   getSubtotal: () => number;
   getShippingCost: () => number;
   getTotal: () => number;
   cartCount: number;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -22,6 +24,7 @@ const CartContext = createContext<CartContextType | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -47,11 +50,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback((item: Omit<CartItem, 'quantity'>) => {
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
+      const existing = prev.find(i => i.id === item.id && i.variant === item.variant);
       let newCart: CartItem[];
       if (existing) {
         newCart = prev.map(i =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.id === item.id && i.variant === item.variant ? { ...i, quantity: i.quantity + 1 } : i
         );
       } else {
         newCart = [...prev, { ...item, quantity: 1 }];
@@ -61,11 +64,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const updateQuantity = useCallback((id: string, delta: number) => {
+  const updateQuantity = useCallback((id: string, variant: string | undefined, delta: number) => {
     setCart(prev => {
       const newCart = prev
         .map(item => {
-          if (item.id === id) {
+          if (item.id === id && item.variant === variant) {
             const newQty = item.quantity + delta;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
@@ -77,9 +80,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const removeItem = useCallback((id: string) => {
+  const removeItem = useCallback((id: string, variant: string | undefined) => {
     setCart(prev => {
-      const newCart = prev.filter(item => item.id !== id);
+      const newCart = prev.filter(item => !(item.id === id && item.variant === variant));
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newCart));
       return newCart;
     });
@@ -116,6 +119,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       getShippingCost,
       getTotal,
       cartCount,
+      isCartOpen,
+      setIsCartOpen,
     }}>
       {children}
     </CartContext.Provider>

@@ -5,22 +5,24 @@ import Link from 'next/link';
 import { 
   ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShieldCheck, 
   X, CreditCard, ChevronRight,
-  Lock, RefreshCw, Menu
+  Lock, RefreshCw, Menu, ArrowLeft
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { MOCK_PRODUCTS, CATEGORIES, ProductIcon } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
+import { CartDrawer } from '@/components/CartDrawer';
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<'browse' | 'form' | 'redirecting'>('browse');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showMobileSummary, setShowMobileSummary] = useState(false);
   
   const {
     cart, addToCart, updateQuantity, removeItem, clearCart,
-    getSubtotal, getShippingCost, getTotal, cartCount
+    getSubtotal, getShippingCost, getTotal, cartCount,
+    isCartOpen, setIsCartOpen
   } = useCart();
 
   // Shipping form fields
@@ -36,6 +38,248 @@ export default function Home() {
   });
 
   const [loadingCheckout, setLoadingCheckout] = useState(false);
+
+  // Address suggestions autocomplete states
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [googlePlacesService, setGooglePlacesService] = useState<any>(null);
+  const [googleAutocompleteService, setGoogleAutocompleteService] = useState<any>(null);
+
+  // Dynamically load Google Maps script if API key is provided
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return;
+
+    if ((window as any).google) {
+      initGoogleServices();
+      return;
+    }
+
+    const scriptId = 'google-maps-places-script';
+    if (document.getElementById(scriptId)) return;
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => initGoogleServices();
+    document.head.appendChild(script);
+  }, []);
+
+  const initGoogleServices = () => {
+    if (typeof window !== 'undefined' && (window as any).google) {
+      try {
+        const maps = (window as any).google.maps;
+        setGoogleAutocompleteService(new maps.places.AutocompleteService());
+        setGooglePlacesService(new maps.places.PlacesService(document.createElement('div')));
+      } catch (err) {
+        console.error('Failed to initialize Google Places Services:', err);
+      }
+    }
+  };
+
+  // Normalizer for South African provinces to match the select dropdown exact values
+  const normalizeProvince = (prov: string): string => {
+    if (!prov) return '';
+    const p = prov.toLowerCase().trim();
+    if (p.includes('gauteng')) return 'Gauteng';
+    if (p.includes('western cape')) return 'Western Cape';
+    if (p.includes('kwazulu') || p.includes('kzn') || p.includes('natal')) return 'KwaZulu-Natal';
+    if (p.includes('eastern cape')) return 'Eastern Cape';
+    if (p.includes('free state')) return 'Free State';
+    if (p.includes('limpopo')) return 'Limpopo';
+    if (p.includes('mpumalanga')) return 'Mpumalanga';
+    if (p.includes('north west')) return 'North West';
+    if (p.includes('northern cape')) return 'Northern Cape';
+    return '';
+  };
+
+  // Main search suggestion fetcher
+  const handleAddressSearch = async (query: string) => {
+    if (!query || query.length < 3) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setLoadingSuggestions(true);
+    setShowSuggestions(true);
+
+    // 1. Try Google Places Autocomplete if configured
+    if (googleAutocompleteService) {
+      googleAutocompleteService.getPlacePredictions(
+        {
+          input: query,
+          componentRestrictions: { country: 'za' },
+          types: ['address']
+        },
+        (predictions: any[], status: string) => {
+          setLoadingSuggestions(false);
+          if (status === 'OK' && predictions) {
+            setAddressSuggestions(
+              predictions.map((p) => ({
+                id: p.place_id,
+                mainText: p.structured_formatting.main_text,
+                secondaryText: p.structured_formatting.secondary_text,
+                source: 'google'
+              }))
+            );
+          } else {
+            setAddressSuggestions([]);
+          }
+        }
+      );
+      return;
+    }
+
+    // 2. Fallback: Try OpenStreetMap Nominatim API
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        query
+      )}&format=json&addressdetails=1&limit=5&countrycodes=za&accept-language=en`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'VylexStoreApp/1.0'
+        }
+      });
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        const formatted = data.map((item: any, index: number) => {
+          const addr = item.address || {};
+          const streetNum = addr.house_number || '';
+          const road = addr.road || '';
+          
+          let mainText = streetNum ? `${streetNum} ${road}` : road;
+          if (!mainText) {
+            mainText = item.display_name.split(',')[0] || 'Unknown Street';
+          }
+          
+          // Build secondary text
+          const secondaryParts = [];
+          if (addr.suburb || addr.neighbourhood) secondaryParts.push(addr.suburb || addr.neighbourhood);
+          if (addr.city || addr.town || addr.village) secondaryParts.push(addr.city || addr.town || addr.village);
+          if (addr.state) secondaryParts.push(addr.state);
+          if (addr.postcode) secondaryParts.push(addr.postcode);
+          const secondaryText = secondaryParts.join(', ');
+
+          return {
+            id: `osm-${index}-${item.lat}-${item.lon}`,
+            mainText,
+            secondaryText,
+            source: 'osm',
+            rawAddress: addr
+          };
+        });
+        setAddressSuggestions(formatted);
+      } else {
+        setAddressSuggestions([]);
+      }
+    } catch (err) {
+      console.warn('OpenStreetMap search fallback failed:', err);
+      setAddressSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  // Selection handler (autofills state fields)
+  const handleSelectSuggestion = (suggestion: any) => {
+    setShowSuggestions(false);
+
+    if (suggestion.source === 'google' && googlePlacesService) {
+      setLoadingSuggestions(true);
+      googlePlacesService.getDetails(
+        {
+          placeId: suggestion.id,
+          fields: ['address_components', 'formatted_address']
+        },
+        (place: any, status: string) => {
+          setLoadingSuggestions(false);
+          if (status === 'OK' && place) {
+            const comps = place.address_components || [];
+            
+            let streetNum = '';
+            let route = '';
+            let suburb = '';
+            let city = '';
+            let province = '';
+            let postalCode = '';
+
+            comps.forEach((c: any) => {
+              const types = c.types || [];
+              if (types.includes('street_number')) streetNum = c.long_name;
+              if (types.includes('route')) route = c.long_name;
+              if (types.includes('sublocality_level_1') || types.includes('neighborhood') || types.includes('sublocality')) {
+                suburb = c.long_name;
+              }
+              if (types.includes('locality')) city = c.long_name;
+              if (types.includes('administrative_area_level_1')) province = c.long_name;
+              if (types.includes('postal_code')) postalCode = c.long_name;
+            });
+
+            // If city is empty, check if we have a sublocality/town/etc.
+            if (!city) {
+              const admin2 = comps.find((c: any) => c.types.includes('administrative_area_level_2'));
+              if (admin2) city = admin2.long_name;
+            }
+
+            const streetAddress = streetNum ? `${streetNum} ${route}` : route;
+
+            setShippingDetails((prev) => ({
+              ...prev,
+              streetAddress: streetAddress || suggestion.mainText,
+              suburb: suburb,
+              city: city,
+              state: normalizeProvince(province),
+              postalCode: postalCode,
+            }));
+          }
+        }
+      );
+    } else if (suggestion.source === 'osm') {
+      const addr = suggestion.rawAddress || {};
+      const streetNum = addr.house_number || '';
+      const road = addr.road || '';
+      const streetAddress = streetNum ? `${streetNum} ${road}` : road;
+      
+      const suburb = addr.suburb || addr.neighbourhood || addr.residential || addr.suburb_district || addr.quarter || addr.sublocality || '';
+      
+      let city = addr.city || addr.town || addr.village || addr.city_district || addr.municipality || addr.county || '';
+      
+      // Map metropolitan municipalities to canonical South African cities
+      const lowerCity = city.toLowerCase();
+      if (lowerCity.includes('ethekwini')) {
+        city = 'Durban';
+      } else if (lowerCity.includes('cape town')) {
+        city = 'Cape Town';
+      } else if (lowerCity.includes('johannesburg')) {
+        city = 'Johannesburg';
+      } else if (lowerCity.includes('tshwane')) {
+        city = 'Pretoria';
+      } else if (lowerCity.includes('mangaung')) {
+        city = 'Bloemfontein';
+      } else if (lowerCity.includes('nelson mandela bay')) {
+        city = 'Gqeberha';
+      }
+
+      const province = addr.state || addr.province || addr.region || '';
+      const postalCode = addr.postcode || '';
+
+      setShippingDetails((prev) => ({
+        ...prev,
+        streetAddress: streetAddress || suggestion.mainText,
+        suburb: suburb,
+        city: city,
+        state: normalizeProvince(province),
+        postalCode: postalCode,
+      }));
+    }
+  };
 
   // Load products from Supabase, or fall back to mock seed
   useEffect(() => {
@@ -54,6 +298,17 @@ export default function Home() {
       }
     }
     fetchProducts();
+  }, []);
+
+  // Listen for direct checkout parameter redirects from product detail pages
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('checkout') === '1') {
+        setCheckoutStep('form');
+        window.history.replaceState({}, '', '/');
+      }
+    }
   }, []);
 
   const handleAddToCart = (product: any) => {
@@ -210,12 +465,72 @@ export default function Home() {
         ) : checkoutStep === 'form' ? (
           /* Checkout View */
           <div className="container" style={{ padding: '40px 0 60px' }}>
-            <button className="btn btn-outline" onClick={() => setCheckoutStep('browse')} style={{ marginBottom: '24px' }}>
-              Back to Catalog
+            <button 
+              className="btn btn-outline" 
+              onClick={() => setCheckoutStep('browse')} 
+              style={{ 
+                marginBottom: '32px', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                padding: '10px 18px' 
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Catalog
             </button>
 
             <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 700, marginBottom: '12px' }}>Secure Checkout</h1>
             <p style={{ color: 'var(--sdark)', marginBottom: '32px' }}>Provide your contact details and shipping address to place order. Integrated with PayFast.</p>
+
+            {/* Mobile-only Collapsible Order Summary */}
+            <div className="checkout-mobile-summary-toggle" onClick={() => setShowMobileSummary(!showMobileSummary)}>
+              <span className="toggle-text">
+                <ShoppingCart size={18} />
+                {showMobileSummary ? 'Hide order summary' : 'Show order summary'}
+                <span className="chevron-icon" style={{ fontSize: '0.8rem', marginLeft: '6px' }}>
+                  {showMobileSummary ? '▲' : '▼'}
+                </span>
+              </span>
+              <span className="toggle-price" style={{ fontWeight: 700 }}>R{total.toFixed(2)}</span>
+            </div>
+
+            <div className={`checkout-mobile-summary-content ${showMobileSummary ? 'open' : ''}`}>
+              <div className="card" style={{ marginBottom: '24px', background: 'var(--white)', border: '1px solid var(--slate)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+                  {cart.map(item => (
+                    <div key={`${item.id}-${item.variant || ''}`} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ width: '48px', height: '48px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <ProductIcon name={item.image} className="cart-icon-small" />
+                      </div>
+                      <div style={{ flexGrow: 1 }}>
+                        <h4 style={{ fontSize: '0.92rem', fontWeight: 700, lineHeight: 1.2 }}>{item.title}</h4>
+                        {item.variant && (
+                          <div style={{ fontSize: '0.78rem', color: 'var(--sdark)', marginTop: '2px' }}>Option: {item.variant}</div>
+                        )}
+                        <span style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Qty: {item.quantity} × R{item.price.toFixed(2)}</span>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        R{(item.price * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="summary-item">
+                  <span>Subtotal</span>
+                  <span>R{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Delivery Cost</span>
+                  <span>{shippingCost === 0 ? 'FREE' : `R${shippingCost.toFixed(2)}`}</span>
+                </div>
+
+                <div className="summary-total" style={{ fontSize: '1.2rem', paddingTop: '12px', marginTop: '12px' }}>
+                  <span>Total Due</span>
+                  <span>R{total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
 
             <div className="checkout-grid">
               
@@ -253,13 +568,57 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative' }}>
                   <label className="form-label">Street Address</label>
                   <input 
-                    type="text" required placeholder="123 Brandvlei Ave" className="form-input" 
+                    type="text" 
+                    required 
+                    placeholder="123 Brandvlei Ave" 
+                    className="form-input" 
                     value={shippingDetails.streetAddress}
-                    onChange={(e) => setShippingDetails({ ...shippingDetails, streetAddress: e.target.value })}
+                    onChange={(e) => {
+                      setShippingDetails({ ...shippingDetails, streetAddress: e.target.value });
+                      handleAddressSearch(e.target.value);
+                    }}
+                    onBlur={() => setShowSuggestions(false)}
+                    onFocus={() => {
+                      if (shippingDetails.streetAddress.length >= 3) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    autoComplete="off"
                   />
+
+                  {/* Autocomplete Dropdown List */}
+                  {showSuggestions && (addressSuggestions.length > 0 || loadingSuggestions) && (
+                    <div className="address-suggestions-dropdown">
+                      {loadingSuggestions && (
+                        <div style={{ padding: '12px 16px', color: 'var(--sdark)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="animate-spin" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid var(--slate)', borderTopColor: 'var(--orange)', borderRadius: '50%' }}></span>
+                          Searching addresses...
+                        </div>
+                      )}
+                      
+                      {!loadingSuggestions && addressSuggestions.map((suggestion) => (
+                        <div 
+                          key={suggestion.id}
+                          className="address-suggestion-item"
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevents input blur BEFORE click registers!
+                            handleSelectSuggestion(suggestion);
+                          }}
+                        >
+                          <MapPin size={16} style={{ color: 'var(--orange)', flexShrink: 0, marginTop: '2px' }} />
+                          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                            <strong style={{ fontSize: '0.9rem', color: 'var(--navy)', lineHeight: '1.2' }}>{suggestion.mainText}</strong>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--sdark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
+                              {suggestion.secondaryText}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-row">
@@ -326,20 +685,23 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Shopping Cart Summary column */}
-              <div className="card" style={{ height: 'fit-content' }}>
+              {/* Shopping Cart Summary column (Desktop only) */}
+              <div className="card checkout-desktop-summary" style={{ height: 'fit-content' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 700, borderBottom: '1px solid var(--slate)', paddingBottom: '12px', marginBottom: '20px' }}>
                   Order Summary
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                   {cart.map(item => (
-                    <div key={item.id} style={{ display: 'flex', justifyItems: 'center', gap: '16px' }}>
-                      <div style={{ width: '48px', height: '48px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div key={`${item.id}-${item.variant || ''}`} style={{ display: 'flex', justifyItems: 'center', gap: '16px' }}>
+                      <div style={{ width: '48px', height: '48px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <ProductIcon name={item.image} className="cart-icon-small" />
                       </div>
                       <div style={{ flexGrow: 1 }}>
                         <h4 style={{ fontSize: '0.92rem', fontWeight: 700, lineHeight: 1.2 }}>{item.title}</h4>
+                        {item.variant && (
+                          <div style={{ fontSize: '0.78rem', color: 'var(--sdark)', marginTop: '2px' }}>Option: {item.variant}</div>
+                        )}
                         <span style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Qty: {item.quantity} × R{item.price.toFixed(2)}</span>
                       </div>
                       <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
@@ -494,95 +856,9 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      {/* Cart Slider Drawer */}
-      {isCartOpen && (
-        <div className="cart-drawer-overlay" onClick={() => setIsCartOpen(false)}>
-          <div className="cart-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header" style={{ borderBottom: '1px solid var(--slate)', paddingBottom: '16px' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.25rem', fontWeight: 700 }}>
-                <ShoppingCart size={22} /> Shopping Cart
-              </h2>
-              <button className="modal-close" onClick={() => setIsCartOpen(false)}><X size={20} /></button>
-            </div>
-
-            {/* Cart Items List */}
-            <div style={{ flexGrow: 1, overflowY: 'auto', padding: '20px 0', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {cart.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <ShoppingCart size={48} style={{ color: 'var(--slate)', marginBottom: '16px' }} />
-                  <p style={{ color: 'var(--sdark)' }}>Your cart is empty.</p>
-                  <button className="btn btn-outline" style={{ marginTop: '20px' }} onClick={() => setIsCartOpen(false)}>
-                    Browse Products
-                  </button>
-                </div>
-              ) : (
-                cart.map(item => (
-                  <div key={item.id} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--slate)', paddingBottom: '20px' }}>
-                    <div style={{ width: '64px', height: '64px', background: '#f1f5f9', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ProductIcon name={item.image} className="cart-icon-medium" />
-                    </div>
-                    
-                    <div style={{ flexGrow: 1 }}>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '6px', lineHeight: 1.2 }}>{item.title}</h3>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '12px' }}>
-                        R{item.price.toFixed(2)}
-                      </div>
-                      
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid var(--slate)', borderRadius: '30px', padding: '2px 4px' }}>
-                          <button className="btn-icon" style={{ width: '28px', height: '28px', border: 'none' }} onClick={() => updateQuantity(item.id, -1)}>
-                            <Minus size={12} />
-                          </button>
-                          <span style={{ fontSize: '0.88rem', fontWeight: 600, minWidth: '20px', textAlign: 'center' }}>
-                            {item.quantity}
-                          </span>
-                          <button className="btn-icon" style={{ width: '28px', height: '28px', border: 'none' }} onClick={() => updateQuantity(item.id, 1)}>
-                            <Plus size={12} />
-                          </button>
-                        </div>
-                        
-                        <button className="btn-icon" style={{ width: '32px', height: '32px', color: 'var(--red)', borderColor: 'transparent' }} onClick={() => removeItem(item.id)}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {cart.length > 0 && (
-              <div style={{ borderTop: '1px solid var(--slate)', paddingTop: '20px', marginTop: 'auto' }}>
-                <div className="summary-item" style={{ marginBottom: '8px' }}>
-                  <span>Subtotal</span>
-                  <span style={{ fontWeight: 600 }}>R{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="summary-item" style={{ marginBottom: '16px' }}>
-                  <span>Delivery Cost</span>
-                  <span>{shippingCost === 0 ? 'FREE' : `R${shippingCost.toFixed(2)}`}</span>
-                </div>
-                
-                <div className="summary-total" style={{ borderTop: '1px solid var(--slate)', paddingTop: '16px', marginBottom: '24px' }}>
-                  <span>Total Amount</span>
-                  <span>R{total.toFixed(2)}</span>
-                </div>
-
-                <button 
-                  className="btn btn-primary" 
-                  style={{ width: '100%', padding: '16px', gap: '10px' }}
-                  onClick={() => {
-                    setIsCartOpen(false);
-                    setCheckoutStep('form');
-                  }}
-                >
-                  Proceed to Secure Checkout <ArrowRight size={18} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+ 
+      {/* Global Cart Drawer */}
+      <CartDrawer onCheckoutClick={() => setCheckoutStep('form')} />
 
       {/* Core Footer */}
       <footer className="footer">

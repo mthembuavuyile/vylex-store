@@ -1532,3 +1532,106 @@ button {
     padding-bottom: 80px;
   }
 }
+
+/* Mobile Collapsible Checkout Summary */
+.checkout-mobile-summary-toggle {
+  display: none;
+}
+.checkout-mobile-summary-content {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .checkout-mobile-summary-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--slate);
+    border-radius: var(--border-radius);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.2s ease;
+  }
+  .checkout-mobile-summary-toggle:active {
+    background-color: var(--slate);
+  }
+  .checkout-mobile-summary-toggle .toggle-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--navy);
+  }
+  .checkout-mobile-summary-content {
+    display: none;
+  }
+  .checkout-mobile-summary-content.open {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+  }
+  .checkout-desktop-summary {
+    display: none !important;
+  }
+}
+
+/* Product Detail Color Swatches and Size Pills */
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+.color-swatch:active {
+  transform: scale(0.95);
+}
+
+.size-pill:hover {
+  border-color: var(--navy) !important;
+}
+.size-pill:active {
+  transform: scale(0.98);
+}
+
+/* Address Autocomplete Suggestions Dropdown */
+.address-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--slate);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 150;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.address-suggestion-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  align-items: flex-start;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  transition: background-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.address-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.address-suggestion-item:hover {
+  background-color: var(--bg);
+}
+
+.address-suggestion-item:active {
+  background-color: var(--slate);
+}
+
+

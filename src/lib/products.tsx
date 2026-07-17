@@ -22,6 +22,7 @@ export interface CartItem {
   quantity: number;
   image: string;
   slug: string;
+  variant?: string;
 }
 
 // Seed / Mock products for tech accessories dropshipping store
