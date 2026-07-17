@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShieldCheck, 
   Sparkles, Filter, X, CreditCard, ChevronRight, CheckCircle2,
-  Lock, RefreshCw, Smartphone, Laptop
+  Lock, RefreshCw, Smartphone, Laptop, Menu
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -69,6 +69,7 @@ export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<'browse' | 'details' | 'form' | 'redirecting'>('browse');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Shipping form fields
   const [shippingDetails, setShippingDetails] = useState({
@@ -228,19 +229,24 @@ export default function Home() {
       {/* Premium Navigation Header */}
       <header className="navbar">
         <div className="container navbar-inner">
-          <a href="#" className="logo" onClick={() => setCheckoutStep('browse')}>
-            <div className="logo-dot"></div>
-            Vylex<span>Store</span>
+          <a href="#" className="logo" onClick={() => { setCheckoutStep('browse'); setIsMobileMenuOpen(false); }}>
+            <svg width="32" height="32" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
+              <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+              <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
+            </svg>
+            <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
           </a>
           
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          {/* Desktop Navigation Links */}
+          <nav className="desktop-nav">
             {checkoutStep === 'browse' && (
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <a href="#catalog" className="nav-link">Shop Gadgets</a>
-                <a href="/admin" className="nav-link" style={{ color: 'var(--orange)', fontWeight: 'bold' }}>Admin Console</a>
-              </div>
+              <a href="#catalog" className="nav-link">Shop Gadgets</a>
             )}
-            
+            <a href="/admin" className="nav-link" style={{ color: 'var(--orange)', fontWeight: 'bold' }}>Admin Console</a>
+          </nav>
+
+          {/* Action Buttons */}
+          <div className="nav-actions">
             <button className="btn-icon" onClick={() => setIsCartOpen(true)} style={{ position: 'relative' }}>
               <ShoppingCart size={20} />
               {cart.length > 0 && (
@@ -264,9 +270,52 @@ export default function Home() {
                 </span>
               )}
             </button>
-          </nav>
+
+            {/* Hamburger Trigger for Mobile */}
+            <button 
+              className="btn-icon mobile-menu-trigger" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
+
       </header>
+
+      {/* Mobile Navigation Drawer Menu */}
+      <div className={`mobile-nav-drawer ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+        <div className="mobile-nav-content" onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-nav-header">
+            <a href="#" className="logo" onClick={() => { setCheckoutStep('browse'); setIsMobileMenuOpen(false); }}>
+              <svg width="32" height="32" viewBox="0 0 100 100">
+                <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+                <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
+              </svg>
+              <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+            </a>
+            <button className="btn-icon" onClick={() => setIsMobileMenuOpen(false)}>
+              <X size={20} />
+            </button>
+          </div>
+          
+          <nav className="mobile-nav-links">
+            {checkoutStep === 'browse' && (
+              <a href="#catalog" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                Shop Gadgets
+              </a>
+            )}
+            <a href="/admin" className="mobile-nav-link mobile-nav-admin" onClick={() => setIsMobileMenuOpen(false)}>
+              Admin Console
+            </a>
+          </nav>
+
+          <div className="mobile-nav-footer">
+            <p>Premium online tech store. Built for store.vylex.co.za.</p>
+          </div>
+        </div>
+      </div>
 
       {/* Main App Workspace */}
       <main style={{ flexGrow: 1 }}>
@@ -472,7 +521,7 @@ export default function Home() {
                 <div className="hero-content" style={{ animation: 'fadeIn 0.8s ease-out' }}>
                   <h1>Vylex Premium <span>Consumer Tech</span></h1>
                   <p>Elevate your digital life. Fast dispatch and secure delivery on premium power banks, audio, smart wearables, and chargers.</p>
-                  <div style={{ display: 'flex', gap: '16px' }}>
+                  <div className="hero-buttons">
                     <a href="#catalog" className="btn btn-primary">Browse Catalog</a>
                     <button className="btn btn-secondary" onClick={() => {
                       // Demo direct checkout
@@ -517,7 +566,7 @@ export default function Home() {
             {/* Catalog Grid Section */}
             <section id="catalog" className="container" style={{ padding: '60px 0 100px' }}>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid var(--slate)', paddingBottom: '24px', flexWrap: 'wrap', gap: '20px' }}>
+              <div className="catalog-header">
                 <div>
                   <div className="sec-lbl">Tech Accessories</div>
                   <h2 style={{ fontSize: '2rem', fontWeight: 700 }}>Curated Electronics</h2>
@@ -635,17 +684,8 @@ export default function Home() {
 
       {/* Cart Slider Drawer */}
       {isCartOpen && (
-        <div className="modal-overlay" onClick={() => setIsCartOpen(false)} style={{ justifyContent: 'flex-end', alignItems: 'stretch' }}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
-            width: '100%',
-            maxWidth: '460px',
-            borderRadius: '18px 0 0 18px',
-            height: '100%',
-            maxHeight: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            animation: 'fadeIn 0.2s ease-out'
-          }}>
+        <div className="cart-drawer-overlay" onClick={() => setIsCartOpen(false)}>
+          <div className="cart-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header" style={{ borderBottom: '1px solid var(--slate)', paddingBottom: '16px' }}>
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.25rem', fontWeight: 700 }}>
                 <ShoppingCart size={22} /> Shopping Cart
@@ -736,9 +776,12 @@ export default function Home() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-col">
-              <a href="#" className="logo" style={{ color: 'white', marginBottom: '16px' }}>
-                <div className="logo-dot"></div>
-                Vylex<span style={{ color: 'var(--orange)' }}>Store</span>
+              <a href="#" className="logo logo-light" style={{ marginBottom: '16px' }}>
+                <svg width="32" height="32" viewBox="0 0 100 100">
+                  <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+                  <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
+                </svg>
+                <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
               </a>
               <p>Premium online tech store. Dropshipping high-quality, supplier-warranted consumer electronics across South Africa.</p>
             </div>
