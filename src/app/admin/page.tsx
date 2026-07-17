@@ -18,6 +18,13 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [syncLogs, setSyncLogs] = useState<any[]>([]);
+  
+  // Authentication State
+  const [session, setSession] = useState<any>(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Modals / Form toggles
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -52,7 +59,19 @@ export default function AdminDashboard() {
 
   // 1. Initial Data Fetching from Supabase (with fallback to localStorage/mock)
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
     async function loadData() {
+      if (!session) return; // Don't fetch until logged in
+      
       // Load Products
       try {
         const { data: dbProducts, error: prodErr } = await supabase.from('products').select('*');
@@ -114,17 +133,13 @@ export default function AdminDashboard() {
         const local = localStorage.getItem(ADMIN_SYNC_LOGS_KEY);
         if (local) {
           setSyncLogs(JSON.parse(local));
-        } else {
-          const initialLogs = [
-            { id: '1', status: 'success', details: 'Database initialization and migration matching store.vylex.co.za config completed.', created_at: new Date(Date.now() - 3600000 * 24).toISOString() }
-          ];
-          setSyncLogs(initialLogs);
-          localStorage.setItem(ADMIN_SYNC_LOGS_KEY, JSON.stringify(initialLogs));
         }
       }
     }
-    loadData();
-  }, []);
+    if (session) {
+      loadData();
+    }
+  }, [session]);
 
   const saveProductsState = (newProducts: any[]) => {
     setProducts(newProducts);
@@ -368,6 +383,58 @@ export default function AdminDashboard() {
   const pendingOrders = orders.filter(o => o.status === 'pending');
   const paidOrders = orders.filter(o => o.status === 'paid');
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setAuthError('');
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authEmail,
+      password: authPassword,
+    });
+    if (error) setAuthError(error.message);
+    setIsLoggingIn(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (!session) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px' }}>
+        <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '40px 32px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div className="logo logo-light" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+              <svg width="32" height="32" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
+                <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+                <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
+              </svg>
+            </div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Admin Login</h1>
+            <p style={{ color: 'var(--sdark)', fontSize: '0.9rem', marginTop: '8px' }}>Restricted access for store owners.</p>
+          </div>
+          
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label className="form-label">Email</label>
+              <input type="email" className="form-input" value={authEmail} onChange={e => setAuthEmail(e.target.value)} required />
+            </div>
+            <div>
+              <label className="form-label">Password</label>
+              <input type="password" className="form-input" value={authPassword} onChange={e => setAuthPassword(e.target.value)} required />
+            </div>
+            
+            {authError && <div style={{ color: '#ef4444', fontSize: '0.85rem', padding: '10px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px' }}>{authError}</div>}
+            
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '8px', width: '100%' }} disabled={isLoggingIn}>
+              {isLoggingIn ? 'Authenticating...' : 'Sign In securely'} <ShieldAlert size={16} />
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-layout">
       
@@ -420,12 +487,12 @@ export default function AdminDashboard() {
           </li>
         </ul>
 
-        <div style={{ marginTop: 'auto', paddingTop: '40px' }}>
-          <a href="/" className="admin-nav-link" style={{ color: 'var(--red)', border: 'none' }}>
-            <LogOut size={18} /> Return to Store
-          </a>
-        </div>
-      </aside>
+          <div style={{ padding: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <button className="btn btn-outline" style={{ width: '100%', borderColor: 'rgba(255,255,255,0.2)', color: 'white' }} onClick={handleLogout}>
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
+        </aside>
 
       {/* Main Workspace content */}
       <main className="admin-content">

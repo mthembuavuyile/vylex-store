@@ -60,42 +60,36 @@ export async function POST(req: Request) {
     let supabaseSuccess = false;
 
     try {
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          id: orderId,
-          customer_id: null, // Guest checkout by default, or linked if profiles are configured
-          status: 'pending',
-          total_amount: totalAmount,
-          shipping_address: {
-            streetAddress: shippingDetails.streetAddress,
-            suburb: shippingDetails.suburb || '',
-            city: shippingDetails.city,
-            state: shippingDetails.state,
-            postalCode: shippingDetails.postalCode,
-          },
-          customer_email: shippingDetails.email,
-          customer_name: shippingDetails.fullName,
-          customer_phone: shippingDetails.phone || '',
-        })
-        .select()
-        .single();
+      const p_items = cartItems.map((item: any) => ({
+        product_id: item.id.includes('vy-') ? null : item.id, // Bypass if seed mock id
+        quantity: item.quantity,
+      })).filter((item: any) => item.product_id !== null); // Remove mock items since DB requires real UUIDs
+
+      if (p_items.length === 0) {
+        throw new Error('No valid products in cart for real checkout (mocks not supported).');
+      }
+
+      const p_shipping_address = {
+        streetAddress: shippingDetails.streetAddress,
+        suburb: shippingDetails.suburb || '',
+        city: shippingDetails.city,
+        state: shippingDetails.state,
+        postalCode: shippingDetails.postalCode,
+      };
+
+      const { data: createdOrderId, error: orderError } = await supabase.rpc('create_order', {
+        p_items: p_items,
+        p_shipping_address: p_shipping_address,
+        p_customer_email: shippingDetails.email,
+        p_customer_name: shippingDetails.fullName,
+        p_customer_phone: shippingDetails.phone || '',
+      });
 
       if (orderError) {
-        console.warn('Supabase insert order error (falling back to memory-session uuid):', orderError.message);
+        console.warn('Supabase create_order error:', orderError.message);
       } else {
-        orderId = orderData.id;
+        orderId = createdOrderId;
         supabaseSuccess = true;
-        
-        // Insert order items
-        const orderItemsToInsert = cartItems.map((item: any) => ({
-          order_id: orderId,
-          product_id: item.id.includes('vy-') ? null : item.id, // Set null if it is seed mock product id
-          quantity: item.quantity,
-          price: item.price
-        }));
-
-        await supabase.from('order_items').insert(orderItemsToInsert);
       }
     } catch (e: any) {
       console.warn('Supabase DB connectivity error, bypass check for local demo flow:', e.message);

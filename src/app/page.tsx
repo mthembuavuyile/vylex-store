@@ -102,7 +102,7 @@ export default function Home() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('*');
+          .select('id, title, description, price, sku, category, images, stock_quantity');
         if (error) {
           console.warn('Could not load products from Supabase, using mock local products.');
         } else if (data && data.length > 0) {
