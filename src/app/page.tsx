@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShieldCheck, 
   Sparkles, Filter, X, CreditCard, ChevronRight, CheckCircle2,
-  Lock, RefreshCw, Smartphone, Laptop, Menu
+  Lock, RefreshCw, Smartphone, Laptop, Menu, BatteryCharging,
+  Headphones, Watch, Zap
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -18,7 +19,7 @@ const MOCK_PRODUCTS = [
     sku: 'VY-NC20-BLK',
     description: 'High-capacity 20,000mAh power bank with 22.5W Power Delivery. Features dual USB-A and USB-C inputs/outputs, and an LED battery percentage indicator. Charges smartphones 4-5 times.',
     specifications: ['20,000mAh Lithium Polymer battery', '22.5W Fast Charging PD 3.0', '1x USB-C Input/Output, 2x USB-A Output', 'Digital LED Battery Display', 'Flight approved safety multi-protect'],
-    images: ['🔌'],
+    images: ['powerbank'],
   },
   {
     id: 'vy-wpp-wht',
@@ -28,7 +29,7 @@ const MOCK_PRODUCTS = [
     sku: 'VY-WPP-WHT',
     description: 'Active Noise Cancelling (ANC) wireless earbuds with bluetooth 5.3. Up to 36 hours of playtime with the wireless charging case. Smart touch controls and water-resistant rating IPX7.',
     specifications: ['Active Noise Cancellation up to 30dB', 'Bluetooth 5.3 low-latency connection', '36 hours total battery life with case', 'IPX7 Water & Sweat Resistant', 'Smart touch controls with voice assistant support'],
-    images: ['🎧'],
+    images: ['earbuds'],
   },
   {
     id: 'vy-tfv4-gry',
@@ -38,7 +39,7 @@ const MOCK_PRODUCTS = [
     sku: 'VY-TFV4-GRY',
     description: 'Premium smartwatch featuring 1.9" AMOLED display, blood oxygen monitoring, heart rate sensor, GPS tracking, and sleep analysis. Compatible with Android & iOS. 10-day battery life.',
     specifications: ['1.9" Always-on AMOLED Display', 'Heart rate, SpO2, and Sleep tracking', '100+ Sports tracking modes', 'GPS route tracing via app connectivity', '10-day battery life on a single charge'],
-    images: ['⌚'],
+    images: ['smartwatch'],
   },
   {
     id: 'vy-sp65-gan',
@@ -48,9 +49,19 @@ const MOCK_PRODUCTS = [
     sku: 'VY-SP65-GAN',
     description: 'Ultra-compact Gallium Nitride (GaN) wall charger. Features 2x USB-C PD ports and 1x USB-A port. Safely fast-charge your MacBook, tablet, smartwatch, and smartphone simultaneously.',
     specifications: ['65W Total Power output via GaN Technology', '2x USB-C Power Delivery ports, 1x USB-A port', 'Intelligent power allocation control', 'Advanced over-temperature & short-circuit protection', 'Extremely compact foldable plug design'],
-    images: ['⚡'],
+    images: ['charger'],
   }
 ];
+
+const ProductIcon = ({ name, className }: { name: string, className?: string }) => {
+  switch (name) {
+    case 'powerbank': return <BatteryCharging className={className} strokeWidth={1.5} />;
+    case 'earbuds': return <Headphones className={className} strokeWidth={1.5} />;
+    case 'smartwatch': return <Watch className={className} strokeWidth={1.5} />;
+    case 'charger': return <Zap className={className} strokeWidth={1.5} />;
+    default: return <Smartphone className={className} strokeWidth={1.5} />;
+  }
+};
 
 const CATEGORIES = ['All', 'Earbuds', 'Power Banks', 'Smartwatches', 'Chargers'];
 
@@ -135,7 +146,7 @@ export default function Home() {
         title: product.title,
         price: Number(product.price),
         quantity: 1,
-        image: product.images?.[0] || '🔌'
+        image: product.images?.[0] || 'powerbank'
       }];
     }
     saveCart(newCart);
@@ -473,8 +484,8 @@ export default function Home() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                   {cart.map(item => (
                     <div key={item.id} style={{ display: 'flex', justifyItems: 'center', gap: '16px' }}>
-                      <div style={{ width: '48px', height: '48px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
-                        {item.image}
+                      <div style={{ width: '48px', height: '48px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ProductIcon name={item.image} className="cart-icon-small" />
                       </div>
                       <div style={{ flexGrow: 1 }}>
                         <h4 style={{ fontSize: '0.92rem', fontWeight: 700, lineHeight: 1.2 }}>{item.title}</h4>
@@ -522,42 +533,40 @@ export default function Home() {
                   <h1>Vylex Premium <span>Consumer Tech</span></h1>
                   <p>Elevate your digital life. Fast dispatch and secure delivery on premium power banks, audio, smart wearables, and chargers.</p>
                   <div className="hero-buttons">
-                    <a href="#catalog" className="btn btn-primary">Browse Catalog</a>
-                    <button className="btn btn-secondary" onClick={() => {
-                      // Demo direct checkout
-                      if(cart.length > 0) {
-                        setCheckoutStep('form');
-                      } else {
-                        alert('Add some items to your cart first!');
-                      }
-                    }}>Quick Checkout</button>
+                    <a href="#catalog" className="btn btn-primary" onClick={() => setSelectedCategory('All')}>Shop Now</a>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                   <div style={{
-                    width: '320px',
-                    height: '320px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, var(--orange) 0%, transparent 70%)',
-                    position: 'absolute',
-                    opacity: 0.15,
-                    filter: 'blur(30px)'
-                  }}></div>
-                  <div style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(10px)',
-                    padding: '40px',
-                    borderRadius: '24px',
+                    background: 'var(--white)',
+                    padding: '32px',
+                    borderRadius: '16px',
                     boxShadow: 'var(--shadow-lg)',
-                    textAlign: 'center',
-                    maxWidth: '300px',
-                    animation: 'pulseGlow 4s infinite ease-in-out'
+                    maxWidth: '340px',
+                    width: '100%',
+                    color: 'var(--navy)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px'
                   }}>
-                    <div style={{ fontSize: '5rem', marginBottom: '16px' }}>⚡</div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>Direct Dropshipping</h3>
-                    <p style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.6)' }}>Order placement triggers dispatch directly from premium suppliers. No stock overheads.</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--orange)', textTransform: 'uppercase' }}>Featured Product</span>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--navy)' }}>R1299.00</span>
+                    </div>
+                    <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 0' }}>
+                      <ProductIcon name="earbuds" className="detail-icon-large" />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '6px' }}>Vylex WavePods Pro</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--sdark)', marginBottom: '20px' }}>Active Noise Cancelling (ANC) wireless earbuds with bluetooth 5.3.</p>
+                      <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => {
+                        const product = products.find(p => p.id === 'vy-wpp-wht');
+                        if (product) addToCart(product);
+                      }}>
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -591,9 +600,7 @@ export default function Home() {
                 {filteredProducts.map(product => (
                   <div key={product.id} className="product-card">
                     <div className="product-image-wrapper">
-                      <div className="product-image-fallback">
-                        {product.images?.[0] || '🔋'}
-                      </div>
+                      <ProductIcon name={product.images?.[0] || 'powerbank'} />
                     </div>
                     <div className="product-details">
                       <span className="product-category">{product.category}</span>
@@ -635,8 +642,8 @@ export default function Home() {
             </div>
             
             <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '24px' }}>
-              <div style={{ width: '120px', height: '120px', background: '#f1f5f9', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>
-                {selectedProduct.images?.[0] || '🔌'}
+              <div style={{ width: '120px', height: '120px', background: '#f1f5f9', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ProductIcon name={selectedProduct.images?.[0] || 'powerbank'} className="detail-icon-large" />
               </div>
               <div style={{ flex: 1, minWidth: '240px' }}>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '8px' }}>{selectedProduct.title}</h2>
@@ -706,8 +713,8 @@ export default function Home() {
               ) : (
                 cart.map(item => (
                   <div key={item.id} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--slate)', paddingBottom: '20px' }}>
-                    <div style={{ width: '64px', height: '64px', background: '#f1f5f9', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
-                      {item.image}
+                    <div style={{ width: '64px', height: '64px', background: '#f1f5f9', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <ProductIcon name={item.image} className="cart-icon-medium" />
                     </div>
                     
                     <div style={{ flexGrow: 1 }}>
