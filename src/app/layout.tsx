@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { DM_Sans, Fira_Code } from "next/font/google";
+import { Inter, Fira_Code } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const firaCode = Fira_Code({
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${firaCode.variable} h-full antialiased`}
+      className={`${inter.variable} ${firaCode.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <CartProvider>
