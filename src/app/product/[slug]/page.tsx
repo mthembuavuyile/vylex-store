@@ -18,7 +18,7 @@ async function getProduct(slug: string) {
       .single();
 
     if (!error && data) {
-      return data;
+      return { ...data, isFromDb: true };
     }
   } catch {
     // Supabase not available
@@ -26,7 +26,7 @@ async function getProduct(slug: string) {
 
   // Fall back to mock products
   const mock = MOCK_PRODUCTS.find(p => p.slug === slug);
-  return mock || null;
+  return mock ? { ...mock, isFromDb: false } : null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -60,18 +60,20 @@ export default async function ProductPage({ params }: Props) {
 
   // Get related products (same category, excluding current)
   let relatedProducts: any[] = [];
-  try {
-    const { data } = await supabase
-      .from('products')
-      .select('id, title, price, category, images, slug')
-      .eq('category', product.category)
-      .neq('slug', slug)
-      .limit(3);
-    if (data && data.length > 0) {
-      relatedProducts = data;
+  if (product.isFromDb) {
+    try {
+      const { data } = await supabase
+        .from('products')
+        .select('id, title, price, category, images, slug')
+        .eq('category', product.category)
+        .neq('slug', slug)
+        .limit(3);
+      if (data && data.length > 0) {
+        relatedProducts = data;
+      }
+    } catch {
+      // Fall back to mock
     }
-  } catch {
-    // Fall back to mock
   }
 
   if (relatedProducts.length === 0) {

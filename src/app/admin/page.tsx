@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   const [syncLogOutput, setSyncLogOutput] = useState<string[]>([]);
   const [csvFileContent, setCsvFileContent] = useState('');
 
-  // 1. Initial Data Fetching from Supabase (with fallback to localStorage/mock)
+  // 1. Initial Authentication State setup
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -70,6 +70,13 @@ export default function AdminDashboard() {
       setSession(session);
     });
 
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // 2. Data Fetching from Supabase when session changes (with fallback to localStorage/mock)
+  useEffect(() => {
     async function loadData() {
       if (!session) return;
       
@@ -135,9 +142,7 @@ export default function AdminDashboard() {
         }
       }
     }
-    if (session) {
-      loadData();
-    }
+    loadData();
   }, [session]);
 
   const saveProductsState = (newProducts: any[]) => {

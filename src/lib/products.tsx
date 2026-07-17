@@ -75,11 +75,46 @@ export const MOCK_PRODUCTS: Product[] = [
 export const CATEGORIES = ['All', 'Earbuds', 'Power Banks', 'Smartwatches', 'Chargers'];
 
 export const ProductIcon = ({ name, className }: { name: string, className?: string }) => {
-  switch (name) {
-    case 'powerbank': return <BatteryCharging className={className} strokeWidth={1.5} />;
-    case 'earbuds': return <Headphones className={className} strokeWidth={1.5} />;
-    case 'smartwatch': return <Watch className={className} strokeWidth={1.5} />;
-    case 'charger': return <Zap className={className} strokeWidth={1.5} />;
-    default: return <Smartphone className={className} strokeWidth={1.5} />;
+  const normalized = (name || '').toLowerCase().trim();
+
+  // Map categories, item identifiers, and emojis to correct Lucide components
+  if (
+    normalized === 'powerbank' || 
+    normalized === 'power banks' || 
+    normalized === '🔋' || 
+    normalized === '🔌'
+  ) {
+    return <BatteryCharging className={className} strokeWidth={1.5} />;
   }
+  if (
+    normalized === 'earbuds' || 
+    normalized === '🎧'
+  ) {
+    return <Headphones className={className} strokeWidth={1.5} />;
+  }
+  if (
+    normalized === 'smartwatch' || 
+    normalized === 'smartwatches' || 
+    normalized === '⌚'
+  ) {
+    return <Watch className={className} strokeWidth={1.5} />;
+  }
+  if (
+    normalized === 'charger' || 
+    normalized === 'chargers' || 
+    normalized === '⚡'
+  ) {
+    return <Zap className={className} strokeWidth={1.5} />;
+  }
+
+  // If the image is a single emoji character (e.g. from manual/csv upload), render it directly
+  if (name && name.length <= 3) {
+    return (
+      <span className={className} style={{ fontSize: '3rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        {name}
+      </span>
+    );
+  }
+
+  return <Smartphone className={className} strokeWidth={1.5} />;
 };

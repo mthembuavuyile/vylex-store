@@ -469,13 +469,13 @@ export default function Home() {
                       <div className="product-details">
                         <span className="product-category">{product.category}</span>
                         <h3 className="product-title">{product.title}</h3>
-                        <p style={{ fontSize: '0.88rem', color: 'var(--sdark)', marginBottom: '16px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        <p className="product-description">
                           {product.description}
                         </p>
                         <div className="product-price-row">
                           <span className="product-price">R{Number(product.price).toFixed(2)}</span>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--orange)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            View Details <ChevronRight size={14} />
+                          <span className="product-view-link">
+                            <span className="product-view-text">View Details</span> <ChevronRight size={14} />
                           </span>
                         </div>
                       </div>
