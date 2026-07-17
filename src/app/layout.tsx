@@ -18,6 +18,15 @@ const firaCode = Fira_Code({
 export const metadata: Metadata = {
   title: "Vylex Store | Premium Consumer Tech & Accessories",
   description: "Premium dropshipping online store for Vylex high-quality consumer electronics, power banks, audio, smart wearables, and chargers across South Africa.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" }
+    ],
+    apple: [
+      { url: "/apple-icon.png", type: "image/png" }
+    ]
+  }
 };
 
 export default function RootLayout({

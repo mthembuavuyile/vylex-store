@@ -126,10 +126,7 @@ export default function Home() {
       <header className="navbar">
         <div className="container navbar-inner">
           <a href="#" className="logo" onClick={() => { setCheckoutStep('browse'); setIsMobileMenuOpen(false); }}>
-            <svg width="32" height="32" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
-              <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
-              <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
-            </svg>
+            <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
             <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
           </a>
           
@@ -177,10 +174,7 @@ export default function Home() {
         <div className="mobile-nav-content" onClick={(e) => e.stopPropagation()}>
           <div className="mobile-nav-header">
             <a href="#" className="logo" onClick={() => { setCheckoutStep('browse'); setIsMobileMenuOpen(false); }}>
-              <svg width="32" height="32" viewBox="0 0 100 100">
-                <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
-                <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
-              </svg>
+              <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
               <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
             </a>
             <button className="btn-icon" onClick={() => setIsMobileMenuOpen(false)}>
@@ -596,10 +590,7 @@ export default function Home() {
           <div className="footer-grid">
             <div className="footer-col">
               <a href="#" className="logo logo-light" style={{ marginBottom: '16px' }}>
-                <svg width="32" height="32" viewBox="0 0 100 100">
-                  <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
-                  <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
-                </svg>
+                <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
                 <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
               </a>
               <p>Premium online tech store. Dropshipping high-quality, supplier-warranted consumer electronics across South Africa.</p>

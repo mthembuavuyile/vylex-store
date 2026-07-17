@@ -2,6 +2,7 @@
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { CheckCircle2, ShoppingBag, ArrowRight, Truck } from 'lucide-react';
 
 function SuccessContent() {
@@ -58,12 +59,12 @@ function SuccessContent() {
       </div>
 
       <div style={{ display: 'flex', gap: '16px', width: '100%', marginTop: '12px' }}>
-        <a href="/" className="btn btn-outline" style={{ flexGrow: 1 }}>
+        <Link href="/" className="btn btn-outline" style={{ flexGrow: 1 }}>
           Return Home
-        </a>
-        <a href="/" className="btn btn-primary" style={{ flexGrow: 1, gap: '8px' }}>
+        </Link>
+        <Link href="/" className="btn btn-primary" style={{ flexGrow: 1, gap: '8px' }}>
           <ShoppingBag size={18} /> Continue Shopping <ArrowRight size={16} />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -80,10 +81,10 @@ export default function CheckoutSuccessPage() {
       {/* Header */}
       <header className="navbar">
         <div className="container navbar-inner">
-          <a href="/" className="logo">
-            <div className="logo-dot"></div>
-            Vylex<span>Store</span>
-          </a>
+          <Link href="/" className="logo">
+            <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
+            <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+          </Link>
         </div>
       </header>
 

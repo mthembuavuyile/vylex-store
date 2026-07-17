@@ -2,7 +2,8 @@
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AlertCircle, ShoppingBag, ArrowRight, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 
 function CancelContent() {
   const searchParams = useSearchParams();
@@ -53,12 +54,12 @@ function CancelContent() {
       </p>
 
       <div style={{ display: 'flex', gap: '16px', width: '100%', marginTop: '12px' }}>
-        <a href="/" className="btn btn-outline" style={{ flexGrow: 1 }}>
+        <Link href="/" className="btn btn-outline" style={{ flexGrow: 1 }}>
           Return to Catalog
-        </a>
-        <a href="/" className="btn btn-primary" style={{ flexGrow: 1, gap: '8px' }}>
+        </Link>
+        <Link href="/" className="btn btn-primary" style={{ flexGrow: 1, gap: '8px' }}>
           <RefreshCw size={18} /> Retry Checkout <ArrowRight size={16} />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -75,10 +76,10 @@ export default function CheckoutCancelPage() {
       {/* Header */}
       <header className="navbar">
         <div className="container navbar-inner">
-          <a href="/" className="logo">
-            <div className="logo-dot"></div>
-            Vylex<span>Store</span>
-          </a>
+          <Link href="/" className="logo">
+            <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
+            <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+          </Link>
         </div>
       </header>
 

@@ -386,10 +386,7 @@ export default function AdminDashboard() {
         <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div className="logo logo-light" style={{ justifyContent: 'center', marginBottom: '16px' }}>
-              <svg width="32" height="32" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
-                <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
-                <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
-              </svg>
+              <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Admin Login</h1>
             <p style={{ color: 'var(--sdark)', fontSize: '0.9rem', marginTop: '8px' }}>Restricted access for store owners.</p>
@@ -422,10 +419,7 @@ export default function AdminDashboard() {
       {/* Sidebar Controls */}
       <aside className="admin-sidebar">
         <Link href="/" className="logo logo-light" style={{ marginBottom: '20px' }}>
-          <svg width="24" height="24" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
-            <path fill="var(--orange)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
-            <rect fill="var(--orange)" x="42" y="10" width="16" height="30" />
-          </svg>
+          <img src="/logo.png" alt="Vylex Logo" width="24" height="24" style={{ flexShrink: 0, objectFit: 'contain' }} />
           <span className="logo-text" style={{ fontSize: '1.25rem' }}>vylex<span className="logo-dot-text">.</span><span className="logo-subtext" style={{ fontSize: '0.8rem' }}>Admin</span></span>
         </Link>
 

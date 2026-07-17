@@ -117,6 +117,24 @@ button {
   text-decoration: none;
 }
 
+.logo img {
+  height: 40px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  flex-shrink: 0 !important;
+  transition: height 0.2s ease;
+}
+
+@media (min-width: 769px) {
+  .logo img {
+    height: 52px !important;
+  }
+}
+
+.admin-sidebar .logo img {
+  height: 32px !important;
+}
+
 .logo .logo-text {
   font-family: var(--font-sans) !important;
   font-weight: 800 !important;
