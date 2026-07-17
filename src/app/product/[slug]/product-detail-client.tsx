@@ -32,6 +32,20 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
 
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
+  const [scrolled, setScrolled] = useState(false);
+
+  // Scroll listener to update header height on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Set default values once colors/sizes are computed
   useEffect(() => {
@@ -64,9 +78,9 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
       <CartDrawer />
 
       {/* Compact Navigation */}
-      <header className="navbar">
+      <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="container navbar-inner" style={{ height: '64px' }}>
-          <Link href="/" className="logo">
+          <Link href="/" className="logo logo-light">
             <img src="/logo.png" alt="Vylex Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
             <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
           </Link>

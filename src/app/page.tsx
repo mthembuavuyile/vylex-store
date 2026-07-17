@@ -39,249 +39,20 @@ export default function Home() {
 
   const [loadingCheckout, setLoadingCheckout] = useState(false);
 
-  // Address suggestions autocomplete states
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [googlePlacesService, setGooglePlacesService] = useState<any>(null);
-  const [googleAutocompleteService, setGoogleAutocompleteService] = useState<any>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  // Dynamically load Google Maps script if API key is provided
+  // Scroll listener to update header height on scroll
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) return;
-
-    if ((window as any).google) {
-      initGoogleServices();
-      return;
-    }
-
-    const scriptId = 'google-maps-places-script';
-    if (document.getElementById(scriptId)) return;
-
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => initGoogleServices();
-    document.head.appendChild(script);
-  }, []);
-
-  const initGoogleServices = () => {
-    if (typeof window !== 'undefined' && (window as any).google) {
-      try {
-        const maps = (window as any).google.maps;
-        setGoogleAutocompleteService(new maps.places.AutocompleteService());
-        setGooglePlacesService(new maps.places.PlacesService(document.createElement('div')));
-      } catch (err) {
-        console.error('Failed to initialize Google Places Services:', err);
-      }
-    }
-  };
-
-  // Normalizer for South African provinces to match the select dropdown exact values
-  const normalizeProvince = (prov: string): string => {
-    if (!prov) return '';
-    const p = prov.toLowerCase().trim();
-    if (p.includes('gauteng')) return 'Gauteng';
-    if (p.includes('western cape')) return 'Western Cape';
-    if (p.includes('kwazulu') || p.includes('kzn') || p.includes('natal')) return 'KwaZulu-Natal';
-    if (p.includes('eastern cape')) return 'Eastern Cape';
-    if (p.includes('free state')) return 'Free State';
-    if (p.includes('limpopo')) return 'Limpopo';
-    if (p.includes('mpumalanga')) return 'Mpumalanga';
-    if (p.includes('north west')) return 'North West';
-    if (p.includes('northern cape')) return 'Northern Cape';
-    return '';
-  };
-
-  // Main search suggestion fetcher
-  const handleAddressSearch = async (query: string) => {
-    if (!query || query.length < 3) {
-      setAddressSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    setLoadingSuggestions(true);
-    setShowSuggestions(true);
-
-    // 1. Try Google Places Autocomplete if configured
-    if (googleAutocompleteService) {
-      googleAutocompleteService.getPlacePredictions(
-        {
-          input: query,
-          componentRestrictions: { country: 'za' },
-          types: ['address']
-        },
-        (predictions: any[], status: string) => {
-          setLoadingSuggestions(false);
-          if (status === 'OK' && predictions) {
-            setAddressSuggestions(
-              predictions.map((p) => ({
-                id: p.place_id,
-                mainText: p.structured_formatting.main_text,
-                secondaryText: p.structured_formatting.secondary_text,
-                source: 'google'
-              }))
-            );
-          } else {
-            setAddressSuggestions([]);
-          }
-        }
-      );
-      return;
-    }
-
-    // 2. Fallback: Try OpenStreetMap Nominatim API
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-        query
-      )}&format=json&addressdetails=1&limit=5&countrycodes=za&accept-language=en`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'VylexStoreApp/1.0'
-        }
-      });
-      const data = await response.json();
-      
-      if (Array.isArray(data)) {
-        const formatted = data.map((item: any, index: number) => {
-          const addr = item.address || {};
-          const streetNum = addr.house_number || '';
-          const road = addr.road || '';
-          
-          let mainText = streetNum ? `${streetNum} ${road}` : road;
-          if (!mainText) {
-            mainText = item.display_name.split(',')[0] || 'Unknown Street';
-          }
-          
-          // Build secondary text
-          const secondaryParts = [];
-          if (addr.suburb || addr.neighbourhood) secondaryParts.push(addr.suburb || addr.neighbourhood);
-          if (addr.city || addr.town || addr.village) secondaryParts.push(addr.city || addr.town || addr.village);
-          if (addr.state) secondaryParts.push(addr.state);
-          if (addr.postcode) secondaryParts.push(addr.postcode);
-          const secondaryText = secondaryParts.join(', ');
-
-          return {
-            id: `osm-${index}-${item.lat}-${item.lon}`,
-            mainText,
-            secondaryText,
-            source: 'osm',
-            rawAddress: addr
-          };
-        });
-        setAddressSuggestions(formatted);
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
       } else {
-        setAddressSuggestions([]);
+        setScrolled(false);
       }
-    } catch (err) {
-      console.warn('OpenStreetMap search fallback failed:', err);
-      setAddressSuggestions([]);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
-
-  // Selection handler (autofills state fields)
-  const handleSelectSuggestion = (suggestion: any) => {
-    setShowSuggestions(false);
-
-    if (suggestion.source === 'google' && googlePlacesService) {
-      setLoadingSuggestions(true);
-      googlePlacesService.getDetails(
-        {
-          placeId: suggestion.id,
-          fields: ['address_components', 'formatted_address']
-        },
-        (place: any, status: string) => {
-          setLoadingSuggestions(false);
-          if (status === 'OK' && place) {
-            const comps = place.address_components || [];
-            
-            let streetNum = '';
-            let route = '';
-            let suburb = '';
-            let city = '';
-            let province = '';
-            let postalCode = '';
-
-            comps.forEach((c: any) => {
-              const types = c.types || [];
-              if (types.includes('street_number')) streetNum = c.long_name;
-              if (types.includes('route')) route = c.long_name;
-              if (types.includes('sublocality_level_1') || types.includes('neighborhood') || types.includes('sublocality')) {
-                suburb = c.long_name;
-              }
-              if (types.includes('locality')) city = c.long_name;
-              if (types.includes('administrative_area_level_1')) province = c.long_name;
-              if (types.includes('postal_code')) postalCode = c.long_name;
-            });
-
-            // If city is empty, check if we have a sublocality/town/etc.
-            if (!city) {
-              const admin2 = comps.find((c: any) => c.types.includes('administrative_area_level_2'));
-              if (admin2) city = admin2.long_name;
-            }
-
-            const streetAddress = streetNum ? `${streetNum} ${route}` : route;
-
-            setShippingDetails((prev) => ({
-              ...prev,
-              streetAddress: streetAddress || suggestion.mainText,
-              suburb: suburb,
-              city: city,
-              state: normalizeProvince(province),
-              postalCode: postalCode,
-            }));
-          }
-        }
-      );
-    } else if (suggestion.source === 'osm') {
-      const addr = suggestion.rawAddress || {};
-      const streetNum = addr.house_number || '';
-      const road = addr.road || '';
-      const streetAddress = streetNum ? `${streetNum} ${road}` : road;
-      
-      const suburb = addr.suburb || addr.neighbourhood || addr.residential || addr.suburb_district || addr.quarter || addr.sublocality || '';
-      
-      let city = addr.city || addr.town || addr.village || addr.city_district || addr.municipality || addr.county || '';
-      
-      // Map metropolitan municipalities to canonical South African cities
-      const lowerCity = city.toLowerCase();
-      if (lowerCity.includes('ethekwini')) {
-        city = 'Durban';
-      } else if (lowerCity.includes('cape town')) {
-        city = 'Cape Town';
-      } else if (lowerCity.includes('johannesburg')) {
-        city = 'Johannesburg';
-      } else if (lowerCity.includes('tshwane')) {
-        city = 'Pretoria';
-      } else if (lowerCity.includes('mangaung')) {
-        city = 'Bloemfontein';
-      } else if (lowerCity.includes('nelson mandela bay')) {
-        city = 'Gqeberha';
-      }
-
-      const province = addr.state || addr.province || addr.region || '';
-      const postalCode = addr.postcode || '';
-
-      setShippingDetails((prev) => ({
-        ...prev,
-        streetAddress: streetAddress || suggestion.mainText,
-        suburb: suburb,
-        city: city,
-        state: normalizeProvince(province),
-        postalCode: postalCode,
-      }));
-    }
-  };
-
-  // Load products from Supabase, or fall back to mock seed
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -378,9 +149,9 @@ export default function Home() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       
       {/* Premium Navigation Header */}
-      <header className="navbar">
+      <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="container navbar-inner">
-          <a href="#" className="logo" onClick={() => { setCheckoutStep('browse'); setIsMobileMenuOpen(false); }}>
+          <a href="#" className="logo logo-light" onClick={() => { setCheckoutStep('browse'); setIsMobileMenuOpen(false); }}>
             <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
             <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
           </a>
@@ -568,57 +339,13 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="form-group" style={{ position: 'relative' }}>
+                <div className="form-group">
                   <label className="form-label">Street Address</label>
                   <input 
-                    type="text" 
-                    required 
-                    placeholder="123 Brandvlei Ave" 
-                    className="form-input" 
+                    type="text" required placeholder="123 Brandvlei Ave" className="form-input" 
                     value={shippingDetails.streetAddress}
-                    onChange={(e) => {
-                      setShippingDetails({ ...shippingDetails, streetAddress: e.target.value });
-                      handleAddressSearch(e.target.value);
-                    }}
-                    onBlur={() => setShowSuggestions(false)}
-                    onFocus={() => {
-                      if (shippingDetails.streetAddress.length >= 3) {
-                        setShowSuggestions(true);
-                      }
-                    }}
-                    autoComplete="off"
+                    onChange={(e) => setShippingDetails({ ...shippingDetails, streetAddress: e.target.value })}
                   />
-
-                  {/* Autocomplete Dropdown List */}
-                  {showSuggestions && (addressSuggestions.length > 0 || loadingSuggestions) && (
-                    <div className="address-suggestions-dropdown">
-                      {loadingSuggestions && (
-                        <div style={{ padding: '12px 16px', color: 'var(--sdark)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span className="animate-spin" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid var(--slate)', borderTopColor: 'var(--orange)', borderRadius: '50%' }}></span>
-                          Searching addresses...
-                        </div>
-                      )}
-                      
-                      {!loadingSuggestions && addressSuggestions.map((suggestion) => (
-                        <div 
-                          key={suggestion.id}
-                          className="address-suggestion-item"
-                          onMouseDown={(e) => {
-                            e.preventDefault(); // Prevents input blur BEFORE click registers!
-                            handleSelectSuggestion(suggestion);
-                          }}
-                        >
-                          <MapPin size={16} style={{ color: 'var(--orange)', flexShrink: 0, marginTop: '2px' }} />
-                          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                            <strong style={{ fontSize: '0.9rem', color: 'var(--navy)', lineHeight: '1.2' }}>{suggestion.mainText}</strong>
-                            <span style={{ fontSize: '0.78rem', color: 'var(--sdark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
-                              {suggestion.secondaryText}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <div className="form-row">
