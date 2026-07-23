@@ -215,7 +215,6 @@ export default function Home() {
           {/* Desktop Nav */}
           <nav className="nav-desktop">
             <a href="#catalog" className="nav-link" onClick={() => { setCheckoutStep('browse'); setSelectedCategory('All'); }}>All Products</a>
-            <Link href="/admin" className="nav-link">Admin CRM</Link>
           </nav>
 
           {/* Cart Icon & Actions */}
@@ -249,13 +248,6 @@ export default function Home() {
             >
               All Products
             </a>
-            <Link 
-              href="/admin" 
-              className="mobile-nav-link"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Admin CRM Hub
-            </Link>
           </div>
         )}
       </header>
@@ -502,7 +494,6 @@ export default function Home() {
                   <p>Elevate your digital life. Fast dispatch and secure delivery on premium power banks, audio, smart wearables, and chargers.</p>
                   <div className="hero-buttons">
                     <a href="#catalog" className="btn btn-primary" onClick={() => setSelectedCategory('All')}>Shop Catalog</a>
-                    <Link href="/admin" className="btn btn-outline" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Admin CRM</Link>
                   </div>
                 </div>
                 
@@ -589,11 +580,8 @@ export default function Home() {
                   <p style={{ color: 'var(--sdark)', maxWidth: '440px', margin: '0 auto 24px' }}>
                     {selectedCategory !== 'All' 
                       ? `There are currently no items listed under "${selectedCategory}".`
-                      : 'Your Supabase product catalog is empty. Log into the Admin CRM Hub to populate your store.'}
+                      : 'Products are currently loading or unavailable. Please check back shortly.'}
                   </p>
-                  <Link href="/admin" className="btn btn-primary">
-                    Open Admin CRM Hub
-                  </Link>
                 </div>
               ) : (
                 <div className="product-grid" style={{ marginTop: '32px' }}>
@@ -668,9 +656,8 @@ export default function Home() {
               </ul>
             </div>
             <div className="footer-col">
-              <h3>Admin & Policy</h3>
+              <h3>Customer Care</h3>
               <ul className="footer-links">
-                <li><Link href="/admin">Admin CRM Hub</Link></li>
                 <li><a href="#">Shipping & Deliveries</a></li>
                 <li><a href="#">Refund Policy</a></li>
               </ul>

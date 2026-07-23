@@ -232,9 +232,24 @@ export default function AdminDashboard() {
   const handleSeedInventory = async () => {
     setIsSeeding(true);
     try {
-      const { error } = await supabase.from('products').upsert(INITIAL_SEED_PRODUCTS, { onConflict: 'id' });
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(INITIAL_SEED_PRODUCTS)
+      });
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        // Fallback to direct supabase
+        const { error } = await supabase.from('products').upsert(INITIAL_SEED_PRODUCTS, { onConflict: 'id' });
+        if (error) {
+          alert(`Database Seeding Notice: ${error.message}\n\nMake sure the 'products' table exists in Supabase.`);
+        } else {
+          alert('Initial Vylex inventory seeded successfully to Supabase!');
+        }
+      } else {
+        alert('Initial Vylex inventory seeded successfully to Supabase!');
+      }
       setProducts(INITIAL_SEED_PRODUCTS);
-      alert('Initial Vylex inventory seeded successfully!');
     } catch (err: any) {
       setProducts(INITIAL_SEED_PRODUCTS);
       alert('Inventory seeded in local state!');
@@ -263,7 +278,29 @@ export default function AdminDashboard() {
       source: 'manual'
     };
 
-    // Update local state immediately
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const resData = await res.json();
+
+      if (!res.ok || resData.error) {
+        // Direct fallback
+        const { error } = await supabase.from('products').insert([payload]);
+        if (error) {
+          alert(`Could not save to Supabase: ${error.message}\n\nHint: Check if the 'products' table exists in your Supabase SQL editor.`);
+        } else {
+          alert('Product saved successfully to Supabase database!');
+        }
+      } else {
+        alert('Product saved successfully to Supabase database!');
+      }
+    } catch (err: any) {
+      console.warn('API route insert notice:', err);
+    }
+
     setProducts(prev => [payload, ...prev]);
     setIsAddProductOpen(false);
     setNewProduct({
@@ -271,25 +308,21 @@ export default function AdminDashboard() {
       price: '', cost_price: '', sku: '',
       stock_quantity: '50', images: ['earbuds']
     });
-
-    try {
-      await supabase.from('products').insert(payload);
-    } catch (err) {
-      console.warn('Supabase product insert notice:', err);
-    }
   };
 
   // Delete Product Action
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product from inventory?')) return;
     
-    setProducts(prev => prev.filter(p => p.id !== productId));
-    
     try {
-      await supabase.from('products').delete().eq('id', productId);
-    } catch (err) {
-      console.warn('Supabase product delete notice:', err);
-    }
+      const res = await fetch(`/api/admin/products?id=${productId}`, { method: 'DELETE' });
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        await supabase.from('products').delete().eq('id', productId);
+      }
+    } catch (e) {}
+
+    setProducts(prev => prev.filter(p => p.id !== productId));
   };
 
   // Update Order Status Action
