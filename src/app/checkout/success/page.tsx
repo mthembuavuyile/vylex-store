@@ -108,7 +108,7 @@ export default function CheckoutSuccessPage() {
       {/* Footer */}
       <footer className="footer" style={{ marginTop: 'auto' }}>
         <div className="container" style={{ textAlign: 'center', fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.4)' }}>
-          <p>&copy; {new Date().getFullYear()} Vylex Store. Secure Payment Gateway Verification.</p>
+          <p>&copy; {new Date().getFullYear()} Vylex Store. Secure Payment Gateway Verification. By <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Vylex</a></p>
         </div>
       </footer>
     </div>
