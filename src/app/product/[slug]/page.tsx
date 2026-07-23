@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { MOCK_PRODUCTS } from '@/lib/products';
 import { ProductDetailClient } from './product-detail-client';
 
 type Props = {
@@ -9,24 +8,20 @@ type Props = {
 };
 
 async function getProduct(slug: string) {
-  // Try Supabase first
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('id, title, description, price, sku, category, images, stock_quantity, slug')
+      .select('id, title, description, price, sku, category, images, stock_quantity, slug, specifications')
       .eq('slug', slug)
       .single();
 
     if (!error && data) {
-      return { ...data, isFromDb: true };
+      return data;
     }
-  } catch {
-    // Supabase not available
+  } catch (err) {
+    console.warn('Error fetching product by slug:', err);
   }
-
-  // Fall back to mock products
-  const mock = MOCK_PRODUCTS.find(p => p.slug === slug);
-  return mock ? { ...mock, isFromDb: false } : null;
+  return null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -58,28 +53,20 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  // Get related products (same category, excluding current)
+  // Fetch related products in the same category
   let relatedProducts: any[] = [];
-  if (product.isFromDb) {
-    try {
-      const { data } = await supabase
-        .from('products')
-        .select('id, title, price, category, images, slug')
-        .eq('category', product.category)
-        .neq('slug', slug)
-        .limit(3);
-      if (data && data.length > 0) {
-        relatedProducts = data;
-      }
-    } catch {
-      // Fall back to mock
+  try {
+    const { data } = await supabase
+      .from('products')
+      .select('id, title, price, category, images, slug')
+      .eq('category', product.category)
+      .neq('slug', slug)
+      .limit(3);
+    if (data && data.length > 0) {
+      relatedProducts = data;
     }
-  }
-
-  if (relatedProducts.length === 0) {
-    relatedProducts = MOCK_PRODUCTS
-      .filter(p => p.category === product.category && p.slug !== slug)
-      .slice(0, 3);
+  } catch {
+    // Ignore error
   }
 
   return (

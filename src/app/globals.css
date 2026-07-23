@@ -85,9 +85,21 @@ button {
   }
 }
 
+/* Dynamic Top Announcement Bar */
+.announcement-bar {
+  background: var(--dark-bg);
+  color: var(--orange);
+  font-size: 0.825rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(251, 169, 25, 0.2);
+  letter-spacing: 0.3px;
+}
+
 /* Header & Navigation */
-.navbar {
-  background: rgba(5, 27, 56, 0.92); /* Dark navy matching var(--navy) */
+.header, .navbar {
+  background: rgba(5, 27, 56, 0.95); /* Dark navy matching var(--navy) */
   backdrop-filter: blur(12px);
   border-top: 3px solid var(--orange);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -97,7 +109,7 @@ button {
   transition: all 0.3s ease;
 }
 
-.navbar-inner {
+.header-inner, .navbar-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -106,51 +118,124 @@ button {
 }
 
 @media (min-width: 769px) {
-  .navbar-inner {
-    height: 80px;
+  .header-inner, .navbar-inner {
+    height: 76px;
   }
 }
 
-/* Scrolled styling for shrinking navbar */
-.navbar.scrolled {
+/* Scrolled styling for shrinking header */
+.header.scrolled, .navbar.scrolled {
   background: rgba(3, 15, 32, 0.98); /* Slightly darker navy on scroll */
   box-shadow: var(--shadow-lg);
   border-top-width: 2px;
 }
 
-.navbar.scrolled .navbar-inner {
+.header.scrolled .header-inner, .navbar.scrolled .navbar-inner {
   height: 54px;
 }
 
 @media (min-width: 769px) {
-  .navbar.scrolled .navbar-inner {
+  .header.scrolled .header-inner, .navbar.scrolled .navbar-inner {
     height: 64px;
   }
 }
 
-/* Nav Actions buttons in dark navbar */
-.navbar .btn-icon {
-  color: var(--white);
-  border-color: rgba(255, 255, 255, 0.2);
+/* Desktop Navigation Layout */
+.nav-desktop, .desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
 }
 
-.navbar .btn-icon:hover {
+/* Nav Actions & Buttons */
+.header-actions, .nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cart-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cart-trigger:hover {
+  background: rgba(251, 169, 25, 0.15);
+  border-color: var(--orange);
+  color: var(--orange);
+  transform: translateY(-1px);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--orange);
+  color: var(--navy);
+  font-size: 0.725rem;
+  font-weight: 800;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
   border-color: var(--orange);
   color: var(--orange);
 }
 
-/* Nav links in dark navbar */
-.navbar .nav-link {
-  color: rgba(255, 255, 255, 0.8) !important;
+.mobile-menu {
+  display: flex;
+  flex-direction: column;
+  background: var(--dark-card);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 24px;
+  gap: 8px;
+}
+
+/* Nav links in dark navbar/header */
+.header .nav-link, .navbar .nav-link, .nav-desktop .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 0.95rem;
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
-.navbar .nav-link:hover, .navbar .nav-link.active {
+.header .nav-link:hover, .navbar .nav-link:hover, .nav-desktop .nav-link:hover {
   color: var(--orange) !important;
 }
 
-.navbar .nav-link.active::after {
+.header .nav-link.active::after, .navbar .nav-link.active::after {
   background: var(--orange);
 }
 
