@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   ShoppingCart, Trash2, Plus, Minus, ArrowRight, ShieldCheck, 
   X, CreditCard, ChevronRight, MessageSquare, Package,
-  Lock, RefreshCw, Menu, ArrowLeft, Store
+  Lock, RefreshCw, Menu, ArrowLeft, Store, Search, Star, UserCheck
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ProductIcon } from '@/lib/products';
@@ -16,6 +16,7 @@ export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'browse' | 'form' | 'redirecting'>('browse');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMobileSummary, setShowMobileSummary] = useState(false);
@@ -188,9 +189,14 @@ export default function Home() {
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory);
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    const matchesSearch = !searchQuery || 
+      p.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const subtotal = getSubtotal();
   const shippingCost = getShippingCost();
@@ -212,12 +218,28 @@ export default function Home() {
             <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Live Search Bar */}
+          <div className="header-search-desktop">
+            <div className="search-input-wrapper">
+              <Search size={16} className="search-icon-left" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="search-input"
+                style={{ padding: '8px 14px 8px 38px', fontSize: '0.85rem' }}
+              />
+            </div>
+          </div>
+
+          {/* Desktop Nav Links */}
           <nav className="nav-desktop">
             <a href="#catalog" className="nav-link" onClick={() => { setCheckoutStep('browse'); setSelectedCategory('All'); }}>All Products</a>
+            <Link href="/admin" className="nav-link" style={{ color: 'var(--orange)' }}>Admin & CRM</Link>
           </nav>
 
-          {/* Cart Icon & Actions */}
+          {/* Cart Icon & Burger Actions */}
           <div className="header-actions">
             <button 
               className="cart-trigger" 
@@ -238,17 +260,99 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Full Mobile Burger Drawer Overlay */}
         {isMobileMenuOpen && (
-          <div className="mobile-menu">
-            <a 
-              href="#catalog" 
-              className="mobile-nav-link" 
-              onClick={() => { setIsMobileMenuOpen(false); setCheckoutStep('browse'); setSelectedCategory('All'); }}
-            >
-              All Products
-            </a>
-          </div>
+          <>
+            <div className="mobile-nav-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+            <div className="mobile-nav-drawer-side">
+              <div className="mobile-drawer-header">
+                <Link href="/" className="logo logo-light" onClick={() => { setIsMobileMenuOpen(false); setCheckoutStep('browse'); }}>
+                  <img src="/logo.png" alt="Vylex Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
+                  <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+                </Link>
+                <button className="mobile-drawer-close" onClick={() => setIsMobileMenuOpen(false)} aria-label="Close Navigation Menu">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Mobile Drawer Live Search */}
+              <div className="mobile-drawer-search">
+                <div className="search-input-wrapper">
+                  <Search size={18} className="search-icon-left" />
+                  <input
+                    type="text"
+                    placeholder="Search power banks, audio..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
+              </div>
+
+              <div className="mobile-drawer-body">
+                <div>
+                  <div className="drawer-section-title">Shop Categories</div>
+                  <ul className="drawer-nav-list">
+                    {categories.map(cat => (
+                      <li key={cat}>
+                        <a
+                          href="#catalog"
+                          className={`drawer-nav-item ${selectedCategory === cat ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setIsMobileMenuOpen(false);
+                            setCheckoutStep('browse');
+                          }}
+                        >
+                          <span>{cat}</span>
+                          <ChevronRight size={14} style={{ color: 'var(--orange)' }} />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <div className="drawer-section-title">Store Portals</div>
+                  <ul className="drawer-nav-list">
+                    <li>
+                      <Link 
+                        href="/admin" 
+                        className="drawer-nav-item"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <UserCheck size={16} style={{ color: 'var(--orange)' }} /> Admin & CRM Hub
+                        </span>
+                        <ChevronRight size={14} />
+                      </Link>
+                    </li>
+                    <li>
+                      <a 
+                        href="https://wa.me/27821234567?text=Hi%20Vylex%20Store%20Support" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="drawer-nav-item"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <MessageSquare size={16} style={{ color: '#10B981' }} /> Instant WhatsApp Support
+                        </span>
+                        <ChevronRight size={14} />
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mobile-drawer-footer">
+                <div style={{ fontSize: '0.78rem', color: 'var(--sdark)', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: 'var(--orange)', fontWeight: 600 }}>🇿🇦 Courier Guy Express Shipping</span>
+                  <span>Authentic Stock & 1-Year Guarantee</span>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </header>
 
@@ -587,6 +691,11 @@ export default function Home() {
                 <div className="product-grid" style={{ marginTop: '32px' }}>
                   {filteredProducts.map(product => (
                     <div key={product.id} className="product-card-wrapper">
+                      {/* Realistic Storefront Badges */}
+                      <div className="product-card-badge">
+                        Express Delivery
+                      </div>
+
                       <Link
                         href={`/product/${product.slug || product.id}`}
                         className="product-card product-card-link"
@@ -596,7 +705,13 @@ export default function Home() {
                           <ProductIcon name={Array.isArray(product.images) ? product.images[0] : (product.images || 'powerbank')} />
                         </div>
                         <div className="product-details">
-                          <span className="product-category">{product.category}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span className="product-category">{product.category}</span>
+                            <div className="product-rating-stars">
+                              <Star size={12} fill="#FBA919" stroke="none" /> 4.9 (48)
+                            </div>
+                          </div>
+
                           <h3 className="product-title">{product.title}</h3>
                           <p className="product-description">
                             {product.description}

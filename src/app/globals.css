@@ -268,35 +268,36 @@ button {
 .logo .logo-text {
   font-family: var(--font-sans) !important;
   font-weight: 800 !important;
-  font-size: 1.5rem !important;
-  letter-spacing: -1px !important;
+  font-size: 1.45rem !important;
+  letter-spacing: -0.5px !important;
   color: var(--navy) !important;
   display: inline-flex !important;
-  align-items: baseline !important;
+  align-items: center !important;
 }
 
 @media (min-width: 769px) {
   .logo .logo-text {
-    font-size: 1.7rem !important;
+    font-size: 1.65rem !important;
   }
 }
 
 .logo .logo-dot-text {
   color: var(--orange) !important;
+  margin: 0 1px !important;
 }
 
 .logo .logo-subtext {
-  font-size: 0.9rem !important;
-  font-weight: 600 !important;
-  margin-left: 6px !important;
+  font-size: 1.45rem !important;
+  font-weight: 800 !important;
+  margin-left: 2px !important;
   text-transform: uppercase !important;
-  letter-spacing: 2.5px !important;
-  color: var(--sdark) !important;
+  letter-spacing: 0.5px !important;
+  color: var(--orange) !important;
 }
 
 @media (min-width: 769px) {
   .logo .logo-subtext {
-    font-size: 1.05rem !important;
+    font-size: 1.65rem !important;
   }
 }
 
@@ -1900,5 +1901,362 @@ button {
   overflow-y: auto;
 }
 
+/* Modern Mobile Burger Navigation & Header Overhaul */
+.mobile-toggle {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
+@media (min-width: 992px) {
+  .mobile-toggle {
+    display: none !important;
+  }
+  .nav-desktop {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .nav-desktop {
+    display: none !important;
+  }
+}
+
+/* Full Screen Mobile Drawer Navigation Overlay */
+.mobile-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 27, 56, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 998;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.mobile-nav-drawer-side {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 85%;
+  max-width: 360px;
+  background: #030F20;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.mobile-drawer-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 27, 56, 0.95);
+}
+
+.mobile-drawer-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mobile-drawer-search {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: var(--white);
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(251, 169, 25, 0.15);
+}
+
+.search-icon-left {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sdark);
+  pointer-events: none;
+}
+
+.mobile-drawer-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-grow: 1;
+}
+
+.drawer-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+
+.drawer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.drawer-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.drawer-nav-item:hover, .drawer-nav-item.active {
+  background: rgba(251, 169, 25, 0.15);
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+.mobile-drawer-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 27, 56, 0.5);
+}
+
+/* Header Live Search on Desktop */
+.header-search-desktop {
+  position: relative;
+  width: 260px;
+}
+
+@media (max-width: 991px) {
+  .header-search-desktop {
+    display: none;
+  }
+}
+
+/* Realistic Product Card Styling & Badges */
+.product-card-wrapper {
+  position: relative;
+}
+
+.product-card-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  background: #10B981;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.product-card-badge.sale {
+  background: #EF4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.product-rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #FBA919;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* Responsive Grid layouts */
+@media (max-width: 640px) {
+  .product-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .catalog-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .categories-tabs {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hero-inner {
+    padding-top: 32px !important;
+    padding-bottom: 40px !important;
+  }
+}
+
+/* CRM Mobile-Friendly Responsive Styles */
+@media (max-width: 768px) {
+  .crm-mobile-header {
+    padding: 12px 16px !important;
+  }
+  
+  .crm-tab-scroll {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 4px 12px;
+    background: #ffffff;
+  }
+
+  .crm-tab-scroll button {
+    padding: 12px 16px !important;
+    font-size: 0.85rem !important;
+    flex-shrink: 0;
+  }
+
+  .crm-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .crm-desktop-table {
+    display: none !important;
+  }
+
+  .crm-mobile-cards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .crm-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+}
+
+.crm-top-header {
+  background: #0f172a;
+  color: #fff;
+  padding: 0 16px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1e293b;
+}
+
+@media (min-width: 769px) {
+  .crm-top-header {
+    padding: 0 24px;
+    height: 64px;
+  }
+  .crm-desktop-table {
+    display: block !important;
+  }
+  .crm-mobile-cards {
+    display: none !important;
+  }
+}
+
+.crm-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.crm-order-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .crm-section-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  
+  .crm-order-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .crm-order-grid > div:last-child {
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+
+  .crm-order-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+}
 

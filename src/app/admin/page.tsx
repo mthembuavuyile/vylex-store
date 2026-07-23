@@ -468,32 +468,32 @@ export default function AdminDashboard() {
     <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a' }}>
       
       {/* Admin Top Header Bar */}
-      <header style={{ background: '#0f172a', color: '#fff', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1e293b' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/logo.png" alt="Vylex Logo" width="30" height="30" />
-            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#fff' }}>vylex<span style={{ color: '#f97316' }}>.</span>CRM</span>
+      <header className="crm-top-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="Vylex Logo" width="28" height="28" />
+            <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff' }}>vylex<span style={{ color: '#f97316' }}>.</span>CRM</span>
           </Link>
-          <span style={{ fontSize: '0.72rem', background: '#334155', padding: '2px 8px', borderRadius: '12px', color: '#cbd5e1' }}>PRO HUB</span>
+          <span className="hide-mobile" style={{ fontSize: '0.72rem', background: '#334155', padding: '2px 8px', borderRadius: '12px', color: '#cbd5e1' }}>PRO HUB</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/" style={{ fontSize: '0.82rem', color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Eye size={16} /> View Storefront
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link href="/" style={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', background: '#1e293b', padding: '6px 10px', borderRadius: '6px' }}>
+            <Eye size={14} /> <span className="hide-mobile">Storefront</span>
           </Link>
 
           <button 
             onClick={handleLogout}
-            style={{ background: 'transparent', border: '1px solid #334155', color: '#fca5a5', padding: '6px 12px', borderRadius: '6px', fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ background: 'transparent', border: '1px solid #334155', color: '#fca5a5', padding: '6px 10px', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
-            <LogOut size={14} /> Sign Out
+            <LogOut size={14} /> <span className="hide-mobile">Sign Out</span>
           </button>
         </div>
       </header>
 
       {/* Admin Navigation Tabs */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '0 24px' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="crm-tab-scroll">
           <button 
             onClick={() => setActiveTab('overview')}
             style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'overview' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'overview' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
@@ -505,14 +505,14 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('products')}
             style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'products' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'products' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <ShoppingBag size={18} /> Products & Inventory ({products.length})
+            <ShoppingBag size={18} /> Products ({products.length})
           </button>
           
           <button 
             onClick={() => setActiveTab('orders')}
             style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'orders' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'orders' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <ShoppingCart size={18} /> Orders & Sales ({orders.length})
+            <ShoppingCart size={18} /> Orders ({orders.length})
           </button>
 
           <button 
@@ -642,13 +642,13 @@ export default function AdminDashboard() {
         ) : activeTab === 'products' ? (
           /* PRODUCTS TAB */
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div className="crm-section-header">
               <div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Inventory & Products</h2>
                 <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Manage store product listings, prices & stock levels</p>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {products.length === 0 && (
                   <button 
                     onClick={handleSeedInventory}
@@ -730,8 +730,8 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Product Table */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+            {/* Desktop Table View */}
+            <div className="crm-desktop-table" style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
@@ -791,18 +791,74 @@ export default function AdminDashboard() {
               </table>
             </div>
 
+            {/* Mobile Cards View */}
+            <div className="crm-mobile-cards">
+              {products.length === 0 ? (
+                <div style={{ background: '#fff', padding: '24px', textAlign: 'center', borderRadius: '12px', color: '#64748b' }}>
+                  No inventory items found.
+                </div>
+              ) : (
+                products.map(p => (
+                  <div key={p.id} className="crm-mobile-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <ProductIcon name={Array.isArray(p.images) ? p.images[0] : (p.images || 'powerbank')} className="cart-icon-small" />
+                        <div>
+                          <h4 style={{ fontWeight: 700, fontSize: '0.95rem' }}>{p.title}</h4>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>SKU: {p.sku}</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteProduct(p.id)}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '10px' }}>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Category: </span>
+                        <strong>{p.category}</strong>
+                      </div>
+                      <span style={{ 
+                        padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700,
+                        background: (p.stock_quantity || 0) <= 5 ? '#fee2e2' : (p.stock_quantity || 0) <= 15 ? '#fef3c7' : '#dcfce7',
+                        color: (p.stock_quantity || 0) <= 5 ? '#991b1b' : (p.stock_quantity || 0) <= 15 ? '#854d0e' : '#166534'
+                      }}>
+                        {p.stock_quantity || 0} in stock
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Selling Price: </span>
+                        <strong style={{ color: '#0f172a' }}>R{Number(p.price).toFixed(2)}</strong>
+                      </div>
+                      {p.cost_price > 0 && (
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Cost: </span>
+                          <span style={{ color: '#64748b' }}>R{Number(p.cost_price).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
           </div>
         ) : activeTab === 'orders' ? (
           /* ORDERS TAB */
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div className="crm-section-header">
               <div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Orders & Sales Pipeline</h2>
                 <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Track order status, record courier tracking, and update buyers</p>
               </div>
 
               {/* Status Filter */}
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }}>
                 {['all', 'pending', 'paid', 'shipped', 'delivered'].map(status => (
                   <button 
                     key={status}
@@ -811,7 +867,8 @@ export default function AdminDashboard() {
                       padding: '8px 14px', borderRadius: '20px', border: '1px solid #cbd5e1', 
                       background: orderStatusFilter === status ? '#0f172a' : '#fff',
                       color: orderStatusFilter === status ? '#fff' : '#64748b',
-                      fontSize: '0.82rem', fontWeight: 600, textTransform: 'capitalize', cursor: 'pointer'
+                      fontSize: '0.82rem', fontWeight: 600, textTransform: 'capitalize', cursor: 'pointer',
+                      flexShrink: 0
                     }}
                   >
                     {status}
@@ -863,8 +920,8 @@ export default function AdminDashboard() {
                 {filteredOrders.map(order => (
                   <div key={order.id} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="crm-order-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                         <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{order.order_number || order.id}</span>
                         <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{new Date(order.created_at).toLocaleString()}</span>
                         <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', color: order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', fontWeight: 600 }}>
@@ -872,7 +929,7 @@ export default function AdminDashboard() {
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Status:</label>
                         <select 
                           value={order.order_status} 
@@ -888,7 +945,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+                    <div className="crm-order-grid">
                       <div>
                         <div style={{ fontSize: '0.88rem', fontWeight: 700, marginBottom: '6px' }}>Buyer Details:</div>
                         <div style={{ fontSize: '0.85rem', color: '#334155' }}>
@@ -910,7 +967,7 @@ export default function AdminDashboard() {
                           <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>R{Number(order.total_amount).toFixed(2)}</div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
                           <button 
                             onClick={() => {
                               setSelectedOrderForTracking(order);
@@ -945,7 +1002,7 @@ export default function AdminDashboard() {
         ) : (
           /* CUSTOMERS CRM TAB */
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div className="crm-section-header">
               <div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Customer Relationship Management (CRM)</h2>
                 <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Directory of buyers, leads, and customer order history</p>
@@ -956,11 +1013,12 @@ export default function AdminDashboard() {
                 placeholder="Search customers by name or phone..." 
                 value={customerSearch}
                 onChange={e => setCustomerSearch(e.target.value)}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '280px', fontSize: '0.85rem' }}
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', maxWidth: '280px', fontSize: '0.85rem' }}
               />
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+            {/* Desktop Table View */}
+            <div className="crm-desktop-table" style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
@@ -1014,6 +1072,49 @@ export default function AdminDashboard() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="crm-mobile-cards">
+              {filteredCustomers.length === 0 ? (
+                <div style={{ background: '#fff', padding: '24px', textAlign: 'center', borderRadius: '12px', color: '#64748b' }}>
+                  No customer records created yet.
+                </div>
+              ) : (
+                filteredCustomers.map(c => (
+                  <div key={c.id} className="crm-mobile-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div>
+                        <h4 style={{ fontWeight: 700, fontSize: '0.98rem' }}>{c.full_name}</h4>
+                        <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{c.phone}</span>
+                      </div>
+                      <span style={{ 
+                        padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600,
+                        background: c.status === 'VIP' ? '#fef3c7' : c.status === 'Active' ? '#dcfce7' : '#e0f2fe',
+                        color: c.status === 'VIP' ? '#854d0e' : c.status === 'Active' ? '#166534' : '#075985'
+                      }}>
+                        {c.status || 'Lead'}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '0.82rem', color: '#334155', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', marginBottom: '12px' }}>
+                      {c.email && <div>Email: {c.email}</div>}
+                      <div>Address: {c.street_address || c.address || 'N/A'}</div>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        const cleanPhone = c.phone.replace(/[^0-9]/g, '');
+                        const phoneWithCode = cleanPhone.startsWith('0') ? '27' + cleanPhone.substring(1) : cleanPhone;
+                        window.open(`https://wa.me/${phoneWithCode}?text=${encodeURIComponent(`Hi ${c.full_name}, thank you for reaching out to Vylex Store!`)}`, '_blank');
+                      }}
+                      style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    >
+                      <MessageSquare size={14} /> Chat with Customer via WhatsApp
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
 
           </div>
