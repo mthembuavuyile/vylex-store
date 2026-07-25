@@ -2124,10 +2124,62 @@ button {
 /* Responsive Grid layouts */
 @media (max-width: 640px) {
   .product-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 32px;
   }
-  
+
+  .product-card-badge {
+    top: 8px !important;
+    left: 8px !important;
+    font-size: 0.58rem !important;
+    padding: 3px 6px !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .product-details {
+    padding: 10px !important;
+  }
+
+  .product-title {
+    font-size: 0.825rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 6px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    min-height: 2.5em;
+  }
+
+  .product-price {
+    font-size: 0.95rem !important;
+  }
+
+  .product-category {
+    font-size: 0.625rem !important;
+    margin-bottom: 4px !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .product-rating-stars {
+    font-size: 0.7rem !important;
+    gap: 2px !important;
+  }
+
+  .product-quick-add {
+    top: 6px !important;
+    right: 6px !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .product-quick-add svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
   .catalog-header {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -2146,6 +2198,18 @@ button {
     padding-top: 32px !important;
     padding-bottom: 40px !important;
   }
+
+  .product-skeleton-card {
+    padding: 10px !important;
+  }
+}
+
+.product-skeleton-card {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 20px;
+  opacity: 0.7;
 }
 
 /* CRM Mobile-Friendly Responsive Styles */

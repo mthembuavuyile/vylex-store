@@ -238,7 +238,7 @@ export default function Home() {
           {/* Desktop Nav Links */}
           <nav className="nav-desktop">
             <a href="#catalog" className="nav-link" onClick={() => { setCheckoutStep('browse'); setSelectedCategory('All'); }}>All Products</a>
-            <Link href="/admin" className="nav-link" style={{ color: 'var(--orange)' }}>Admin & CRM</Link>
+            <Link href="/admin" className="nav-link" style={{ color: 'var(--orange)' }}>Staff Admin</Link>
           </nav>
 
           {/* Cart Icon & Burger Actions */}
@@ -318,7 +318,7 @@ export default function Home() {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <UserCheck size={18} style={{ color: '#10B981' }} /> Admin & CRM Hub
+                      <UserCheck size={18} style={{ color: '#10B981' }} /> Staff Admin Portal
                     </span>
                     <ChevronRight size={14} />
                   </Link>
@@ -616,7 +616,7 @@ export default function Home() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--sdark)', fontSize: '0.8rem', marginTop: '16px' }}>
-                  <Lock size={14} /> Orders registered & tracked securely in Vylex CRM
+                  <Lock size={14} /> Orders processed & tracked securely with end-to-end encryption
                 </div>
               </form>
 
@@ -753,11 +753,11 @@ export default function Home() {
               {loadingProducts ? (
                 <div className="product-grid" style={{ marginTop: '32px' }}>
                   {[1, 2, 3, 4].map(n => (
-                    <div key={n} className="card" style={{ padding: '24px', opacity: 0.6 }}>
-                      <div style={{ width: '100%', height: '160px', background: '#e2e8f0', borderRadius: '12px', marginBottom: '16px' }} />
-                      <div style={{ width: '40%', height: '14px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
-                      <div style={{ width: '80%', height: '20px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '12px' }} />
-                      <div style={{ width: '100%', height: '14px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    <div key={n} className="product-skeleton-card">
+                      <div style={{ width: '100%', aspectRatio: '4/3', background: '#e2e8f0', borderRadius: '10px', marginBottom: '12px' }} />
+                      <div style={{ width: '40%', height: '12px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
+                      <div style={{ width: '85%', height: '16px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '10px' }} />
+                      <div style={{ width: '60%', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
                     </div>
                   ))}
                 </div>
@@ -864,18 +864,18 @@ export default function Home() {
                 <li><button onClick={() => setActiveModal('refund')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Refund Policy</button></li>
                 <li><button onClick={() => setActiveModal('terms')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Terms & Conditions</button></li>
                 <li><button onClick={() => setActiveModal('about')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>About Vylex Store</button></li>
-                <li><Link href="/admin" style={{ color: 'var(--orange)', fontWeight: 600 }}>Admin & CRM Hub</Link></li>
+                <li><Link href="/admin" style={{ color: 'var(--orange)', fontWeight: 600 }}>Admin Portal</Link></li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
             <p>
-              &copy; {new Date().getFullYear()} Vylex Store. All rights reserved. By <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a>
+              &copy; {new Date().getFullYear()} Vylex Store. All rights reserved. Powered by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a>
             </p>
             <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <Link href="/admin" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <UserCheck size={14} /> Admin & CRM
-              </Link>
+              <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}>
+                vylex.co.za
+              </a>
             </p>
           </div>
         </div>

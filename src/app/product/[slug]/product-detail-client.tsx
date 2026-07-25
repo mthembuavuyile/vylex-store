@@ -312,9 +312,9 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
       <footer className="footer">
         <div className="container">
           <div className="footer-bottom" style={{ borderTop: 'none', paddingTop: '0' }}>
-            <p>&copy; {new Date().getFullYear()} Vylex Store. All rights reserved. By <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a></p>
+            <p>&copy; {new Date().getFullYear()} Vylex Store. All rights reserved. Powered by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a></p>
             <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <Link href="/admin" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}>Admin & CRM Hub</Link>
+              <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}>vylex.co.za</a>
             </p>
           </div>
         </div>
