@@ -41,6 +41,7 @@ export default function Home() {
     postalCode: '',
   });
 
+  const [loadingStripe, setLoadingStripe] = useState(false);
   const [loadingPayFast, setLoadingPayFast] = useState(false);
   const [loadingWhatsApp, setLoadingWhatsApp] = useState(false);
 
@@ -107,7 +108,42 @@ export default function Home() {
     setIsCartOpen(true);
   };
 
-  // 1. Online Payment via PayFast Gateway
+  // 1. Online Payment via Stripe Checkout (Card, Apple Pay, Google Pay)
+  const handleStripeCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shippingDetails.fullName || !shippingDetails.email || !shippingDetails.streetAddress) {
+      alert('Please fill in your Full Name, Email, and Street Address first.');
+      return;
+    }
+    setLoadingStripe(true);
+    setCheckoutStep('redirecting');
+
+    try {
+      const response = await fetch('/api/checkout/stripe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cartItems: cart, shippingDetails }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.url) {
+        alert(data.error || 'Checkout process failed.');
+        setCheckoutStep('form');
+        setLoadingStripe(false);
+        return;
+      }
+
+      clearCart();
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Stripe checkout error:', error);
+      alert('An unexpected error occurred. Please try again.');
+      setCheckoutStep('form');
+      setLoadingStripe(false);
+    }
+  };
+
+  // 2. Online Payment via PayFast Gateway
   const handlePayFastCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingPayFast(true);
@@ -576,40 +612,52 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* DUAL CHECKOUT OPTIONS */}
+                {/* CHECKOUT PAYMENT OPTIONS */}
                 <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   
-                  {/* PayFast Primary Gateway */}
+                  {/* Stripe Primary Gateway */}
                   <button 
-                    type="submit" 
-                    disabled={loadingPayFast || loadingWhatsApp}
+                    type="button" 
+                    disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
+                    onClick={handleStripeCheckout}
                     className="btn btn-primary" 
-                    style={{ width: '100%', gap: '12px', padding: '16px' }}
+                    style={{ width: '100%', gap: '12px', padding: '16px', fontSize: '1rem', fontWeight: 700 }}
                   >
                     <CreditCard size={20} />
-                    {loadingPayFast ? 'Preparing gateway connection...' : `Pay R${total.toFixed(2)} via PayFast / Card / Instant EFT`}
+                    {loadingStripe ? 'Preparing Stripe Checkout...' : `Pay R${total.toFixed(2)} with Card / Apple Pay / Google Pay`}
+                  </button>
+
+                  {/* PayFast Secondary / Instant EFT Option */}
+                  <button 
+                    type="submit" 
+                    disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
+                    className="btn btn-outline" 
+                    style={{ width: '100%', gap: '12px', padding: '14px' }}
+                  >
+                    <ShieldCheck size={18} />
+                    {loadingPayFast ? 'Connecting to PayFast...' : `Pay via PayFast / Instant EFT (SA Banks)`}
                   </button>
 
                   <div style={{ textAlign: 'center', margin: '4px 0', fontSize: '0.8rem', color: 'var(--sdark)', fontWeight: 600 }}>
-                    ── OR PREFER CHATTING WITH US? ──
+                    ── OR NEED ASSISTANCE? ──
                   </div>
 
                   {/* WhatsApp Secondary Order Inquiry */}
                   <button 
                     type="button" 
-                    disabled={loadingPayFast || loadingWhatsApp}
+                    disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
                     onClick={handleWhatsAppCheckout}
                     className="btn" 
                     style={{ 
                       width: '100%', 
                       gap: '12px', 
-                      padding: '16px',
+                      padding: '14px',
                       background: '#16a34a',
                       color: '#ffffff',
                       border: 'none'
                     }}
                   >
-                    <MessageSquare size={20} />
+                    <MessageSquare size={18} />
                     {loadingWhatsApp ? 'Generating WhatsApp request...' : 'Instant Order Request via WhatsApp'}
                   </button>
 

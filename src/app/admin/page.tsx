@@ -621,8 +621,15 @@ export default function AdminDashboard() {
                           <td style={{ padding: '12px 8px' }}>{o.customer_name}</td>
                           <td style={{ padding: '12px 8px', fontWeight: 700 }}>R{Number(o.total_amount).toFixed(2)}</td>
                           <td style={{ padding: '12px 8px' }}>
-                            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: o.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', color: o.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', fontWeight: 600 }}>
-                              {o.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'}
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              padding: '2px 8px', 
+                              borderRadius: '10px', 
+                              background: o.payment_method === 'stripe' ? '#ede9fe' : o.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', 
+                              color: o.payment_method === 'stripe' ? '#5b21b6' : o.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', 
+                              fontWeight: 600 
+                            }}>
+                              {o.payment_method === 'stripe' ? 'Stripe' : o.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'}
                             </span>
                           </td>
                           <td style={{ padding: '12px 8px' }}>
@@ -924,8 +931,15 @@ export default function AdminDashboard() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                         <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{order.order_number || order.id}</span>
                         <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{new Date(order.created_at).toLocaleString()}</span>
-                        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', color: order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', fontWeight: 600 }}>
-                          {order.payment_method === 'whatsapp_inquiry' ? 'WhatsApp Inquiry' : 'PayFast Gateway'}
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          padding: '2px 8px', 
+                          borderRadius: '10px', 
+                          background: order.payment_method === 'stripe' ? '#ede9fe' : order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', 
+                          color: order.payment_method === 'stripe' ? '#5b21b6' : order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', 
+                          fontWeight: 600 
+                        }}>
+                          {order.payment_method === 'stripe' ? 'Stripe Checkout' : order.payment_method === 'whatsapp_inquiry' ? 'WhatsApp Inquiry' : 'PayFast Gateway'}
                         </span>
                       </div>
 

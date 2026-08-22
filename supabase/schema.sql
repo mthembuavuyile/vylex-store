@@ -1,19 +1,20 @@
 -- ====================================================================
 -- VYLEX STORE: COMPLETE UNIFIED DATABASE REPAIR & INITIALIZATION SCRIPT
--- Fixes:
--- 1. Changes product/order IDs to TEXT to match Next.js App frontend (e.g. 'vy-nc20-blk')
--- 2. Grants proper SELECT permissions to anon & authenticated for storefront
--- 3. Enables clean RLS policies that don't block admin UI or checkout
+-- Features:
+-- 1. Products, Customers, Orders, Order Items, and Sync Logs
+-- 2. Stripe & PayFast payment support (session IDs, references, status)
+-- 3. Atomic stock deduction stored procedures
+-- 4. Row Level Security policies
 -- ====================================================================
 
--- Drop conflicting legacy tables if they were created with wrong UUID types
+-- Drop conflicting legacy tables if needed
 DROP TABLE IF EXISTS public.order_items CASCADE;
 DROP TABLE IF EXISTS public.orders CASCADE;
 DROP TABLE IF EXISTS public.customers CASCADE;
 DROP TABLE IF EXISTS public.products CASCADE;
-DROP TABLE IF EXISTS public.tracking_info CASCADE;
+DROP TABLE IF EXISTS public.supplier_sync_logs CASCADE;
 
--- 1. PRODUCTS TABLE (Uses TEXT IDs to match 'vy-nc20-blk' frontend format)
+-- 1. PRODUCTS TABLE (Uses TEXT IDs e.g. 'vy-nc20-blk')
 CREATE TABLE public.products (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -42,13 +43,13 @@ CREATE TABLE public.customers (
   city TEXT,
   state TEXT,
   postal_code TEXT,
-  status TEXT DEFAULT 'Lead',
+  status TEXT DEFAULT 'Customer',
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. ORDERS TABLE
+-- 3. ORDERS TABLE (Supports Stripe & PayFast)
 CREATE TABLE public.orders (
   id TEXT PRIMARY KEY,
   order_number TEXT UNIQUE NOT NULL,
@@ -59,7 +60,11 @@ CREATE TABLE public.orders (
   shipping_address TEXT NOT NULL,
   total_amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
   shipping_cost NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-  payment_method TEXT NOT NULL DEFAULT 'payfast',
+  currency TEXT NOT NULL DEFAULT 'ZAR',
+  payment_method TEXT NOT NULL DEFAULT 'stripe',
+  payment_provider TEXT NOT NULL DEFAULT 'stripe',
+  payment_reference TEXT,
+  stripe_session_id TEXT,
   payment_status TEXT NOT NULL DEFAULT 'pending',
   order_status TEXT NOT NULL DEFAULT 'pending',
   courier_name TEXT,
@@ -82,32 +87,37 @@ CREATE TABLE public.order_items (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 5. AUDIT / SYNC LOGS TABLE
+CREATE TABLE public.supplier_sync_logs (
+  id BIGSERIAL PRIMARY KEY,
+  status TEXT NOT NULL,
+  details TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Reset Table Permissions & RLS
 GRANT ALL ON public.products TO anon, authenticated, service_role;
 GRANT ALL ON public.customers TO anon, authenticated, service_role;
 GRANT ALL ON public.orders TO anon, authenticated, service_role;
 GRANT ALL ON public.order_items TO anon, authenticated, service_role;
+GRANT ALL ON public.supplier_sync_logs TO anon, authenticated, service_role;
 
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.supplier_sync_logs ENABLE ROW LEVEL SECURITY;
 
--- Clean Up Old Conflicting Policies
+-- Clean Up Old Policies
 DROP POLICY IF EXISTS "Public products view" ON public.products;
-DROP POLICY IF EXISTS "Products are viewable by everyone" ON public.products;
-DROP POLICY IF EXISTS "Admins have full access to products" ON public.products;
-DROP POLICY IF EXISTS "Allow public read products" ON public.products;
-DROP POLICY IF EXISTS "Allow admin products write" ON public.products;
-
+DROP POLICY IF EXISTS "Admin products full access" ON public.products;
 DROP POLICY IF EXISTS "Anon customer insert" ON public.customers;
 DROP POLICY IF EXISTS "Admin customer full access" ON public.customers;
-
 DROP POLICY IF EXISTS "Anon orders insert" ON public.orders;
 DROP POLICY IF EXISTS "Admin orders full access" ON public.orders;
-
 DROP POLICY IF EXISTS "Anon order items insert" ON public.order_items;
 DROP POLICY IF EXISTS "Admin order items full access" ON public.order_items;
+DROP POLICY IF EXISTS "Admin logs full access" ON public.supplier_sync_logs;
 
 -- Active Unified Policies
 CREATE POLICY "Public products view" ON public.products FOR SELECT USING (true);
@@ -121,6 +131,30 @@ CREATE POLICY "Admin orders full access" ON public.orders FOR ALL USING (true);
 
 CREATE POLICY "Anon order_items insert" ON public.order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admin order_items full access" ON public.order_items FOR ALL USING (true);
+
+CREATE POLICY "Admin logs full access" ON public.supplier_sync_logs FOR ALL USING (true);
+
+-- Atomic Stock Deduction Stored Procedure
+CREATE OR REPLACE FUNCTION public.deduct_order_stock(p_order_id TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  item RECORD;
+BEGIN
+  FOR item IN 
+    SELECT product_id, quantity 
+    FROM public.order_items 
+    WHERE order_id = p_order_id AND product_id IS NOT NULL
+  LOOP
+    UPDATE public.products
+    SET stock_quantity = GREATEST(0, stock_quantity - item.quantity),
+        updated_at = NOW()
+    WHERE id = item.product_id;
+  END LOOP;
+END;
+$$;
 
 -- Seed Initial Products
 INSERT INTO public.products (
