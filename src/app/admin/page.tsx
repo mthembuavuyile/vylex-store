@@ -826,13 +826,14 @@ export default function AdminDashboard() {
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '16px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
               
               {/* Tab Pills */}
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
                 <button
                   onClick={() => setProductFilterTab('all')}
                   style={{
                     padding: '6px 14px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600, border: 'none', cursor: 'pointer',
                     background: productFilterTab === 'all' ? '#0f172a' : '#f1f5f9',
-                    color: productFilterTab === 'all' ? '#fff' : '#64748b'
+                    color: productFilterTab === 'all' ? '#fff' : '#64748b',
+                    whiteSpace: 'nowrap', flexShrink: 0
                   }}
                 >
                   All ({products.length})
@@ -843,7 +844,8 @@ export default function AdminDashboard() {
                   style={{
                     padding: '6px 14px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600, border: 'none', cursor: 'pointer',
                     background: productFilterTab === 'active' ? '#16a34a' : '#f1f5f9',
-                    color: productFilterTab === 'active' ? '#fff' : '#64748b'
+                    color: productFilterTab === 'active' ? '#fff' : '#64748b',
+                    whiteSpace: 'nowrap', flexShrink: 0
                   }}
                 >
                   Active ({activeProductsCount})
@@ -854,7 +856,8 @@ export default function AdminDashboard() {
                   style={{
                     padding: '6px 14px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600, border: 'none', cursor: 'pointer',
                     background: productFilterTab === 'draft' ? '#475569' : '#f1f5f9',
-                    color: productFilterTab === 'draft' ? '#fff' : '#64748b'
+                    color: productFilterTab === 'draft' ? '#fff' : '#64748b',
+                    whiteSpace: 'nowrap', flexShrink: 0
                   }}
                 >
                   Drafts ({draftProductsCount})
@@ -865,7 +868,8 @@ export default function AdminDashboard() {
                   style={{
                     padding: '6px 14px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: 600, border: 'none', cursor: 'pointer',
                     background: productFilterTab === 'low_stock' ? '#dc2626' : '#f1f5f9',
-                    color: productFilterTab === 'low_stock' ? '#fff' : '#64748b'
+                    color: productFilterTab === 'low_stock' ? '#fff' : '#64748b',
+                    whiteSpace: 'nowrap', flexShrink: 0
                   }}
                 >
                   Low Stock ({lowStockProductsCount})

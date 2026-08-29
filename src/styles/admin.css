@@ -19,6 +19,21 @@
     padding: 0 16px;
     height: 56px;
   }
+
+  /* Hide button text on mobile to prevent squishing */
+  .admin-storefront-btn span,
+  .admin-signout-btn span {
+    display: none;
+  }
+  
+  .admin-storefront-btn,
+  .admin-signout-btn {
+    padding: 8px 10px;
+  }
+  
+  .admin-top-actions {
+    gap: 8px;
+  }
 }
 
 .admin-logo-link {
@@ -305,5 +320,13 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  .crm-mobile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 }
