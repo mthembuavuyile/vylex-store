@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, X, Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { ProductIcon } from '@/lib/products';
@@ -20,6 +22,7 @@ export function CartDrawer({ onCheckoutClick }: CartDrawerProps) {
     isCartOpen,
     setIsCartOpen,
   } = useCart();
+  const router = useRouter();
 
   if (!isCartOpen) return null;
 
@@ -32,7 +35,7 @@ export function CartDrawer({ onCheckoutClick }: CartDrawerProps) {
     if (onCheckoutClick) {
       onCheckoutClick();
     } else {
-      window.location.href = '/?checkout=1';
+      router.push('/checkout');
     }
   };
 
@@ -52,9 +55,14 @@ export function CartDrawer({ onCheckoutClick }: CartDrawerProps) {
             <div style={{ textAlign: 'center', padding: '60px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <ShoppingCart size={48} style={{ color: 'var(--slate)', marginBottom: '16px' }} />
               <p style={{ color: 'var(--sdark)' }}>Your cart is empty.</p>
-              <button className="btn btn-outline" style={{ marginTop: '20px' }} onClick={() => setIsCartOpen(false)}>
+              <Link 
+                href="/shop"
+                className="btn btn-outline" 
+                style={{ marginTop: '20px' }} 
+                onClick={() => setIsCartOpen(false)}
+              >
                 Browse Products
-              </button>
+              </Link>
             </div>
           ) : (
             cart.map(item => (

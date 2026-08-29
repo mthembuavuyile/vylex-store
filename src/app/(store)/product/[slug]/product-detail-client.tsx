@@ -9,7 +9,6 @@ import {
 import { ProductIcon } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
 import type { Product } from '@/lib/products';
-import { CartDrawer } from '@/components/CartDrawer';
 
 interface Props {
   product: Product;
@@ -17,7 +16,7 @@ interface Props {
 }
 
 export function ProductDetailClient({ product, relatedProducts }: Props) {
-  const { addToCart, cartCount, isCartOpen, setIsCartOpen } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
   const [addedFeedback, setAddedFeedback] = useState(false);
 
   // Define dynamic variant choices based on product category
@@ -32,22 +31,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
 
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
-  const [scrolled, setScrolled] = useState(false);
 
-  // Scroll listener to update header height on scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Set default values once colors/sizes are computed
   useEffect(() => {
     if (colors.length > 0) setSelectedColor(colors[0]);
     if (sizes.length > 0) setSelectedSize(sizes[0]);
@@ -70,58 +54,30 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
     
     setAddedFeedback(true);
     setTimeout(() => setAddedFeedback(false), 2000);
-    setIsCartOpen(true); // Auto-open cart drawer for immediate visual confirmation
+    setIsCartOpen(true);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CartDrawer />
-
-      {/* Compact Navigation */}
-      <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-        <div className="container navbar-inner" style={{ height: '64px' }}>
-          <Link href="/" className="logo logo-light">
-            <img src="/logo.png" alt="Vybetek Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
-            <span className="logo-text">vybetek</span>
+    <div>
+      {/* Breadcrumb Navigation */}
+      <div className="container" style={{ padding: '24px 24px 0' }}>
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          <Link href="/" className="breadcrumb-link">Home</Link>
+          <ChevronRight size={14} className="breadcrumb-separator" />
+          <Link href="/shop" className="breadcrumb-link">Shop</Link>
+          <ChevronRight size={14} className="breadcrumb-separator" />
+          <Link href={`/shop?category=${encodeURIComponent(product.category)}`} className="breadcrumb-link">
+            {product.category}
           </Link>
-
-          <button 
-            onClick={() => setIsCartOpen(true)} 
-            className="btn-icon" 
-            style={{ position: 'relative', border: '1px solid var(--slate)' }}
-            aria-label="Open Shopping Cart"
-          >
-            <ShoppingCart size={20} />
-            {cartCount > 0 && (
-              <span style={{
-                position: 'absolute', top: '-4px', right: '-4px',
-                background: 'var(--orange)', color: 'var(--navy)',
-                fontSize: '0.72rem', fontWeight: 700,
-                width: '20px', height: '20px', borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {cartCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Breadcrumb */}
-      <div className="container" style={{ padding: '16px 24px 0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--sdark)' }}>
-          <Link href="/" style={{ color: 'var(--sdark)', textDecoration: 'none' }}>Home</Link>
-          <ChevronRight size={14} />
-          <Link href={`/#catalog`} style={{ color: 'var(--sdark)', textDecoration: 'none' }}>{product.category}</Link>
-          <ChevronRight size={14} />
-          <span style={{ color: 'var(--navy)', fontWeight: 600 }}>{product.title}</span>
+          <ChevronRight size={14} className="breadcrumb-separator" />
+          <span className="breadcrumb-current">{product.title}</span>
         </nav>
       </div>
 
-      {/* Product Detail */}
-      <main className="container" style={{ flexGrow: 1, padding: '24px 24px 60px' }}>
+      {/* Product Detail Main */}
+      <div className="container" style={{ padding: '24px 24px 60px' }}>
 
-        {/* Product Hero — stacks vertically on mobile */}
+        {/* Product Hero Grid */}
         <div className="product-detail-grid">
 
           {/* Product Image */}
@@ -132,9 +88,11 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
           {/* Product Info */}
           <div className="product-detail-info">
             <span className="product-category">{product.category}</span>
-            <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 700, lineHeight: 1.2, marginBottom: '8px' }}>
+            
+            <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 700, lineHeight: 1.2, marginBottom: '8px', color: 'var(--navy)' }}>
               {product.title}
             </h1>
+            
             <span style={{
               fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--sdark)',
               background: 'var(--slate)', padding: '4px 8px', borderRadius: '4px',
@@ -143,7 +101,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
               SKU: {product.sku}
             </span>
 
-            <div style={{ fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 700, color: 'var(--navy)', marginBottom: '24px' }}>
+            <div style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, color: 'var(--navy)', marginBottom: '24px' }}>
               R{Number(product.price).toFixed(2)}
             </div>
 
@@ -240,10 +198,10 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
                 <ShieldCheck size={16} style={{ color: 'var(--green)' }} /> Warranty Included
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
-                <Truck size={16} style={{ color: 'var(--orange)' }} /> Free shipping over R1000
+                <Truck size={16} style={{ color: 'var(--orange)' }} /> Free delivery over R1,000
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
-                <Package size={16} style={{ color: '#2563eb' }} /> Fast Dispatch
+                <Package size={16} style={{ color: '#2563eb' }} /> Fast Courier Dispatch
               </div>
             </div>
 
@@ -265,7 +223,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
         {/* Specifications Section */}
         {product.specifications && product.specifications.length > 0 && (
           <section className="product-specs-section">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px' }}>Specifications</h2>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: 'var(--navy)' }}>Specifications</h2>
             <div className="product-specs-grid">
               {product.specifications.map((spec: string, idx: number) => (
                 <div key={idx} className="product-spec-item">
@@ -280,12 +238,12 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <section style={{ marginTop: '60px' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '24px' }}>You May Also Like</h2>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '24px', color: 'var(--navy)' }}>You May Also Like</h2>
             <div className="product-grid">
               {relatedProducts.map((rp: any) => (
                 <Link
                   key={rp.id}
-                  href={`/product/${rp.slug}`}
+                  href={`/product/${rp.slug || rp.id}`}
                   className="product-card product-card-link"
                 >
                   <div className="product-image-wrapper" style={{ aspectRatio: '4/3' }}>
@@ -306,32 +264,22 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
             </div>
           </section>
         )}
-      </main>
-
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-bottom" style={{ borderTop: 'none', paddingTop: '0' }}>
-            <p>&copy; {new Date().getFullYear()} Vybetek. All rights reserved.</p>
-            <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}>vylex.co.za</a>
-            </p>
-          </div>
-        </div>
-      </footer>
+      </div>
 
       {/* Mobile Sticky Add to Cart Bar */}
       <div className="mobile-sticky-atc">
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--sdark)' }}>{product.title}</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--sdark)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {product.title}
+          </span>
           <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>R{Number(product.price).toFixed(2)}</span>
         </div>
         <button
           className="btn btn-primary"
           onClick={handleAddToCart}
-          style={{ padding: '12px 24px', gap: '8px', whiteSpace: 'nowrap' }}
+          style={{ padding: '12px 20px', gap: '8px', whiteSpace: 'nowrap' }}
         >
-          {addedFeedback ? <><CheckCircle2 size={18} /> Added!</> : <><ShoppingCart size={18} /> Add</>}
+          {addedFeedback ? <><CheckCircle2 size={18} /> Added!</> : <><ShoppingCart size={18} /> Add to Cart</>}
         </button>
       </div>
     </div>
