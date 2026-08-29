@@ -287,3 +287,23 @@
   line-height: 1.4;
   word-break: break-word;
 }
+
+/* ==========================================================================
+   Responsive Table/Cards Toggles
+   ========================================================================== */
+
+.crm-mobile-cards {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .crm-desktop-table {
+    display: none;
+  }
+
+  .crm-mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
