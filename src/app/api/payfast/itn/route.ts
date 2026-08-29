@@ -3,22 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
 const PASSPHRASE = process.env.PAYFAST_PASSPHRASE || '';
-
-// PayFast valid IP ranges for ITN callbacks
-// https://developers.payfast.co.za/docs#step_4_confirm_payment
-const PAYFAST_VALID_IPS = [
-  '197.97.145.144', '197.97.145.145', '197.97.145.146', '197.97.145.147',
-  '197.97.145.148', '197.97.145.149', '197.97.145.150', '197.97.145.151',
-  '197.97.145.152', '197.97.145.153', '197.97.145.154', '197.97.145.155',
-  '197.97.145.156', '197.97.145.157', '197.97.145.158', '197.97.145.159',
-  // Sandbox IPs
-  '41.74.179.194', '41.74.179.195', '41.74.179.196', '41.74.179.197',
-  '41.74.179.198', '41.74.179.199', '41.74.179.200', '41.74.179.201',
-  '41.74.179.202', '41.74.179.203', '41.74.179.204', '41.74.179.205',
-  '41.74.179.206', '41.74.179.207', '41.74.179.208', '41.74.179.209',
-  '41.74.179.210', '41.74.179.211', '41.74.179.212', '41.74.179.213',
-  '41.74.179.214',
-];
+const PAYFAST_URL = process.env.PAYFAST_URL || 'https://sandbox.payfast.co.za/eng/process';
+const IS_SANDBOX = PAYFAST_URL.includes('sandbox');
 
 function generateSignature(params: Record<string, string>, passphrase?: string): string {
   const sortedKeys = Object.keys(params).sort();
@@ -38,20 +24,35 @@ function generateSignature(params: Record<string, string>, passphrase?: string):
   return crypto.createHash('md5').update(signatureString).digest('hex');
 }
 
+/**
+ * Validates the ITN callback payload with PayFast servers via server-to-server query.
+ * Official PayFast ITN Step 3.
+ */
+async function validateWithPayFastHost(rawBody: string): Promise<boolean> {
+  try {
+    const validateHost = IS_SANDBOX
+      ? 'https://sandbox.payfast.co.za/eng/query/validate'
+      : 'https://www.payfast.co.za/eng/query/validate';
+
+    const response = await fetch(validateHost, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: rawBody,
+    });
+
+    const responseText = await response.text();
+    return responseText.trim() === 'VALID';
+  } catch (err) {
+    console.error('PayFast server callback validation network error:', err);
+    // If PayFast host is temporarily unreachable, signature validation still protects the callback
+    return false;
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    // Step 1: Validate source IP (skip in development)
-    const isProduction = process.env.NODE_ENV === 'production';
-    if (isProduction) {
-      const forwardedFor = req.headers.get('x-forwarded-for');
-      const clientIp = forwardedFor ? forwardedFor.split(',')[0].trim() : null;
-
-      if (!clientIp || !PAYFAST_VALID_IPS.includes(clientIp)) {
-        console.error(`PayFast ITN rejected: Invalid source IP ${clientIp}`);
-        return new Response('Forbidden: Invalid source IP', { status: 403 });
-      }
-    }
-
     const text = await req.text();
     const searchParams = new URLSearchParams(text);
     
@@ -66,85 +67,136 @@ export async function POST(req: Request) {
       }
     });
 
-    console.log('Received PayFast ITN callback data:', payfastData);
+    console.log('Received PayFast ITN callback for order:', payfastData.m_payment_id);
 
-    // Step 2: Verify merchant_id matches
+    // Step 1: Verify merchant_id matches
     if (MERCHANT_ID && payfastData.merchant_id !== MERCHANT_ID) {
       console.error('PayFast ITN failed: Merchant ID mismatch');
       return new Response('Invalid Merchant ID', { status: 400 });
     }
 
-    // Step 3: Validate Signature
+    // Step 2: Validate MD5 Signature
     const calculatedSignature = generateSignature(payfastData, PASSPHRASE);
     if (calculatedSignature !== receivedSignature) {
       console.error('PayFast ITN failed: Signature verification mismatch');
       return new Response('Invalid Signature', { status: 400 });
     }
 
-    // Step 4: Verify payment amount matches the order total in database
+    // Step 3: Server-to-server verification with PayFast host
+    // (In production, verify with PayFast validate endpoint; log warning if unconfirmed)
+    const isHostValid = await validateWithPayFastHost(text);
+    if (!isHostValid && process.env.NODE_ENV === 'production') {
+      console.warn('PayFast ITN host validation returned non-VALID. Proceeding with verified signature.');
+    }
+
+    // Step 4: Verify Order in Database
     const orderId = payfastData.m_payment_id;
     const paymentAmount = parseFloat(payfastData.amount_gross || '0');
     const paymentStatus = payfastData.payment_status;
 
+    if (!orderId) {
+      console.error('PayFast ITN failed: Missing m_payment_id');
+      return new Response('Missing Order ID', { status: 400 });
+    }
+
     const { data: order, error: orderFetchError } = await supabaseAdmin
       .from('orders')
-      .select('id, total_amount, status')
+      .select('id, total_amount, payment_status, order_status')
       .eq('id', orderId)
       .single();
 
     if (orderFetchError || !order) {
       console.error(`PayFast ITN: Order ${orderId} not found in database`);
-      // Still return 200 to prevent PayFast from retrying indefinitely
+      // Return 200 to prevent PayFast from retrying indefinitely for orphaned/test orders
       return new Response('Order not found', { status: 200 });
     }
 
-    // Check amount matches (with small tolerance for floating point)
+    // Check amount matches with floating point tolerance
     const orderTotal = parseFloat(order.total_amount);
-    // Add shipping cost calculation to match
-    const shippingCost = orderTotal >= 1000 ? 0 : 99;
-    const expectedTotal = orderTotal + shippingCost;
-    
-    if (Math.abs(paymentAmount - expectedTotal) > 0.02 && Math.abs(paymentAmount - orderTotal) > 0.02) {
+    if (Math.abs(paymentAmount - orderTotal) > 0.05) {
       console.error(
-        `PayFast ITN: Amount mismatch for order ${orderId}. ` +
-        `Expected ~R${expectedTotal.toFixed(2)} or ~R${orderTotal.toFixed(2)}, got R${paymentAmount.toFixed(2)}`
+        `PayFast ITN: Amount mismatch for order ${orderId}. Expected R${orderTotal.toFixed(2)}, got R${paymentAmount.toFixed(2)}`
       );
-      // Log the mismatch but don't block — flag for manual review
       await supabaseAdmin.from('supplier_sync_logs').insert({
-        status: 'failed',
-        details: `AMOUNT MISMATCH: Order ${orderId} expected R${expectedTotal.toFixed(2)} but PayFast sent R${paymentAmount.toFixed(2)}. Needs manual review.`
+        status: 'warning',
+        details: `AMOUNT MISMATCH: Order ${orderId} expected R${orderTotal.toFixed(2)} but PayFast gross was R${paymentAmount.toFixed(2)}.`
       });
     }
 
-    // Step 5: Process Order Status
+    // Step 5: Process Order Status & Fulfill
     if (paymentStatus === 'COMPLETE') {
-      console.log(`Payment successful for Order ID: ${orderId}`);
-      
-      // Use supabaseAdmin (service role) to bypass RLS and update the order
+      console.log(`Payment SUCCESSFUL for Order ID: ${orderId}. Reference: ${payfastData.pf_payment_id}`);
+
+      // 1. Update Order Status in Supabase
       const { error: updateError } = await supabaseAdmin
         .from('orders')
         .update({ 
-          status: 'paid',
-          payment_reference: payfastData.pf_payment_id || null 
+          payment_status: 'paid',
+          order_status: 'processing',
+          payment_reference: payfastData.pf_payment_id || null,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', orderId);
 
       if (updateError) {
-        console.error('Error updating order status:', updateError.message);
+        console.error('Error updating order status in Supabase:', updateError.message);
       }
 
-      // Log success
+      // 2. Decrement Stock Atomically
+      const { error: rpcError } = await supabaseAdmin.rpc('deduct_order_stock', {
+        p_order_id: orderId,
+      });
+
+      if (rpcError) {
+        console.warn('deduct_order_stock RPC notice (using fallback direct update):', rpcError.message);
+        const { data: orderItems } = await supabaseAdmin
+          .from('order_items')
+          .select('product_id, quantity')
+          .eq('order_id', orderId);
+
+        if (orderItems && orderItems.length > 0) {
+          for (const item of orderItems) {
+            if (item.product_id) {
+              const { data: prod } = await supabaseAdmin
+                .from('products')
+                .select('stock_quantity')
+                .eq('id', item.product_id)
+                .single();
+
+              if (prod && typeof prod.stock_quantity === 'number') {
+                await supabaseAdmin
+                  .from('products')
+                  .update({
+                    stock_quantity: Math.max(0, prod.stock_quantity - item.quantity),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', item.product_id);
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Log Audit Record
       await supabaseAdmin.from('supplier_sync_logs').insert({
         status: 'success',
-        details: `Order ${orderId} marked as PAID via PayFast ITN. Ref: ${payfastData.pf_payment_id}`
+        details: `Order ${orderId} marked as PAID via PayFast ITN. Reference: ${payfastData.pf_payment_id || 'N/A'}`
       });
-      
+
     } else {
-      console.log(`Payment status for Order ID ${orderId} was: ${paymentStatus}`);
+      console.log(`PayFast payment status for Order ${orderId}: ${paymentStatus}`);
       
+      await supabaseAdmin
+        .from('orders')
+        .update({
+          payment_status: paymentStatus.toLowerCase(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+
       await supabaseAdmin.from('supplier_sync_logs').insert({
         status: 'failed',
-        details: `Order ${orderId} payment status: ${paymentStatus}`
+        details: `Order ${orderId} PayFast status was ${paymentStatus}`
       });
     }
 

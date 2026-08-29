@@ -21,10 +21,109 @@
   color: var(--orange);
   font-size: 0.8rem;
   font-weight: 600;
-  text-align: center;
-  padding: 8px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   letter-spacing: 0.3px;
+  overflow: hidden;
+  max-height: 48px;
+  opacity: 1;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease, border 0.4s ease;
+  position: relative;
+  z-index: 101;
+}
+
+.announcement-bar.closing {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.announcement-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 36px 8px 16px;
+  min-height: 36px;
+}
+
+.announcement-desktop-text {
+  display: none;
+}
+
+.announcement-mobile-marquee {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.announcement-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: announcementTicker 22s linear infinite;
+}
+
+.announcement-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+.announcement-ticker-spacer {
+  margin: 0 24px;
+  opacity: 0.6;
+}
+
+@keyframes announcementTicker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.announcement-close-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.announcement-close-btn:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 769px) {
+  .announcement-desktop-text {
+    display: inline-block;
+    text-align: center;
+  }
+
+  .announcement-mobile-marquee {
+    display: none;
+  }
+
+  .announcement-content {
+    padding: 8px 36px 8px 36px;
+  }
 }
 
 /* Header & Navigation */

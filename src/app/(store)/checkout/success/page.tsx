@@ -25,8 +25,8 @@ function SuccessContent() {
         try {
           const { data, error } = await supabase
             .from('orders')
-            .select('id, total_amount, payment_status, order_status, shipping_address, customer_name, currency')
-            .eq('id', orderId)
+            .select('id, order_number, total_amount, payment_status, order_status, shipping_address, customer_name, currency')
+            .or(`id.eq.${orderId},order_number.eq.${orderId}`)
             .single();
 
           if (!error && data) {
