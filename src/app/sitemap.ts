@@ -1,25 +1,25 @@
 import type { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
-import { MOCK_PRODUCTS } from '@/lib/products';
+
 
 export const revalidate = 3600; // Refresh sitemap hourly
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://store.vylex.co.za';
 
-  // Fetch active products from Supabase with fallback to mock data
-  let products = MOCK_PRODUCTS.filter(p => p.status !== 'draft');
+  // Fetch active products from Supabase
+  let products: any[] = [];
   try {
     const { data, error } = await supabase
       .from('products')
       .select('slug, id, updated_at')
       .neq('status', 'draft');
 
-    if (!error && data && data.length > 0) {
-      products = data as any;
+    if (!error && data) {
+      products = data;
     }
-  } catch {
-    // Keep mock products on failure
+  } catch (err) {
+    console.warn('Error fetching products for sitemap:', err);
   }
 
   // Core static & editorial routes

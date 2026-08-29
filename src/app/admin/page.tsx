@@ -10,7 +10,7 @@ import {
   Tag, Sparkles, Layers, Edit3, Copy, Search, CheckCircle2, ChevronRight, Globe, Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { ProductIcon, Product, MOCK_PRODUCTS, CATEGORIES, isImageUrl, ProductSpecification } from '@/lib/products';
+import { ProductIcon, Product, CATEGORIES, isImageUrl, ProductSpecification } from '@/lib/products';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'customers'>('products');
@@ -110,10 +110,8 @@ export default function AdminDashboard() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (dbProducts && dbProducts.length > 0) {
+      if (dbProducts) {
         setProducts(dbProducts as Product[]);
-      } else {
-        setProducts(MOCK_PRODUCTS);
       }
 
       // Fetch Orders with Order Items
@@ -132,7 +130,7 @@ export default function AdminDashboard() {
 
     } catch (err) {
       console.error('Error loading Supabase CRM data:', err);
-      setProducts(MOCK_PRODUCTS);
+      setProducts([]);
     } finally {
       setLoadingData(false);
     }
@@ -534,28 +532,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Seed Initial Inventory
-  const handleSeedInventory = async () => {
-    setIsSeeding(true);
-    try {
-      const res = await fetch('/api/admin/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(MOCK_PRODUCTS)
-      });
-      const resData = await res.json();
-      if (!res.ok || resData.error) {
-        await supabase.from('products').upsert(MOCK_PRODUCTS, { onConflict: 'id' });
-      }
-      setProducts(MOCK_PRODUCTS);
-      alert('Sample products seeded successfully!');
-    } catch (err: any) {
-      setProducts(MOCK_PRODUCTS);
-      alert('Products loaded into local view!');
-    } finally {
-      setIsSeeding(false);
-    }
-  };
+
 
   // Update Order Status
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
@@ -836,14 +813,6 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={handleSeedInventory}
-                  disabled={isSeeding}
-                  style={{ padding: '10px 16px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Database size={15} /> {isSeeding ? 'Seeding...' : 'Seed Sample Catalog'}
-                </button>
-
                 <button 
                   onClick={handleOpenCreateProduct}
                   style={{ padding: '10px 18px', background: '#f97316', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 6px rgba(249, 115, 22, 0.3)' }}

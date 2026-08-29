@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
-import { MOCK_PRODUCTS, Product } from '@/lib/products';
+import { Product } from '@/lib/products';
 import { PageHeader } from '@/components/PageHeader';
 import { ShopClient } from './shop-client';
 
@@ -35,7 +35,7 @@ async function getProducts(): Promise<Product[]> {
   } catch (err) {
     console.warn('Error fetching shop products on server:', err);
   }
-  return MOCK_PRODUCTS.filter(p => p.status !== 'draft');
+  return [];
 }
 
 export default async function ShopPage() {

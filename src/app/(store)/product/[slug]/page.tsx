@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { MOCK_PRODUCTS, Product } from '@/lib/products';
+import { Product } from '@/lib/products';
 import { ProductDetailClient } from './product-detail-client';
 
 export const revalidate = 300; // Edge cached, revalidates every 5 minutes
@@ -43,17 +43,7 @@ async function getProduct(slug: string): Promise<Product | null> {
     console.warn('Error querying product by id:', err);
   }
 
-  // 3. Fallback to mock data by slug or id (case-insensitive)
-  const lowerDecoded = decoded.toLowerCase();
-  const fallback = MOCK_PRODUCTS.find(
-    p =>
-      (p.slug && p.slug.toLowerCase() === lowerDecoded) ||
-      (p.id && p.id.toLowerCase() === lowerDecoded) ||
-      p.slug === slug ||
-      p.id === slug
-  );
-
-  return fallback || null;
+  return null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -116,9 +106,7 @@ export default async function ProductPage({ params }: Props) {
   }
 
   if (relatedProducts.length === 0) {
-    relatedProducts = MOCK_PRODUCTS.filter(
-      p => p.category === product.category && p.slug !== slug && p.status !== 'draft'
-    ).slice(0, 3);
+    relatedProducts = [];
   }
 
   const inStock = (product.stock_quantity ?? 10) > 0 || product.allow_backorder;

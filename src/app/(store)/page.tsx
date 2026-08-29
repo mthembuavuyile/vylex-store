@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { MOCK_PRODUCTS, Product, ProductIcon, CATEGORIES } from '@/lib/products';
+import { Product, ProductIcon, CATEGORIES } from '@/lib/products';
 import { ProductCard } from '@/components/ProductCard';
 
 export const revalidate = 300; // Cache at edge & revalidate every 5 minutes
@@ -21,13 +21,13 @@ async function getActiveProducts(): Promise<Product[]> {
   } catch (err) {
     console.warn('Supabase product query error:', err);
   }
-  return MOCK_PRODUCTS.filter(p => p.status !== 'draft');
+  return [];
 }
 
 export default async function HomePage() {
   const products = await getActiveProducts();
   const activeProducts = products.filter(p => p.status !== 'draft');
-  const featuredProduct = activeProducts.find(p => p.is_featured) || activeProducts[0] || MOCK_PRODUCTS[0];
+  const featuredProduct = activeProducts.find(p => p.is_featured) || activeProducts[0];
   const bestSellers = activeProducts.slice(0, 4);
 
   return (
