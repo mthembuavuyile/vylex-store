@@ -11,7 +11,7 @@ async function getActiveProducts(): Promise<Product[]> {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
       .neq('status', 'draft')
       .order('created_at', { ascending: false });
 
@@ -52,15 +52,15 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          
+
           {/* Featured Hero Product Showcase */}
           {featuredProduct && (
             <div className="hero-product-col">
               <div className="hero-product-preview">
                 <div className="hero-preview-image-box">
-                  <ProductIcon 
-                    name={Array.isArray(featuredProduct.images) ? featuredProduct.images[0] : (featuredProduct.images || 'powerbank')} 
-                    className="hero-preview-icon" 
+                  <ProductIcon
+                    name={Array.isArray(featuredProduct.images) ? featuredProduct.images[0] : (featuredProduct.images || 'powerbank')}
+                    className="hero-preview-icon"
                     alt={featuredProduct.title}
                   />
                 </div>
@@ -103,8 +103,8 @@ export default async function HomePage() {
 
           <div className="category-grid-clean">
             {categories.map(cat => (
-              <Link 
-                key={cat} 
+              <Link
+                key={cat}
                 href={`/shop?category=${encodeURIComponent(cat)}`}
                 className="category-pill-card"
                 prefetch={true}

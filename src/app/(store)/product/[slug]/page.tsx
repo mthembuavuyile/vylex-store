@@ -17,7 +17,7 @@ async function getProduct(slug: string): Promise<Product | null> {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
       .eq('slug', decoded)
       .maybeSingle();
 
@@ -32,7 +32,7 @@ async function getProduct(slug: string): Promise<Product | null> {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
       .eq('id', decoded)
       .maybeSingle();
 
