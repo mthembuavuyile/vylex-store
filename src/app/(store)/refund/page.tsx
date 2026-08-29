@@ -3,90 +3,90 @@
 import React from 'react';
 import Link from 'next/link';
 import { 
-  RefreshCw, ShieldCheck, CheckCircle2, 
-  AlertTriangle, CreditCard, ArrowRight, MessageSquare 
+  AlertCircle, MessageSquare, ArrowRight, CheckCircle2 
 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 
 export default function RefundPage() {
   return (
-    <div>
+    <div className="refund-page">
       <PageHeader 
         title="Refund & Return Policy"
-        subtitle="Hassle-free 7-day returns, replacements, and straightforward refunds for peace of mind."
-        badge="Customer Protection"
+        subtitle="7-day money-back guarantee, replacements, and straightforward returns."
         breadcrumbs={[{ label: 'Refund Policy' }]}
       />
 
-      <div className="container" style={{ padding: '48px 24px 80px' }}>
-        <div className="editorial-content-grid">
+      <div className="container editorial-container">
+        <div className="editorial-layout">
           
-          <div className="editorial-main">
+          <main className="editorial-main-flow">
             
-            {/* Guarantee Highlight */}
-            <section className="editorial-section">
-              <h2>7-Day Money Back Guarantee</h2>
+            {/* Guarantee Policy */}
+            <section className="editorial-block">
+              <h2>7-Day Satisfaction Guarantee</h2>
               <p>
-                We want you to be 100% satisfied with every purchase made at <strong>Vybetek Store</strong>. If you change your mind, you may return any unused, unopened item in its original packaging within <strong>7 days of receipt</strong> for a full refund or store credit.
+                We want you to be completely satisfied with your purchase from <strong>Vybetek Store</strong>. If you are not satisfied or simply change your mind, you may return any unused item in its original, undamaged packaging within <strong>7 days of receipt</strong> for a full refund or exchange.
               </p>
             </section>
 
-            {/* Return Process Steps */}
-            <section className="editorial-section">
-              <h2>How to Initiate a Return</h2>
-              <div className="process-steps">
-                <div className="process-step-item">
-                  <div className="step-number">1</div>
-                  <div className="step-content">
-                    <h4>Contact Customer Support</h4>
-                    <p>Send an email to <code>support@vylex.co.za</code> or message our WhatsApp team with your Order Reference Number and reason for return.</p>
+            {/* 3-Step Process */}
+            <section className="editorial-block">
+              <h2>How to Request a Return</h2>
+              <div className="timeline-process">
+                <div className="timeline-item">
+                  <div className="timeline-num">1</div>
+                  <div className="timeline-content">
+                    <h3>Notify Customer Support</h3>
+                    <p>
+                      Email <code>support@vylex.co.za</code> or message our WhatsApp team with your Order Reference Number and reason for the return.
+                    </p>
                   </div>
                 </div>
 
-                <div className="process-step-item">
-                  <div className="step-number">2</div>
-                  <div className="step-content">
-                    <h4>Pack & Collection</h4>
-                    <p>Ensure the product is in its original box with all cables, adapters, and manuals. We will arrange a Courier Guy collection from your address.</p>
+                <div className="timeline-item">
+                  <div className="timeline-num">2</div>
+                  <div className="timeline-content">
+                    <h3>Collection Arranged</h3>
+                    <p>
+                      Pack the item securely with all cables, chargers, and manuals. We will schedule The Courier Guy to collect the package from your delivery address.
+                    </p>
                   </div>
                 </div>
 
-                <div className="process-step-item">
-                  <div className="step-number">3</div>
-                  <div className="step-content">
-                    <h4>Inspection & Fast Payout</h4>
-                    <p>Once received at our Johannesburg hub, our technicians verify the item. Approved refunds are processed directly to your bank account or card within 3–5 business days.</p>
+                <div className="timeline-item">
+                  <div className="timeline-num">3</div>
+                  <div className="timeline-content">
+                    <h3>Inspection & Payout</h3>
+                    <p>
+                      Once the item is inspected at our Johannesburg facility, your refund will be processed directly to your bank account or card within 3–5 business days.
+                    </p>
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Defective or Damaged Products */}
-            <section className="editorial-section">
-              <h2>Damaged or Defective Items</h2>
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '20px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                <AlertTriangle size={24} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+            {/* Damaged or Defective Items */}
+            <section className="editorial-block">
+              <h2>Transit Damage or Faulty Items</h2>
+              <div className="notice-box-warning">
+                <AlertCircle size={20} className="notice-icon" />
                 <div>
-                  <h4 style={{ color: '#991b1b', fontSize: '1rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Received a faulty item or transit damage?
-                  </h4>
-                  <p style={{ color: '#7f1d1d', fontSize: '0.88rem', lineHeight: 1.5 }}>
-                    Please report damaged packaging or malfunctioning electronics within <strong>48 hours of delivery</strong>. We will arrange immediate free collection and dispatch a brand-new replacement at zero additional cost to you.
+                  <strong>Report within 48 hours</strong>
+                  <p>
+                    If your package arrived damaged in transit or the electronic device is defective upon unboxing, notify us within 48 hours of delivery. We will arrange immediate free collection and dispatch a replacement item at zero additional cost.
                   </p>
                 </div>
               </div>
             </section>
 
-          </div>
+          </main>
 
-          {/* Sidebar */}
-          <aside className="editorial-sidebar">
-            <div className="info-box-card">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--navy)' }}>
-                Need Help with a Return?
-              </h3>
+          {/* Clean Sidebar */}
+          <aside className="editorial-sidebar-clean">
+            <div className="sidebar-summary-box">
+              <h3>Need Help with a Return?</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--sdark)', lineHeight: 1.6, marginBottom: '20px' }}>
-                Our team is standing by to help make your return or exchange as smooth as possible.
+                Our local support team is available Monday to Friday to assist with return collections and exchanges.
               </p>
               
               <a
@@ -94,10 +94,16 @@ export default function RefundPage() {
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary"
-                style={{ width: '100%', justifyContent: 'center', gap: '8px' }}
+                style={{ width: '100%', gap: '8px' }}
               >
-                <MessageSquare size={16} /> WhatsApp Returns Help
+                <MessageSquare size={16} /> WhatsApp Returns
               </a>
+
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <Link href="/contact" style={{ fontSize: '0.85rem', color: 'var(--navy)', fontWeight: 600, textDecoration: 'underline' }}>
+                  Or submit an email inquiry &rarr;
+                </Link>
+              </div>
             </div>
           </aside>
 
@@ -106,3 +112,4 @@ export default function RefundPage() {
     </div>
   );
 }
+

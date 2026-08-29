@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { 
   MessageSquare, Mail, Phone, MapPin, Clock, 
-  Send, CheckCircle2, ShieldCheck, HelpCircle 
+  Send, CheckCircle2, ShieldCheck 
 } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 
@@ -23,224 +23,192 @@ export default function ContactPage() {
   };
 
   return (
-    <div>
+    <div className="contact-page">
       <PageHeader 
-        title="Contact & Customer Care"
-        subtitle="Have a question about an order, shipping, or product specifications? We're here to assist you."
-        badge="South Africa Support"
+        title="Contact Customer Support"
+        subtitle="Have a question about an order, delivery status, or product specifications? We're here to help."
         breadcrumbs={[{ label: 'Contact Us' }]}
       />
 
-      <div className="container" style={{ padding: '48px 24px 80px' }}>
-        <div className="contact-grid">
+      <div className="container" style={{ padding: '40px 24px 80px' }}>
+        <div className="contact-layout-clean">
           
-          {/* Left Column: Direct Contact Details & WhatsApp Banner */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Left Column: Direct Channels */}
+          <div className="contact-channels-col">
             
-            {/* WhatsApp Highlight Box */}
-            <div style={{
-              background: 'linear-gradient(135deg, #052e16 0%, #14532d 100%)',
-              border: '1px solid #16a34a',
-              borderRadius: '16px',
-              padding: '28px',
-              color: '#ffffff',
-              boxShadow: '0 8px 24px rgba(22, 163, 74, 0.15)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <MessageSquare size={24} style={{ color: '#4ade80' }} />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
-                  WhatsApp Direct Support
-                </h3>
+            {/* WhatsApp Quick Connect */}
+            <div className="whatsapp-callout-clean">
+              <div className="whatsapp-callout-header">
+                <MessageSquare size={22} />
+                <h3>WhatsApp Fast Support</h3>
               </div>
-              <p style={{ fontSize: '0.9rem', color: '#dcfce7', lineHeight: 1.5, marginBottom: '20px' }}>
-                For the fastest assistance regarding active orders, product inquiries, or bank transfer confirmations, chat with our local team on WhatsApp.
+              <p>
+                For immediate assistance regarding ongoing deliveries, instant EFT confirmations, or product questions:
               </p>
               <a
                 href="https://wa.me/27821234567?text=Hi%20Vybetek%20Store%20Support%2C%20I%20have%20an%20inquiry"
                 target="_blank"
                 rel="noreferrer"
-                className="btn"
-                style={{
-                  background: '#22c55e',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  width: '100%',
-                  justifyContent: 'center',
-                  padding: '14px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
+                className="whatsapp-btn-clean"
               >
-                <MessageSquare size={18} /> Open WhatsApp Chat
+                <MessageSquare size={17} /> Open WhatsApp Chat
               </a>
             </div>
 
-            {/* General Contact Info Card */}
-            <div className="info-box-card">
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '20px', color: 'var(--navy)' }}>
-                Direct Channels
-              </h3>
+            {/* Direct Details List */}
+            <div className="contact-info-list-clean">
+              <h3>Support Channels</h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(251, 169, 25, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Mail size={18} style={{ color: 'var(--orange)' }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sdark)', textTransform: 'uppercase' }}>Email Address</div>
-                    <a href="mailto:support@vylex.co.za" style={{ color: 'var(--navy)', fontWeight: 600, fontSize: '0.95rem' }}>
-                      support@vylex.co.za
-                    </a>
-                  </div>
+              <div className="contact-info-item">
+                <div className="info-icon-box">
+                  <Mail size={18} />
                 </div>
-
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(251, 169, 25, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Phone size={18} style={{ color: 'var(--orange)' }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sdark)', textTransform: 'uppercase' }}>Telephone & WhatsApp</div>
-                    <div style={{ color: 'var(--navy)', fontWeight: 600, fontSize: '0.95rem' }}>
-                      +27 (0) 82 123 4567
-                    </div>
-                  </div>
+                <div>
+                  <span className="info-label">Email Inquiries</span>
+                  <a href="mailto:support@vylex.co.za" className="info-val-link">
+                    support@vylex.co.za
+                  </a>
                 </div>
+              </div>
 
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(251, 169, 25, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Clock size={18} style={{ color: 'var(--orange)' }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sdark)', textTransform: 'uppercase' }}>Operating Hours</div>
-                    <div style={{ color: 'var(--navy)', fontSize: '0.9rem' }}>
-                      Monday – Friday: 08:30 – 17:00<br />
-                      Saturday: 09:00 – 13:00 (Dispatch on Mon)
-                    </div>
-                  </div>
+              <div className="contact-info-item">
+                <div className="info-icon-box">
+                  <Phone size={18} />
                 </div>
+                <div>
+                  <span className="info-label">Phone Support</span>
+                  <span className="info-val-text">+27 (0) 82 123 4567</span>
+                </div>
+              </div>
 
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(251, 169, 25, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <MapPin size={18} style={{ color: 'var(--orange)' }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sdark)', textTransform: 'uppercase' }}>Dispatch Hub</div>
-                    <div style={{ color: 'var(--navy)', fontSize: '0.9rem' }}>
-                      Sandton / Johannesburg Logistics Center<br />
-                      Gauteng, South Africa
-                    </div>
-                  </div>
+              <div className="contact-info-item">
+                <div className="info-icon-box">
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <span className="info-label">Operating Hours</span>
+                  <span className="info-val-text">
+                    Mon – Fri: 08:30 – 17:00<br />
+                    Sat: 09:00 – 13:00
+                  </span>
+                </div>
+              </div>
+
+              <div className="contact-info-item">
+                <div className="info-icon-box">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <span className="info-label">Dispatch Center</span>
+                  <span className="info-val-text">
+                    Sandton / Johannesburg, Gauteng, South Africa
+                  </span>
                 </div>
               </div>
             </div>
 
           </div>
 
-          {/* Right Column: Inquiry Submission Form */}
-          <div className="info-box-card">
-            {formSubmitted ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CheckCircle2 size={36} />
-                </div>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--navy)' }}>Inquiry Received!</h3>
-                <p style={{ color: 'var(--sdark)', maxWidth: '440px', lineHeight: 1.6 }}>
-                  Thank you for reaching out, <strong>{formData.name}</strong>. Our customer care team will review your message and respond to <strong>{formData.email}</strong> within 1–2 business hours.
-                </p>
-                <button 
-                  onClick={() => {
-                    setFormSubmitted(false);
-                    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-                  }}
-                  className="btn btn-outline"
-                  style={{ marginTop: '12px' }}
-                >
-                  Send Another Message
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--navy)', marginBottom: '6px' }}>
-                    Send Us an Inquiry
-                  </h3>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--sdark)' }}>
-                    Fill in the form below and we will get back to you promptly.
+          {/* Right Column: Inquiry Form */}
+          <div className="contact-form-col">
+            <div className="contact-form-container">
+              {formSubmitted ? (
+                <div className="form-success-state">
+                  <div className="success-icon-circle">
+                    <CheckCircle2 size={36} />
+                  </div>
+                  <h3>Inquiry Received!</h3>
+                  <p>
+                    Thank you, <strong>{formData.name}</strong>. Our customer care team will review your message and respond to <strong>{formData.email}</strong> within 1–2 business hours.
                   </p>
+                  <button 
+                    onClick={() => {
+                      setFormSubmitted(false);
+                      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+                    }}
+                    className="btn btn-outline"
+                    style={{ marginTop: '16px' }}
+                  >
+                    Send Another Message
+                  </button>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="clean-form">
+                  <div className="form-heading">
+                    <h3>Send a Message</h3>
+                    <p>Fill out the form below and we will respond promptly.</p>
+                  </div>
 
-                <div className="form-group">
-                  <label className="form-label">Full Name *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Kagiso Motsepe" 
-                    className="form-input" 
-                    value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Email Address *</label>
+                    <label className="form-label">Full Name *</label>
                     <input 
-                      type="email" 
+                      type="text" 
                       required 
-                      placeholder="kagiso@example.co.za" 
+                      placeholder="e.g. Kagiso Motsepe" 
                       className="form-input" 
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      value={formData.name}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Email Address *</label>
+                      <input 
+                        type="email" 
+                        required 
+                        placeholder="kagiso@example.co.za" 
+                        className="form-input" 
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Phone / WhatsApp</label>
+                      <input 
+                        type="tel" 
+                        placeholder="082 123 4567" 
+                        className="form-input" 
+                        value={formData.phone}
+                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
                   <div className="form-group">
-                    <label className="form-label">Phone / WhatsApp Number</label>
+                    <label className="form-label">Subject</label>
                     <input 
-                      type="tel" 
-                      placeholder="082 123 4567" 
+                      type="text" 
+                      placeholder="e.g. Order Tracking or Product Specification" 
                       className="form-input" 
-                      value={formData.phone}
-                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                      value={formData.subject}
+                      onChange={e => setFormData({ ...formData, subject: e.target.value })}
                     />
                   </div>
-                </div>
 
-                <div className="form-group">
-                  <label className="form-label">Subject</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Order Tracking or Product Inquiry" 
-                    className="form-input" 
-                    value={formData.subject}
-                    onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                  />
-                </div>
+                  <div className="form-group">
+                    <label className="form-label">Message *</label>
+                    <textarea 
+                      rows={4}
+                      required 
+                      placeholder="How can we assist you today?" 
+                      className="form-input" 
+                      style={{ resize: 'vertical', minHeight: '110px' }}
+                      value={formData.message}
+                      onChange={e => setFormData({ ...formData, message: e.target.value })}
+                    />
+                  </div>
 
-                <div className="form-group">
-                  <label className="form-label">Message *</label>
-                  <textarea 
-                    rows={4}
-                    required 
-                    placeholder="How can we assist you today?" 
-                    className="form-input" 
-                    style={{ resize: 'vertical', minHeight: '100px' }}
-                    value={formData.message}
-                    onChange={e => setFormData({ ...formData, message: e.target.value })}
-                  />
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="btn btn-primary"
-                  style={{ width: '100%', padding: '14px', marginTop: '12px', gap: '8px' }}
-                >
-                  <Send size={16} /> Send Message
-                </button>
-              </form>
-            )}
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '14px', marginTop: '8px' }}
+                  >
+                    <Send size={16} /> Send Message
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
 
         </div>
@@ -248,3 +216,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

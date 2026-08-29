@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ArrowRight, ShieldCheck, Truck, MessageSquare, 
-  RotateCcw, Store, Sparkles, Zap, ChevronRight, Star
+  RotateCcw, ChevronRight, Check
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { MOCK_PRODUCTS, Product, ProductIcon, CATEGORIES } from '@/lib/products';
@@ -45,93 +45,60 @@ export default function HomePage() {
   const bestSellers = activeProducts.slice(0, 4);
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-grid"></div>
-        <div className="hero-glow"></div>
-        <div className="container hero-inner">
-          <div className="hero-content" style={{ animation: 'fadeIn 0.8s ease-out' }}>
-            <div className="badge-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-              <Sparkles size={14} style={{ color: 'var(--orange)' }} />
-              <span>South Africa's Trusted Online Store</span>
-            </div>
-            <h1>Vybetek Premium <span>Everyday Essentials</span></h1>
-            <p>Elevate your lifestyle. Fast courier dispatch and secure delivery across South Africa on quality tech, accessories, and wellness products.</p>
-            <div className="hero-buttons">
+    <div className="home-wrapper">
+      {/* Hero Section - Clean & Viewport-Balanced */}
+      <section className="hero-section">
+        <div className="container hero-container">
+          <div className="hero-text-col">
+            <h1 className="hero-title">
+              Premium Everyday Essentials, <span>Delivered Fast</span>.
+            </h1>
+            <p className="hero-description">
+              Reliable tech accessories, fast GaN power delivery, wireless audio, and lifestyle essentials. Handled locally and dispatched nationwide across South Africa.
+            </p>
+            <div className="hero-cta-group">
               <Link href="/shop" className="btn btn-primary">
-                Shop All Products <ArrowRight size={18} />
+                Shop Catalog <ArrowRight size={17} />
               </Link>
-              <Link href="/about" className="btn btn-outline">
+              <Link href="/about" className="btn btn-secondary">
                 About Our Store
               </Link>
             </div>
           </div>
           
-          {/* Featured Hero Product Card */}
+          {/* Featured Hero Product Showcase */}
           {featuredProduct && (
-            <div className="hero-featured-card">
-              <div style={{
-                background: 'var(--white)',
-                padding: '28px',
-                borderRadius: '16px',
-                boxShadow: 'var(--shadow-lg)',
-                maxWidth: '320px',
-                width: '100%',
-                color: 'var(--navy)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '14px'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--orange)', textTransform: 'uppercase' }}>
-                    Featured Item
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--navy)' }}>
-                      R{Number(featuredProduct.price).toFixed(2)}
-                    </span>
-                    {featuredProduct.compare_at_price && Number(featuredProduct.compare_at_price) > Number(featuredProduct.price) && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--sdark)', textDecoration: 'line-through' }}>
-                        R{Number(featuredProduct.compare_at_price).toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 0', minHeight: '160px' }}>
+            <div className="hero-product-col">
+              <div className="hero-product-preview">
+                <div className="hero-preview-badge">Featured Pick</div>
+                <div className="hero-preview-image-box">
                   <ProductIcon 
                     name={Array.isArray(featuredProduct.images) ? featuredProduct.images[0] : (featuredProduct.images || 'powerbank')} 
-                    className="detail-icon-large" 
+                    className="hero-preview-icon" 
                     alt={featuredProduct.title}
                   />
                 </div>
-
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--orange)', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
+                <div className="hero-preview-info">
+                  <span className="hero-preview-category">
                     {featuredProduct.vendor ? `${featuredProduct.vendor} • ` : ''}{featuredProduct.category}
                   </span>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '6px' }}>
+                  <h3 className="hero-preview-title">
                     {featuredProduct.title}
                   </h3>
-                  <p style={{ 
-                    fontSize: '0.82rem', 
-                    color: 'var(--sdark)', 
-                    marginBottom: '16px', 
-                    display: '-webkit-box', 
-                    WebkitLineClamp: 2, 
-                    WebkitBoxOrient: 'vertical', 
-                    overflow: 'hidden' 
-                  }}>
-                    {featuredProduct.description}
-                  </p>
-                  <Link
-                    href={`/product/${featuredProduct.slug || featuredProduct.id}`}
-                    className="btn btn-primary"
-                    style={{ width: '100%', textAlign: 'center' }}
-                  >
-                    View Product
-                  </Link>
+                  <div className="hero-preview-bottom">
+                    <div className="hero-preview-price">
+                      <span className="current-price">R{Number(featuredProduct.price).toFixed(2)}</span>
+                      {featuredProduct.compare_at_price && Number(featuredProduct.compare_at_price) > Number(featuredProduct.price) && (
+                        <span className="original-price">R{Number(featuredProduct.compare_at_price).toFixed(2)}</span>
+                      )}
+                    </div>
+                    <Link
+                      href={`/product/${featuredProduct.slug || featuredProduct.id}`}
+                      className="btn btn-primary btn-sm"
+                    >
+                      View <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -139,157 +106,149 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust & Value Proposition Strip */}
-      <section style={{ background: '#ffffff', borderBottom: '1px solid var(--slate)', padding: '24px 0' }}>
+      {/* Trust & Guarantee Strip */}
+      <section className="trust-strip">
         <div className="container">
-          <div className="trust-grid">
-            <div className="trust-item">
-              <div className="trust-icon-box">
-                <Truck size={22} style={{ color: 'var(--orange)' }} />
-              </div>
+          <div className="trust-strip-grid">
+            <div className="trust-strip-item">
+              <Truck size={20} className="trust-strip-icon" />
               <div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>The Courier Guy Express</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Direct to door across South Africa</p>
+                <h4>The Courier Guy</h4>
+                <p>Tracked door-to-door delivery across SA</p>
               </div>
             </div>
 
-            <div className="trust-item">
-              <div className="trust-icon-box">
-                <ShieldCheck size={22} style={{ color: 'var(--orange)' }} />
-              </div>
+            <div className="trust-strip-item">
+              <ShieldCheck size={20} className="trust-strip-icon" />
               <div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Secure Payment</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Stripe, PayFast, Apple Pay & EFT</p>
+                <h4>Secure Payments</h4>
+                <p>Card, Apple Pay & Instant EFT</p>
               </div>
             </div>
 
-            <div className="trust-item">
-              <div className="trust-icon-box">
-                <RotateCcw size={22} style={{ color: 'var(--orange)' }} />
-              </div>
+            <div className="trust-strip-item">
+              <RotateCcw size={20} className="trust-strip-icon" />
               <div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>7-Day Guarantee</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Hassle-free money-back guarantee</p>
+                <h4>7-Day Guarantee</h4>
+                <p>Simple money-back and exchange policy</p>
               </div>
             </div>
 
-            <div className="trust-item">
-              <div className="trust-icon-box">
-                <MessageSquare size={22} style={{ color: '#10B981' }} />
-              </div>
+            <div className="trust-strip-item">
+              <MessageSquare size={20} className="trust-strip-icon" />
               <div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>WhatsApp Support</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Instant real-time human assistance</p>
+                <h4>Direct Support</h4>
+                <p>Human assistance via WhatsApp & email</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Category Navigation Cards */}
-      <section className="container" style={{ padding: '60px 0 20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div className="sec-lbl">Explore Categories</div>
-          <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700 }}>Shop By Category</h2>
-        </div>
-
-        <div className="category-card-grid">
-          {CATEGORIES.filter(c => c !== 'All').map(cat => (
-            <Link 
-              key={cat} 
-              href={`/shop?category=${encodeURIComponent(cat)}`}
-              className="category-card"
-            >
-              <div className="category-card-icon">
-                <ProductIcon name={cat.toLowerCase()} className="category-icon-svg" />
-              </div>
-              <h3 className="category-card-title">{cat}</h3>
-              <span className="category-card-cta">
-                Browse <ChevronRight size={14} />
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Best Sellers / Curated Catalog Preview */}
-      <section className="container" style={{ padding: '40px 0 80px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div className="sec-lbl">Featured Inventory</div>
-            <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700 }}>Popular Items</h2>
+      {/* Category Navigation */}
+      <section className="categories-section">
+        <div className="container">
+          <div className="section-header-clean">
+            <h2 className="section-title">Shop by Category</h2>
+            <p className="section-subtitle">Browse curated collections designed for daily utility</p>
           </div>
-          <Link href="/shop" className="btn btn-outline" style={{ gap: '8px' }}>
-            View Full Shop Catalog <ArrowRight size={16} />
-          </Link>
-        </div>
 
-        {loading ? (
-          <div className="product-grid">
-            {[1, 2, 3, 4].map(n => (
-              <div key={n} className="product-skeleton-card">
-                <div style={{ width: '100%', aspectRatio: '4/3', background: '#e2e8f0', borderRadius: '10px', marginBottom: '12px' }} />
-                <div style={{ width: '40%', height: '12px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
-                <div style={{ width: '85%', height: '16px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '10px' }} />
-                <div style={{ width: '60%', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
-              </div>
+          <div className="category-grid-clean">
+            {CATEGORIES.filter(c => c !== 'All').map(cat => (
+              <Link 
+                key={cat} 
+                href={`/shop?category=${encodeURIComponent(cat)}`}
+                className="category-pill-card"
+              >
+                <div className="category-pill-icon">
+                  <ProductIcon name={cat.toLowerCase()} />
+                </div>
+                <div className="category-pill-text">
+                  <h3>{cat}</h3>
+                  <span>Browse &rarr;</span>
+                </div>
+              </Link>
             ))}
           </div>
-        ) : (
-          <div className="product-grid">
-            {bestSellers.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-
-        <div style={{ textAlign: 'center', marginTop: '48px' }}>
-          <Link href="/shop" className="btn btn-primary" style={{ padding: '16px 36px', fontSize: '1rem' }}>
-            Browse All Products in Shop <ArrowRight size={18} />
-          </Link>
         </div>
       </section>
 
-      {/* Trust & Commitment Banner */}
-      <section style={{ background: 'var(--navy)', color: '#ffffff', padding: '60px 0' }}>
+      {/* Featured Catalog Preview */}
+      <section className="catalog-preview-section">
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px', alignItems: 'center' }}>
+          <div className="catalog-header-row">
             <div>
-              <span style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Vybetek Commitment
-              </span>
-              <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, marginTop: '8px', marginBottom: '16px', color: '#ffffff' }}>
-                Direct Dispatch Across South Africa
-              </h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.7, marginBottom: '24px' }}>
-                Every order is carefully inspected, packed, and handed over to The Courier Guy for rapid tracking and reliable door-to-door delivery across all 9 provinces.
+              <h2 className="section-title">Popular Items</h2>
+              <p className="section-subtitle">Our most demanded tech and everyday accessories</p>
+            </div>
+            <Link href="/shop" className="btn btn-outline btn-sm">
+              View All Products <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="product-grid">
+              {[1, 2, 3, 4].map(n => (
+                <div key={n} className="product-skeleton-card">
+                  <div style={{ width: '100%', aspectRatio: '1', background: '#e2e8f0', borderRadius: '8px', marginBottom: '12px' }} />
+                  <div style={{ width: '40%', height: '12px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
+                  <div style={{ width: '80%', height: '16px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '10px' }} />
+                  <div style={{ width: '50%', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="product-grid">
+              {bestSellers.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Local Commitment Section */}
+      <section className="store-commitment-section">
+        <div className="container">
+          <div className="commitment-inner">
+            <div className="commitment-left">
+              <span className="commitment-tag">Local South African Warehouse</span>
+              <h2>Direct Dispatch from Johannesburg</h2>
+              <p>
+                We stock all listed items locally in Gauteng. Every order is inspected, securely packaged, and dispatched through The Courier Guy with live tracking from our warehouse to your door.
               </p>
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <div className="commitment-actions">
                 <Link href="/shipping" className="btn btn-primary">
-                  Shipping Details
+                  Shipping Rates & Times
                 </Link>
-                <Link href="/contact" className="btn btn-outline" style={{ color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.3)' }}>
+                <Link href="/contact" className="btn btn-outline" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>
                   Contact Support
                 </Link>
               </div>
             </div>
 
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '16px', padding: '32px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--orange)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Zap size={20} /> What Makes Us Different?
-              </h3>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: '14px', listStyle: 'none', padding: 0, color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.92rem' }}>
-                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>✓</span>
-                  <span>100% Genuine, tested items with manufacturer warranty support.</span>
+            <div className="commitment-right">
+              <ul className="commitment-points">
+                <li>
+                  <Check size={18} className="point-icon" />
+                  <div>
+                    <strong>Local SA Stock</strong>
+                    <p>No unexpected import duties, customs delays, or overseas drop-shipping.</p>
+                  </div>
                 </li>
-                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>✓</span>
-                  <span>Transparent South African pricing with <strong>NO hidden import customs or surprise fees</strong>.</span>
+                <li>
+                  <Check size={18} className="point-icon" />
+                  <div>
+                    <strong>Safety & Quality Tested</strong>
+                    <p>Certified electronics with multi-stage surge and overheat protection.</p>
+                  </div>
                 </li>
-                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>✓</span>
-                  <span>Real human support available via WhatsApp, phone, and email.</span>
+                <li>
+                  <Check size={18} className="point-icon" />
+                  <div>
+                    <strong>Fast Courier Guy Delivery</strong>
+                    <p>1–3 business days to metropolitan areas across all 9 provinces.</p>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -299,3 +258,4 @@ export default function HomePage() {
     </div>
   );
 }
+

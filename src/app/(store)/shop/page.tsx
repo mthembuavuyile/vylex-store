@@ -190,12 +190,11 @@ function ShopContent() {
     <div>
       <PageHeader 
         title="Shop All Products"
-        subtitle="Explore our full collection of premium power banks, audio, wearables, chargers, and health supplements."
-        badge="Direct South Africa Stock"
+        subtitle="Explore our full collection of power banks, wireless audio, smart wearables, chargers, and supplements."
         breadcrumbs={[{ label: 'Shop Catalog' }]}
       />
 
-      <div className="container" style={{ padding: '36px 24px 80px' }}>
+      <div className="container" style={{ padding: '32px 24px 80px' }}>
         
         {/* Top Control Bar */}
         <div className="shop-control-bar">

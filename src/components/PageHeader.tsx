@@ -12,21 +12,19 @@ interface Breadcrumb {
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
-  badge?: string;
   breadcrumbs?: Breadcrumb[];
 }
 
-export function PageHeader({ title, subtitle, badge, breadcrumbs }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, breadcrumbs }: PageHeaderProps) {
   return (
     <div className="page-header-banner">
       <div className="container">
-        {/* Breadcrumb links */}
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav className="breadcrumbs" aria-label="Breadcrumb">
             <Link href="/" className="breadcrumb-link">Home</Link>
             {breadcrumbs.map((crumb, idx) => (
               <React.Fragment key={idx}>
-                <ChevronRight size={14} className="breadcrumb-separator" />
+                <ChevronRight size={13} className="breadcrumb-separator" />
                 {crumb.href ? (
                   <Link href={crumb.href} className="breadcrumb-link">{crumb.label}</Link>
                 ) : (
@@ -35,12 +33,6 @@ export function PageHeader({ title, subtitle, badge, breadcrumbs }: PageHeaderPr
               </React.Fragment>
             ))}
           </nav>
-        )}
-
-        {badge && (
-          <div className="page-header-badge">
-            {badge}
-          </div>
         )}
 
         <h1 className="page-header-title">{title}</h1>
@@ -52,3 +44,4 @@ export function PageHeader({ title, subtitle, badge, breadcrumbs }: PageHeaderPr
     </div>
   );
 }
+

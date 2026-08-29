@@ -2,65 +2,62 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FileText, ShieldCheck, Scale, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 
 export default function TermsPage() {
   return (
-    <div>
+    <div className="terms-page">
       <PageHeader 
         title="Terms & Conditions"
-        subtitle="Standard conditions of sale, privacy policy, and customer legal disclosures for Vybetek Store."
-        badge="Legal & Privacy"
+        subtitle="Standard conditions of sale, POPIA privacy policy, and customer legal disclosures."
         breadcrumbs={[{ label: 'Terms of Service' }]}
       />
 
-      <div className="container" style={{ padding: '48px 24px 80px' }}>
-        <div className="editorial-content-grid">
+      <div className="container editorial-container">
+        <div className="editorial-layout">
           
-          <div className="editorial-main">
+          <main className="editorial-main-flow">
             
-            <section className="editorial-section">
+            <section className="editorial-block">
               <h2>1. Agreement & Acceptance</h2>
               <p>
-                By visiting, browsing, and placing orders on <strong>Vybetek Store</strong> (<code>store.vylex.co.za</code>), you acknowledge and agree to comply with these terms, our Return Policy, and South African Consumer Protection Act (CPA) guidelines.
+                By visiting, browsing, and placing orders on <strong>Vybetek Store</strong> (<code>store.vylex.co.za</code>), you acknowledge and agree to comply with these terms, our Refund Policy, and South African Consumer Protection Act (CPA) regulations.
               </p>
             </section>
 
-            <section className="editorial-section">
-              <h2>2. Product Pricing & Availability</h2>
+            <section className="editorial-block">
+              <h2>2. Product Pricing & Currency</h2>
               <p>
-                All prices quoted on the store are denominated in <strong>South African Rand (ZAR)</strong>. We endeavor to ensure all pricing and inventory stock levels displayed are accurate. In the rare event an item is listed with an erroneous price due to typographical error, we reserve the right to cancel the order and provide an immediate full refund.
+                All prices quoted across the store are in <strong>South African Rand (ZAR)</strong>. We endeavor to ensure all displayed pricing and inventory stock levels are accurate. In the rare event an item is listed with an erroneous price due to typographical error, we reserve the right to cancel the order and provide an immediate full refund.
               </p>
             </section>
 
-            <section className="editorial-section">
+            <section className="editorial-block">
               <h2>3. Payment Methods & Security</h2>
               <p>
-                Payments are processed through certified, bank-grade gateways (Stripe and PayFast). We do not store or process sensitive credit card numbers directly on our servers. All transactions utilize 256-bit SSL encryption.
+                Payments are processed through certified, PCI-DSS compliant bank gateways (Stripe and PayFast). We do not store or process sensitive credit card details directly on our servers. All transactions utilize 256-bit SSL encryption.
               </p>
             </section>
 
-            <section className="editorial-section">
+            <section className="editorial-block">
               <h2>4. Privacy & POPIA Compliance</h2>
               <p>
-                In compliance with the Protection of Personal Information Act (POPIA), your personal data (name, delivery address, phone number, email) is collected strictly to fulfill your order, generate shipping waybills with The Courier Guy, and deliver tracking notifications. We will never sell, rent, or distribute your private data to third parties.
+                In compliance with the Protection of Personal Information Act (POPIA), your personal data (name, delivery address, phone number, email) is collected strictly to fulfill your order, generate shipping waybills with The Courier Guy, and deliver tracking notifications. We do not sell, rent, or distribute your personal data to third parties.
               </p>
             </section>
 
-          </div>
+          </main>
 
-          {/* Sidebar */}
-          <aside className="editorial-sidebar">
-            <div className="info-box-card">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--navy)' }}>
-                Questions About Terms?
-              </h3>
+          {/* Clean Sidebar */}
+          <aside className="editorial-sidebar-clean">
+            <div className="sidebar-summary-box">
+              <h3>Legal & Inquiries</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--sdark)', lineHeight: 1.6, marginBottom: '20px' }}>
-                If you have legal or compliance inquiries regarding transactions, please email our legal team.
+                If you have legal or compliance inquiries regarding transactions, please contact our support team.
               </p>
-              <Link href="/contact" className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }}>
-                Contact Legal Support
+              <Link href="/contact" className="btn btn-outline" style={{ width: '100%' }}>
+                Contact Support <ArrowRight size={15} />
               </Link>
             </div>
           </aside>
@@ -70,3 +67,4 @@ export default function TermsPage() {
     </div>
   );
 }
+
