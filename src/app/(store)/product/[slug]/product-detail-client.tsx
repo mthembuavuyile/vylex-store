@@ -427,12 +427,15 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
           </div>
         </div>
 
-        {/* Minimalist Specifications Section (Ref Image 1 & AGENTS.md clean layout) */}
-        <section className="product-specs-wrapper">
-          <h2 className="specs-heading">Product Specifications</h2>
+        {/* Product Specifications Section */}
+        <section className="product-specs-section">
+          <div className="specs-header-row">
+            <h2 className="specs-heading">Product Specifications</h2>
+            <span className="specs-badge">Verified Details</span>
+          </div>
 
-          <div className="table-responsive-container">
-            <table className="specs-minimal-table">
+          <div className="specs-table-container">
+            <table className="specs-table">
               <tbody>
                 {/* Standard Base Specs */}
                 {product.vendor && (
@@ -449,7 +452,9 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
 
                 <tr>
                   <th>Model / SKU</th>
-                  <td style={{ fontFamily: 'var(--font-mono)' }}>{product.sku}</td>
+                  <td>
+                    <span className="specs-sku-text">{product.sku}</span>
+                  </td>
                 </tr>
 
                 {/* Dynamic Product Specifications */}
@@ -472,7 +477,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
                 </tr>
 
                 <tr>
-                  <th>Warranty</th>
+                  <th>Warranty & Guarantee</th>
                   <td>12-Month Quality & Safety Guarantee</td>
                 </tr>
               </tbody>

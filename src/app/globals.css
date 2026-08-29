@@ -2228,71 +2228,122 @@ img {
 }
 
 /* ==========================================================================
-   Minimal Responsive Table & Product Detail Specs (Brand-aligned & Minimal)
+   Product Specifications & Clean Data Tables
    ========================================================================== */
-.table-responsive-container {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.product-specs-section {
+  margin-top: 48px;
+  margin-bottom: 32px;
 }
 
-.product-specs-wrapper {
-  margin-top: 48px;
-  margin-bottom: 24px;
+.specs-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--slate);
 }
 
 .specs-heading {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--navy);
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--navy);
-  display: inline-block;
   letter-spacing: -0.2px;
+  margin: 0;
 }
 
-.specs-minimal-table {
+.specs-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sdark);
+  background: var(--slate-light);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.specs-table-container {
+  width: 100%;
+  background: var(--white);
+  border: 1px solid var(--slate);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.specs-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  background: transparent;
 }
 
-.specs-minimal-table tr {
-  border-bottom: 1px solid var(--slate, #e2e8f0);
+.specs-table tbody tr {
+  border-bottom: 1px solid var(--slate);
+  transition: background-color 0.15s ease;
 }
 
-.specs-minimal-table th,
-.specs-minimal-table td {
-  padding: 14px 16px 14px 0;
-  vertical-align: top;
-  line-height: 1.6;
+.specs-table tbody tr:nth-child(even) {
+  background-color: #FAFBFD;
 }
 
-.specs-minimal-table th {
-  width: 220px;
-  min-width: 160px;
-  font-size: 0.9rem;
+.specs-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.specs-table tbody tr:hover {
+  background-color: var(--slate-light);
+}
+
+.specs-table th {
+  width: 32%;
+  min-width: 180px;
+  padding: 14px 20px;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--navy);
-  letter-spacing: -0.1px;
+  vertical-align: top;
+  line-height: 1.5;
+  border-right: 1px solid var(--slate-light);
 }
 
-.specs-minimal-table td {
-  font-size: 0.9rem;
+.specs-table td {
+  padding: 14px 20px;
+  font-size: 0.88rem;
   color: #334155;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.specs-sku-text {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--navy);
+  background: var(--slate-light);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  font-weight: 500;
 }
 
 @media (max-width: 640px) {
-  .specs-minimal-table th {
-    width: 140px;
-    min-width: 130px;
-    font-size: 0.85rem;
+  .product-specs-section {
+    margin-top: 36px;
+    margin-bottom: 24px;
   }
-  
-  .specs-minimal-table td {
-    font-size: 0.85rem;
+
+  .specs-heading {
+    font-size: 1.1rem;
+  }
+
+  .specs-table th {
+    width: 38%;
+    min-width: 110px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+  }
+
+  .specs-table td {
+    padding: 12px 14px;
+    font-size: 0.82rem;
   }
 }
 
