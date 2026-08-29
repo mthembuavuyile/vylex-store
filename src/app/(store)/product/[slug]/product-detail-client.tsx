@@ -431,7 +431,6 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
         <section className="product-specs-section">
           <div className="specs-header-row">
             <h2 className="specs-heading">Product Specifications</h2>
-            <span className="specs-badge">Verified Details</span>
           </div>
 
           <div className="specs-table-container">
