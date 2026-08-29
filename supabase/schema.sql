@@ -134,12 +134,27 @@ ALTER TABLE public.supplier_sync_logs ENABLE ROW LEVEL SECURITY;
 -- Clean Up Old Policies
 DROP POLICY IF EXISTS "Public products view" ON public.products;
 DROP POLICY IF EXISTS "Admin products full access" ON public.products;
+DROP POLICY IF EXISTS "Allow public read products" ON public.products;
+DROP POLICY IF EXISTS "Allow admin products write" ON public.products;
+DROP POLICY IF EXISTS "Admins have full access to products" ON public.products;
+
 DROP POLICY IF EXISTS "Anon customer insert" ON public.customers;
 DROP POLICY IF EXISTS "Admin customer full access" ON public.customers;
+
 DROP POLICY IF EXISTS "Anon orders insert" ON public.orders;
 DROP POLICY IF EXISTS "Admin orders full access" ON public.orders;
+DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
+DROP POLICY IF EXISTS "Users can insert their own orders" ON public.orders;
+DROP POLICY IF EXISTS "Admins have full access to orders" ON public.orders;
+
 DROP POLICY IF EXISTS "Anon order items insert" ON public.order_items;
 DROP POLICY IF EXISTS "Admin order items full access" ON public.order_items;
+DROP POLICY IF EXISTS "Anon order_items insert" ON public.order_items;
+DROP POLICY IF EXISTS "Admin order_items full access" ON public.order_items;
+DROP POLICY IF EXISTS "Users can view their own order items" ON public.order_items;
+DROP POLICY IF EXISTS "Users can insert their own order items" ON public.order_items;
+DROP POLICY IF EXISTS "Admins have full access to order items" ON public.order_items;
+
 DROP POLICY IF EXISTS "Admin logs full access" ON public.supplier_sync_logs;
 
 -- Active Unified Policies
