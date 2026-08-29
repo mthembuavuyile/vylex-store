@@ -81,8 +81,8 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
       <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <div className="container navbar-inner" style={{ height: '64px' }}>
           <Link href="/" className="logo logo-light">
-            <img src="/logo.png" alt="Vylex Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
-            <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+            <img src="/logo.png" alt="Vybetek Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
+            <span className="logo-text">vybetek</span>
           </Link>
 
           <button 
@@ -312,7 +312,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
       <footer className="footer">
         <div className="container">
           <div className="footer-bottom" style={{ borderTop: 'none', paddingTop: '0' }}>
-            <p>&copy; {new Date().getFullYear()} Vylex Store. All rights reserved. Powered by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a></p>
+            <p>&copy; {new Date().getFullYear()} Vybetek. All rights reserved.</p>
             <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}>vylex.co.za</a>
             </p>

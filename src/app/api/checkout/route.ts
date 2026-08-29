@@ -153,12 +153,12 @@ export async function POST(req: Request) {
       cancel_url: `${origin}/checkout/cancel?order_id=${orderId}`,
       notify_url: `${origin}/api/payfast/itn`,
       name_first: shippingDetails.fullName.split(' ')[0] || 'Customer',
-      name_last: shippingDetails.fullName.split(' ').slice(1).join(' ') || 'Vylex',
+      name_last: shippingDetails.fullName.split(' ').slice(1).join(' ') || 'Vybetek',
       email_address: shippingDetails.email,
       cell_number: shippingDetails.phone || '',
       m_payment_id: orderId,
       amount: totalAmount.toFixed(2),
-      item_name: `Vylex Store Order #${orderId.substring(0, 8)}`,
+      item_name: `Vybetek Order #${orderId.substring(0, 8)}`,
       custom_str1: supabaseSuccess ? 'db_tracked' : 'mock_tracked',
     };
 

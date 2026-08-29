@@ -11,57 +11,57 @@ import {
 import { supabase } from '@/lib/supabase';
 import { ProductIcon } from '@/lib/products';
 
-const INITIAL_SEED_PRODUCTS = [
-  {
-    id: 'vy-nc20-blk',
-    title: 'Vylex NeoCharge 20K Power Bank',
-    category: 'Power Banks',
-    price: 799.00,
-    cost_price: 420.00,
-    sku: 'VY-NC20-BLK',
-    slug: 'vylex-neocharge-20k-power-bank',
-    description: 'High-capacity 20,000mAh power bank with 22.5W Power Delivery. Features dual USB-A and USB-C inputs/outputs.',
-    specifications: ['20,000mAh Lithium Polymer battery', '22.5W Fast Charging PD 3.0', '1x USB-C Input/Output, 2x USB-A Output'],
-    images: ['powerbank'],
-    stock_quantity: 45,
-    source: 'manual'
-  },
-  {
-    id: 'vy-wpp-wht',
-    title: 'Vylex WavePods Pro Earbuds',
-    category: 'Earbuds',
-    price: 1299.00,
-    cost_price: 650.00,
-    sku: 'VY-WPP-WHT',
-    slug: 'vylex-wavepods-pro-earbuds',
-    description: 'Active Noise Cancelling (ANC) wireless earbuds with bluetooth 5.3. Up to 36 hours of playtime with the wireless charging case.',
-    specifications: ['Active Noise Cancellation up to 30dB', 'Bluetooth 5.3 low-latency connection', '36 hours total battery life'],
-    images: ['earbuds'],
-    stock_quantity: 12,
-    source: 'manual'
-  },
-  {
-    id: 'vy-tfv4-gry',
-    title: 'Vylex TitanFit Smartwatch V4',
-    category: 'Smartwatches',
-    price: 1899.00,
-    cost_price: 950.00,
-    sku: 'VY-TFV4-GRY',
-    slug: 'vylex-titanfit-smartwatch-v4',
-    description: 'Premium smartwatch featuring 1.9" AMOLED display, blood oxygen monitoring, heart rate sensor, and GPS tracking.',
-    specifications: ['1.9" Always-on AMOLED Display', 'Heart rate, SpO2, and Sleep tracking', '10-day battery life'],
-    images: ['smartwatch'],
-    stock_quantity: 8,
-    source: 'manual'
-  },
-  {
-    id: 'vy-sp65-gan',
-    title: 'Vylex SuperPort 65W GaN Charger',
-    category: 'Chargers',
-    price: 549.00,
-    cost_price: 280.00,
-    sku: 'VY-SP65-GAN',
-    slug: 'vylex-superport-65w-gan-charger',
+  const INITIAL_SEED_PRODUCTS = [
+    {
+      id: 'vy-nc20-blk',
+      title: 'Vybetek NeoCharge 20K Power Bank',
+      category: 'Power Banks',
+      price: 799.00,
+      cost_price: 420.00,
+      sku: 'VY-NC20-BLK',
+      slug: 'vybetek-neocharge-20k-power-bank',
+      description: 'High-capacity 20,000mAh power bank with 22.5W Power Delivery. Features dual USB-A and USB-C inputs/outputs.',
+      specifications: ['20,000mAh Lithium Polymer battery', '22.5W Fast Charging PD 3.0', '1x USB-C Input/Output, 2x USB-A Output'],
+      images: ['powerbank'],
+      stock_quantity: 45,
+      source: 'manual'
+    },
+    {
+      id: 'vy-wpp-wht',
+      title: 'Vybetek WavePods Pro Earbuds',
+      category: 'Earbuds',
+      price: 1299.00,
+      cost_price: 650.00,
+      sku: 'VY-WPP-WHT',
+      slug: 'vybetek-wavepods-pro-earbuds',
+      description: 'Active Noise Cancelling (ANC) wireless earbuds with bluetooth 5.3. Up to 36 hours of playtime with the wireless charging case.',
+      specifications: ['Active Noise Cancellation up to 30dB', 'Bluetooth 5.3 low-latency connection', '36 hours total battery life'],
+      images: ['earbuds'],
+      stock_quantity: 12,
+      source: 'manual'
+    },
+    {
+      id: 'vy-tfv4-gry',
+      title: 'Vybetek TitanFit Smartwatch V4',
+      category: 'Smartwatches',
+      price: 1899.00,
+      cost_price: 950.00,
+      sku: 'VY-TFV4-GRY',
+      slug: 'vybetek-titanfit-smartwatch-v4',
+      description: 'Premium smartwatch featuring 1.9" AMOLED display, blood oxygen monitoring, heart rate sensor, and GPS tracking.',
+      specifications: ['1.9" Always-on AMOLED Display', 'Heart rate, SpO2, and Sleep tracking', '10-day battery life'],
+      images: ['smartwatch'],
+      stock_quantity: 8,
+      source: 'manual'
+    },
+    {
+      id: 'vy-sp65-gan',
+      title: 'Vybetek SuperPort 65W GaN Charger',
+      category: 'Chargers',
+      price: 549.00,
+      cost_price: 280.00,
+      sku: 'VY-SP65-GAN',
+      slug: 'vybetek-superport-65w-gan-charger',
     description: 'Ultra-compact Gallium Nitride (GaN) wall charger with 2x USB-C PD ports and 1x USB-A port.',
     specifications: ['65W Total Power output via GaN Technology', '2x USB-C Power Delivery ports, 1x USB-A port'],
     images: ['charger'],
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
           alert('Initial Vylex inventory seeded successfully to Supabase!');
         }
       } else {
-        alert('Initial Vylex inventory seeded successfully to Supabase!');
+        alert('Initial Vybetek inventory seeded successfully to Supabase!');
       }
       setProducts(INITIAL_SEED_PRODUCTS);
     } catch (err: any) {
@@ -367,14 +367,14 @@ export default function AdminDashboard() {
     const phone = order.customer_phone ? order.customer_phone.replace(/[^0-9]/g, '') : '';
     const cleanPhone = phone.startsWith('0') ? '27' + phone.substring(1) : phone;
 
-    let text = `Hi ${order.customer_name},\n\nUpdate regarding your Vylex Store Order *${order.order_number}*:\n`;
+    let text = `Hi ${order.customer_name},\n\nUpdate regarding your Vybetek Order *${order.order_number}*:\n`;
     text += `• Status: *${order.order_status.toUpperCase()}*\n`;
     if (order.courier_name && order.tracking_number) {
       text += `• Courier: ${order.courier_name}\n`;
       text += `• Tracking Number: ${order.tracking_number}\n`;
       if (order.tracking_url) text += `• Track Online: ${order.tracking_url}\n`;
     }
-    text += `\nThank you for shopping with Vylex Store!`;
+    text += `\nThank you for shopping with Vybetek!`;
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', background: 'rgba(249, 115, 22, 0.1)', borderRadius: '14px', color: '#f97316', marginBottom: '16px' }}>
               <Lock size={28} />
             </div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '6px' }}>Vylex Admin Hub</h1>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '6px' }}>Vybetek Admin Hub</h1>
             <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Sign in to manage inventory, CRM leads & sales orders</p>
           </div>
 
@@ -472,7 +472,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src="/logo.png" alt="Vylex Logo" width="28" height="28" />
-            <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff' }}>vylex<span style={{ color: '#f97316' }}>.</span>CRM</span>
+            <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fff' }}>vybetek<span style={{ color: '#f97316' }}>.</span>CRM</span>
           </Link>
           <span className="hide-mobile" style={{ fontSize: '0.72rem', background: '#334155', padding: '2px 8px', borderRadius: '12px', color: '#cbd5e1' }}>PRO HUB</span>
         </div>
@@ -547,7 +547,7 @@ export default function AdminDashboard() {
                   disabled={isSeeding}
                   style={{ padding: '10px 16px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <Database size={16} /> {isSeeding ? 'Seeding...' : 'Seed Initial Vylex Products'}
+                  <Database size={16} /> {isSeeding ? 'Seeding...' : 'Seed Initial Vybetek Products'}
                 </button>
               )}
             </div>
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
                   <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '4px' }}>Product Title *</label>
-                      <input type="text" required value={newProduct.title} onChange={e => setNewProduct({ ...newProduct, title: e.target.value })} placeholder="e.g. Vylex UltraCharge 10K" style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px' }} />
+                      <input type="text" required value={newProduct.title} onChange={e => setNewProduct({ ...newProduct, title: e.target.value })} placeholder="e.g. Vybetek UltraCharge 10K" style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px' }} />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

@@ -21,7 +21,7 @@ export default function Home() {
   const [checkoutStep, setCheckoutStep] = useState<'browse' | 'form' | 'redirecting'>('browse');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMobileSummary, setShowMobileSummary] = useState(false);
-  const [activeModal, setActiveModal] = useState<'none' | 'shipping' | 'refund' | 'terms' | 'about'>('none');
+
   
   const {
     cart, addToCart, updateQuantity, removeItem, clearCart,
@@ -252,8 +252,8 @@ export default function Home() {
       <header className={`header ${scrolled ? 'scrolled' : ''}`}>
         <div className="container header-inner">
           <Link href="/" className="logo logo-light" onClick={() => setCheckoutStep('browse')}>
-            <img src="/logo.png" alt="Vylex Logo" width="36" height="36" style={{ flexShrink: 0, objectFit: 'contain' }} />
-            <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+            <img src="/logo.png" alt="Vybetek Logo" width="36" height="36" style={{ flexShrink: 0, objectFit: 'contain' }} />
+            <span className="logo-text">vybetek</span>
           </Link>
 
           {/* Desktop Live Search Bar */}
@@ -306,8 +306,8 @@ export default function Home() {
           <div className="mobile-nav-drawer-side">
             <div className="mobile-drawer-header">
               <Link href="/" className="logo logo-light" onClick={() => { setIsMobileMenuOpen(false); setCheckoutStep('browse'); }}>
-                <img src="/logo.png" alt="Vylex Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
-                <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+                <img src="/logo.png" alt="Vybetek Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
+                <span className="logo-text">vybetek</span>
               </Link>
               <button className="mobile-drawer-close" onClick={() => setIsMobileMenuOpen(false)} aria-label="Close Navigation Menu">
                 <X size={20} />
@@ -389,68 +389,56 @@ export default function Home() {
                 <div className="drawer-section-title">Customer Care & Legal</div>
                 <ul className="drawer-nav-list">
                   <li>
-                    <button
+                    <Link
+                      href="/shipping"
                       className="drawer-nav-item"
-                      style={{ width: '100%', textAlign: 'left', background: 'none', cursor: 'pointer' }}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setActiveModal('shipping');
-                      }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Truck size={16} style={{ color: 'var(--orange)' }} /> Shipping & Deliveries
                       </span>
                       <ChevronRight size={14} />
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
+                    <Link
+                      href="/refund"
                       className="drawer-nav-item"
-                      style={{ width: '100%', textAlign: 'left', background: 'none', cursor: 'pointer' }}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setActiveModal('refund');
-                      }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <RefreshCw size={16} style={{ color: 'var(--orange)' }} /> Refund & Return Policy
                       </span>
                       <ChevronRight size={14} />
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
+                    <Link
+                      href="/terms"
                       className="drawer-nav-item"
-                      style={{ width: '100%', textAlign: 'left', background: 'none', cursor: 'pointer' }}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setActiveModal('terms');
-                      }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <FileText size={16} style={{ color: 'var(--orange)' }} /> Terms & Conditions
                       </span>
                       <ChevronRight size={14} />
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
+                    <Link
+                      href="/about"
                       className="drawer-nav-item"
-                      style={{ width: '100%', textAlign: 'left', background: 'none', cursor: 'pointer' }}
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setActiveModal('about');
-                      }}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Info size={16} style={{ color: 'var(--orange)' }} /> About Vylex Store
+                        <Info size={16} style={{ color: 'var(--orange)' }} /> About Vybetek
                       </span>
                       <ChevronRight size={14} />
-                    </button>
+                    </Link>
                   </li>
                   <li>
                     <a 
-                      href="https://wa.me/27821234567?text=Hi%20Vylex%20Store%20Support" 
+                      href="https://wa.me/27821234567?text=Hi%20Vybetek%20Store%20Support" 
                       target="_blank" 
                       rel="noreferrer"
                       className="drawer-nav-item"
@@ -469,7 +457,6 @@ export default function Home() {
             <div className="mobile-drawer-footer">
               <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ color: 'var(--orange)', fontWeight: 600 }}>🇿🇦 Courier Guy Express Shipping</span>
-                <span>Operated by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Vylex</a></span>
               </div>
             </div>
           </div>
@@ -726,7 +713,7 @@ export default function Home() {
               <div className="hero-glow"></div>
               <div className="container hero-inner">
                 <div className="hero-content" style={{ animation: 'fadeIn 0.8s ease-out' }}>
-                  <h1>Vylex Premium <span>Consumer Tech</span></h1>
+                  <h1>Vybetek Premium <span>Consumer Tech</span></h1>
                   <p>Elevate your digital life. Fast dispatch and secure delivery on premium power banks, audio, smart wearables, and chargers.</p>
                   <div className="hero-buttons">
                     <a href="#catalog" className="btn btn-primary" onClick={() => setSelectedCategory('All')}>Shop Catalog</a>
@@ -887,13 +874,10 @@ export default function Home() {
           <div className="footer-grid">
             <div className="footer-col">
               <a href="#" className="logo logo-light" style={{ marginBottom: '16px' }}>
-                <img src="/logo.png" alt="Vylex Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
-                <span className="logo-text">vylex<span className="logo-dot-text">.</span><span className="logo-subtext">Store</span></span>
+                <img src="/logo.png" alt="Vybetek Logo" width="32" height="32" style={{ flexShrink: 0, objectFit: 'contain' }} />
+                <span className="logo-text">vybetek</span>
               </a>
               <p>Premium online tech store. Direct dispatch and secure delivery across South Africa.</p>
-              <p style={{ marginTop: '12px', fontSize: '0.85rem' }}>
-                Operated by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a>
-              </p>
             </div>
             <div className="footer-col">
               <h3>Shop Categories</h3>
@@ -908,17 +892,17 @@ export default function Home() {
             <div className="footer-col">
               <h3>Customer Care</h3>
               <ul className="footer-links">
-                <li><button onClick={() => setActiveModal('shipping')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Shipping & Deliveries</button></li>
-                <li><button onClick={() => setActiveModal('refund')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Refund Policy</button></li>
-                <li><button onClick={() => setActiveModal('terms')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>Terms & Conditions</button></li>
-                <li><button onClick={() => setActiveModal('about')} style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}>About Vylex Store</button></li>
-                <li><Link href="/admin" style={{ color: 'var(--orange)', fontWeight: 600 }}>Admin Portal</Link></li>
+                <li><Link href="/shipping" style={{ color: 'inherit', textDecoration: 'none' }}>Shipping & Deliveries</Link></li>
+                <li><Link href="/refund" style={{ color: 'inherit', textDecoration: 'none' }}>Refund Policy</Link></li>
+                <li><Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms & Conditions</Link></li>
+                <li><Link href="/about" style={{ color: 'inherit', textDecoration: 'none' }}>About Vybetek</Link></li>
+                <li><Link href="/admin" style={{ color: 'var(--orange)', fontWeight: 600, textDecoration: 'none' }}>Admin Portal</Link></li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
             <p>
-              &copy; {new Date().getFullYear()} Vylex Store. All rights reserved. Powered by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline', fontWeight: 600 }}>Vylex</a>
+              &copy; {new Date().getFullYear()} Vybetek. All rights reserved.
             </p>
             <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}>
@@ -929,73 +913,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Policy Modals */}
-      {activeModal !== 'none' && (
-        <div className="policy-modal-overlay" onClick={() => setActiveModal('none')}>
-          <div className="policy-modal-card" onClick={e => e.stopPropagation()}>
-            <div className="policy-modal-header">
-              <h2>
-                {activeModal === 'shipping' && <><Truck size={20} style={{ color: 'var(--orange)' }} /> Shipping & Deliveries</>}
-                {activeModal === 'refund' && <><RefreshCw size={20} style={{ color: 'var(--orange)' }} /> Refund & Return Policy</>}
-                {activeModal === 'terms' && <><FileText size={20} style={{ color: 'var(--orange)' }} /> Terms & Conditions</>}
-                {activeModal === 'about' && <><Info size={20} style={{ color: 'var(--orange)' }} /> About Vylex Store</>}
-              </h2>
-              <button className="policy-modal-close" onClick={() => setActiveModal('none')} aria-label="Close modal">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="policy-modal-body">
-              {activeModal === 'shipping' && (
-                <>
-                  <h3>🇿🇦 Nationwide Express Delivery</h3>
-                  <p>We deliver nationwide across all 9 provinces in South Africa via <strong>The Courier Guy</strong> directly to your door.</p>
-                  <h3>⏱️ Dispatch & Delivery Times</h3>
-                  <p>Orders placed before 14:00 Monday to Friday are dispatched within 24 hours. Delivery to main centres (Johannesburg, Cape Town, Durban, Pretoria) takes 1–3 business days.</p>
-                  <h3>🚚 Shipping Rates</h3>
-                  <p>Standard door-to-door courier delivery is <strong>R99</strong>. Orders of <strong>R1,000 or more qualify for FREE delivery</strong>.</p>
-                </>
-              )}
 
-              {activeModal === 'refund' && (
-                <>
-                  <h3>🔄 7-Day Money Back Guarantee</h3>
-                  <p>We want you to be completely satisfied with your purchase. You may return any unopened, unused item in its original packaging within 7 days of receipt.</p>
-                  <h3>⚠️ Defective or Damaged Products</h3>
-                  <p>If your order arrives damaged or malfunctioning, notify our team within 48 hours with order details and photos. We will arrange a free exchange or replacement immediately.</p>
-                  <h3>💳 Refund Processing</h3>
-                  <p>Approved refunds are returned directly to your original payment account (Card / EFT) within 3–5 working days.</p>
-                </>
-              )}
-
-              {activeModal === 'terms' && (
-                <>
-                  <h3>📜 Store Terms & Agreements</h3>
-                  <p>By placing an order on <strong>Vylex Store</strong> (<code>store.vylex.co.za</code>), you agree to our purchase and delivery terms.</p>
-                  <h3>🔒 Secure Payment Options</h3>
-                  <p>All payments are securely processed via PayFast and Ozow Instant EFT. Vylex Store never stores or sees raw payment credentials.</p>
-                  <h3>🛒 Pricing & Stock Availability</h3>
-                  <p>All prices are listed in South African Rands (ZAR) including VAT where applicable. Stock quantities are updated live.</p>
-                </>
-              )}
-
-              {activeModal === 'about' && (
-                <>
-                  <h3>ℹ️ Welcome to Vylex Store</h3>
-                  <p><strong>Vylex Store</strong> (<code>store.vylex.co.za</code>) is the official online technology retail store operated by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Vylex</a>.</p>
-                  <p>We specialize in premium mobile electronics, power banks, wireless audio, smartwatch accessories, and fast charging gear for South African tech enthusiasts.</p>
-                  <h3>📍 Direct South Africa Dispatch</h3>
-                  <p>All products are stocked locally and shipped direct to your home or office with full order tracking.</p>
-                </>
-              )}
-            </div>
-            <div className="policy-modal-footer">
-              <button className="btn btn-primary" onClick={() => setActiveModal('none')} style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Sticky Cart Bar */}
       {checkoutStep === 'browse' && cartCount > 0 && (
