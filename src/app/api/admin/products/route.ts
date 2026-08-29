@@ -11,6 +11,25 @@ function getClient() {
   return supabase;
 }
 
+// GET: List all products for admin
+export async function GET() {
+  try {
+    const db = getClient();
+    const { data, error } = await db
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ products: data || [] });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+  }
+}
+
 // POST: Add or Seed Products
 export async function POST(req: Request) {
   try {
@@ -26,13 +45,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, count: body.length });
     }
 
-    // Adding a single product
-    const { data, error } = await db.from('products').insert([body]);
+    // Adding or updating a single product
+    const { data, error } = await db.from('products').upsert([body], { onConflict: 'id' });
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, product: body });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+  }
+}
+
+// PUT / PATCH: Update existing product
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    if (!body.id) {
+      return NextResponse.json({ error: 'Missing product ID for update' }, { status: 400 });
+    }
+
+    const db = getClient();
+    const updatePayload = {
+      ...body,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await db
+      .from('products')
+      .update(updatePayload)
+      .eq('id', body.id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true, product: updatePayload });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
   }

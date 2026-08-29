@@ -1,23 +1,23 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { MOCK_PRODUCTS } from '@/lib/products';
+import { MOCK_PRODUCTS, Product } from '@/lib/products';
 import { ProductDetailClient } from './product-detail-client';
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-async function getProduct(slug: string) {
+async function getProduct(slug: string): Promise<Product | null> {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('id, title, description, price, sku, category, images, stock_quantity, slug, specifications')
+      .select('*')
       .eq('slug', slug)
       .single();
 
     if (!error && data) {
-      return data;
+      return data as Product;
     }
   } catch (err) {
     console.warn('Error fetching product by slug from Supabase:', err);
@@ -36,15 +36,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Product Not Found | Vybetek Store' };
   }
 
+  const metaTitle = product.seo_title || `${product.title} | Vybetek Store`;
+  const metaDescription = product.seo_description || product.description || 'Shop premium products online at Vybetek Store South Africa.';
+
   return {
-    title: `${product.title} | Vybetek Store`,
-    description: product.description,
+    title: metaTitle,
+    description: metaDescription,
     openGraph: {
-      title: `${product.title} — R${Number(product.price).toFixed(2)}`,
-      description: product.description,
+      title: metaTitle,
+      description: metaDescription,
       type: 'website',
       siteName: 'Vybetek Store',
       url: `https://store.vylex.co.za/product/${slug}`,
+      images: Array.isArray(product.images) && product.images.length > 0 ? [product.images[0]] : []
     },
   };
 }
@@ -57,24 +61,27 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch related products in the same category
-  let relatedProducts: any[] = [];
+  // Fetch related products in the same category (active only)
+  let relatedProducts: Product[] = [];
   try {
     const { data } = await supabase
       .from('products')
-      .select('id, title, price, category, images, slug')
+      .select('*')
       .eq('category', product.category)
       .neq('slug', slug)
+      .neq('status', 'draft')
       .limit(3);
     if (data && data.length > 0) {
-      relatedProducts = data;
+      relatedProducts = data as Product[];
     }
   } catch {
     // Ignore error
   }
 
   if (relatedProducts.length === 0) {
-    relatedProducts = MOCK_PRODUCTS.filter(p => p.category === product.category && p.slug !== slug).slice(0, 3);
+    relatedProducts = MOCK_PRODUCTS.filter(
+      p => p.category === product.category && p.slug !== slug && p.status !== 'draft'
+    ).slice(0, 3);
   }
 
   return (

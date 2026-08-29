@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Search, SlidersHorizontal, X, ArrowUpDown, 
-  Store, RotateCcw, ChevronDown, Check
+  Store, RotateCcw, ChevronDown, Check, Tag
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { MOCK_PRODUCTS, Product, CATEGORIES } from '@/lib/products';
@@ -21,6 +21,7 @@ function ShopContent() {
   // Filter States
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
+  const [selectedTag, setSelectedTag] = useState<string>('');
   const [pricePreset, setPricePreset] = useState<string>('all');
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(3000);
@@ -35,24 +36,25 @@ function ShopContent() {
     if (cat !== null) setSelectedCategory(cat);
   }, [searchParams]);
 
-  // Fetch products
+  // Fetch active products from Supabase
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('id, title, description, price, sku, category, images, stock_quantity, slug, specifications')
+          .select('*')
+          .neq('status', 'draft')
           .order('created_at', { ascending: false });
 
         if (error || !data || data.length === 0) {
-          setProducts(MOCK_PRODUCTS);
+          setProducts(MOCK_PRODUCTS.filter(p => p.status !== 'draft'));
         } else {
-          setProducts(data);
+          setProducts(data as Product[]);
         }
       } catch (err) {
         console.warn('Error querying Supabase products:', err);
-        setProducts(MOCK_PRODUCTS);
+        setProducts(MOCK_PRODUCTS.filter(p => p.status !== 'draft'));
       } finally {
         setLoading(false);
       }
@@ -81,14 +83,45 @@ function ShopContent() {
     }
   };
 
+  // Derive dynamic list of categories based on loaded products
+  const dynamicCategories = useMemo(() => {
+    const set = new Set<string>(['All']);
+    CATEGORIES.forEach(c => set.add(c));
+    products.forEach(p => {
+      if (p.category) set.add(p.category);
+    });
+    return Array.from(set);
+  }, [products]);
+
+  // Derive popular tags
+  const popularTags = useMemo(() => {
+    const tagCount: Record<string, number> = {};
+    products.forEach(p => {
+      if (Array.isArray(p.tags)) {
+        p.tags.forEach(t => {
+          tagCount[t] = (tagCount[t] || 0) + 1;
+        });
+      }
+    });
+    return Object.keys(tagCount).slice(0, 10);
+  }, [products]);
+
   // Filter & Sort Logic
   const filteredProducts = useMemo(() => {
     return products
       .filter(product => {
+        // Draft filter
+        if (product.status === 'draft') return false;
+
         // Category Filter
         const matchesCategory = 
           selectedCategory === 'All' || 
           product.category?.toLowerCase() === selectedCategory.toLowerCase();
+
+        // Tag Filter
+        const matchesTag = 
+          !selectedTag || 
+          (Array.isArray(product.tags) && product.tags.some(t => t.toLowerCase() === selectedTag.toLowerCase()));
 
         // Search Query Filter
         const query = searchQuery.toLowerCase().trim();
@@ -97,13 +130,15 @@ function ShopContent() {
           product.title?.toLowerCase().includes(query) || 
           product.description?.toLowerCase().includes(query) ||
           product.category?.toLowerCase().includes(query) ||
+          product.vendor?.toLowerCase().includes(query) ||
+          (Array.isArray(product.tags) && product.tags.some(t => t.toLowerCase().includes(query))) ||
           product.sku?.toLowerCase().includes(query);
 
         // Price Filter
         const price = Number(product.price);
         const matchesPrice = price >= minPrice && price <= maxPrice;
 
-        return matchesCategory && matchesSearch && matchesPrice;
+        return matchesCategory && matchesTag && matchesSearch && matchesPrice;
       })
       .sort((a, b) => {
         if (sortBy === 'price-low') {
@@ -115,14 +150,15 @@ function ShopContent() {
         if (sortBy === 'title-asc') {
           return a.title.localeCompare(b.title);
         }
-        return 0; // 'featured' keeps original ordering
+        return 0; // 'featured'
       });
-  }, [products, selectedCategory, searchQuery, minPrice, maxPrice, sortBy]);
+  }, [products, selectedCategory, selectedTag, searchQuery, minPrice, maxPrice, sortBy]);
 
   // Reset all filters
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('All');
+    setSelectedTag('');
     setPricePreset('all');
     setMinPrice(0);
     setMaxPrice(3000);
@@ -132,6 +168,7 @@ function ShopContent() {
 
   const hasActiveFilters = 
     selectedCategory !== 'All' || 
+    selectedTag !== '' ||
     searchQuery.trim() !== '' || 
     pricePreset !== 'all' || 
     minPrice > 0 || 
@@ -153,14 +190,14 @@ function ShopContent() {
     <div>
       <PageHeader 
         title="Shop All Products"
-        subtitle="Explore our full collection of premium power banks, wireless audio, smartwatches, and fast chargers."
+        subtitle="Explore our full collection of premium power banks, audio, wearables, chargers, and health supplements."
         badge="Direct South Africa Stock"
         breadcrumbs={[{ label: 'Shop Catalog' }]}
       />
 
       <div className="container" style={{ padding: '36px 24px 80px' }}>
         
-        {/* Top Control Bar (Search, Active Count, Sorting, Mobile Filter Trigger) */}
+        {/* Top Control Bar */}
         <div className="shop-control-bar">
           {/* Mobile Filter Toggle */}
           <button 
@@ -175,7 +212,7 @@ function ShopContent() {
             <Search size={16} className="search-icon-left" />
             <input
               type="text"
-              placeholder="Search by name, category, or specs..."
+              placeholder="Search by name, brand, tags, or specs..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="search-input"
@@ -221,6 +258,13 @@ function ShopContent() {
               </span>
             )}
 
+            {selectedTag && (
+              <span className="filter-chip">
+                Tag: #{selectedTag}
+                <button onClick={() => setSelectedTag('')}><X size={12} /></button>
+              </span>
+            )}
+
             {searchQuery && (
               <span className="filter-chip">
                 Search: "{searchQuery}"
@@ -255,11 +299,14 @@ function ShopContent() {
               <div className="filter-section">
                 <h3 className="filter-title">Categories</h3>
                 <div className="filter-category-list">
-                  {CATEGORIES.map(cat => (
+                  {dynamicCategories.map(cat => (
                     <button
                       key={cat}
                       className={`filter-category-btn ${selectedCategory === cat ? 'active' : ''}`}
-                      onClick={() => setSelectedCategory(cat)}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setSelectedTag('');
+                      }}
                     >
                       <span>{cat}</span>
                       <span className="category-count">
@@ -269,6 +316,39 @@ function ShopContent() {
                   ))}
                 </div>
               </div>
+
+              {/* Tag Filters */}
+              {popularTags.length > 0 && (
+                <div className="filter-section">
+                  <h3 className="filter-title">Popular Tags</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {popularTags.map(tag => {
+                      const isSelected = selectedTag.toLowerCase() === tag.toLowerCase();
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => setSelectedTag(isSelected ? '' : tag)}
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            border: isSelected ? '1px solid var(--orange)' : '1px solid var(--slate)',
+                            background: isSelected ? 'var(--orange)' : 'var(--white)',
+                            color: isSelected ? '#051b38' : 'var(--navy)',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Tag size={10} /> {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Price Filter */}
               <div className="filter-section">
@@ -416,7 +496,7 @@ function ShopContent() {
               <div className="filter-section">
                 <h4 className="filter-title">Category</h4>
                 <div className="filter-category-list">
-                  {CATEGORIES.map(cat => (
+                  {dynamicCategories.map(cat => (
                     <button
                       key={cat}
                       className={`filter-category-btn ${selectedCategory === cat ? 'active' : ''}`}

@@ -14,24 +14,25 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch live products from Supabase with fallback to mock data
+  // Fetch live active products from Supabase with fallback to mock data
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('id, title, description, price, sku, category, images, stock_quantity, slug, specifications')
+          .select('*')
+          .neq('status', 'draft')
           .order('created_at', { ascending: false });
 
         if (error || !data || data.length === 0) {
-          setProducts(MOCK_PRODUCTS);
+          setProducts(MOCK_PRODUCTS.filter(p => p.status !== 'draft'));
         } else {
-          setProducts(data);
+          setProducts(data as Product[]);
         }
       } catch (err) {
         console.warn('Supabase product query error:', err);
-        setProducts(MOCK_PRODUCTS);
+        setProducts(MOCK_PRODUCTS.filter(p => p.status !== 'draft'));
       } finally {
         setLoading(false);
       }
@@ -39,8 +40,9 @@ export default function HomePage() {
     fetchProducts();
   }, []);
 
-  const featuredProduct = products[0] || MOCK_PRODUCTS[0];
-  const bestSellers = products.slice(0, 4);
+  const activeProducts = products.filter(p => p.status !== 'draft');
+  const featuredProduct = activeProducts.find(p => p.is_featured) || activeProducts[0] || MOCK_PRODUCTS[0];
+  const bestSellers = activeProducts.slice(0, 4);
 
   return (
     <div>
@@ -52,10 +54,10 @@ export default function HomePage() {
           <div className="hero-content" style={{ animation: 'fadeIn 0.8s ease-out' }}>
             <div className="badge-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
               <Sparkles size={14} style={{ color: 'var(--orange)' }} />
-              <span>South Africa's Trusted Tech Store</span>
+              <span>South Africa's Trusted Online Store</span>
             </div>
-            <h1>Vybetek Premium <span>Consumer Tech</span></h1>
-            <p>Elevate your digital life. Fast dispatch and secure delivery on premium power banks, audio, smart wearables, and chargers.</p>
+            <h1>Vybetek Premium <span>Everyday Essentials</span></h1>
+            <p>Elevate your lifestyle. Fast courier dispatch and secure delivery across South Africa on quality tech, accessories, and wellness products.</p>
             <div className="hero-buttons">
               <Link href="/shop" className="btn btn-primary">
                 Shop All Products <ArrowRight size={18} />
@@ -85,19 +87,30 @@ export default function HomePage() {
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--orange)', textTransform: 'uppercase' }}>
                     Featured Item
                   </span>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--navy)' }}>
-                    R{Number(featuredProduct.price).toFixed(2)}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--navy)' }}>
+                      R{Number(featuredProduct.price).toFixed(2)}
+                    </span>
+                    {featuredProduct.compare_at_price && Number(featuredProduct.compare_at_price) > Number(featuredProduct.price) && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--sdark)', textDecoration: 'line-through' }}>
+                        R{Number(featuredProduct.compare_at_price).toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
-                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 0' }}>
+                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 0', minHeight: '160px' }}>
                   <ProductIcon 
                     name={Array.isArray(featuredProduct.images) ? featuredProduct.images[0] : (featuredProduct.images || 'powerbank')} 
                     className="detail-icon-large" 
+                    alt={featuredProduct.title}
                   />
                 </div>
 
                 <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--orange)', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
+                    {featuredProduct.vendor ? `${featuredProduct.vendor} • ` : ''}{featuredProduct.category}
+                  </span>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '6px' }}>
                     {featuredProduct.title}
                   </h3>
@@ -135,7 +148,7 @@ export default function HomePage() {
                 <Truck size={22} style={{ color: 'var(--orange)' }} />
               </div>
               <div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Courier Guy Express</h4>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>The Courier Guy Express</h4>
                 <p style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Direct to door across South Africa</p>
               </div>
             </div>
@@ -155,7 +168,7 @@ export default function HomePage() {
                 <RotateCcw size={22} style={{ color: 'var(--orange)' }} />
               </div>
               <div>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>7-Day Returns</h4>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>7-Day Guarantee</h4>
                 <p style={{ fontSize: '0.82rem', color: 'var(--sdark)' }}>Hassle-free money-back guarantee</p>
               </div>
             </div>
@@ -199,12 +212,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Best Sellers / Curated Tech Catalog Preview */}
+      {/* Best Sellers / Curated Catalog Preview */}
       <section className="container" style={{ padding: '40px 0 80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div className="sec-lbl">Featured Inventory</div>
-            <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700 }}>Best Selling Tech</h2>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 700 }}>Popular Items</h2>
           </div>
           <Link href="/shop" className="btn btn-outline" style={{ gap: '8px' }}>
             View Full Shop Catalog <ArrowRight size={16} />
@@ -249,7 +262,7 @@ export default function HomePage() {
                 Direct Dispatch Across South Africa
               </h2>
               <p style={{ color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.7, marginBottom: '24px' }}>
-                Every order is carefully inspected, packed, and handed over to The Courier Guy for rapid tracking and reliable door-to-door delivery in Gauteng, Western Cape, KwaZulu-Natal, and across all 9 provinces.
+                Every order is carefully inspected, packed, and handed over to The Courier Guy for rapid tracking and reliable door-to-door delivery across all 9 provinces.
               </p>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                 <Link href="/shipping" className="btn btn-primary">
@@ -268,7 +281,7 @@ export default function HomePage() {
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '14px', listStyle: 'none', padding: 0, color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.92rem' }}>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                   <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>✓</span>
-                  <span>100% Genuine, tested consumer electronics & safety-certified power accessories.</span>
+                  <span>100% Genuine, tested items with manufacturer warranty support.</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                   <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>✓</span>
