@@ -23,7 +23,15 @@ function generateSignature(params: Record<string, string>, passphrase?: string):
   sortedKeys.forEach((key) => {
     const val = params[key];
     if (val !== undefined && val !== null && val !== '') {
-      paramString += `${key}=${encodeURIComponent(val.trim()).replace(/%20/g, '+')}&`;
+      // Match PHP's urlencode behaviour precisely
+      const encodedVal = encodeURIComponent(val.trim())
+        .replace(/!/g, '%21')
+        .replace(/'/g, '%27')
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29')
+        .replace(/\*/g, '%2A')
+        .replace(/%20/g, '+');
+      paramString += `${key}=${encodedVal}&`;
     }
   });
   
@@ -32,7 +40,14 @@ function generateSignature(params: Record<string, string>, passphrase?: string):
   
   // 3. Append passphrase if defined
   if (passphrase) {
-    signatureString += `&passphrase=${encodeURIComponent(passphrase.trim()).replace(/%20/g, '+')}`;
+    const encodedPassphrase = encodeURIComponent(passphrase.trim())
+      .replace(/!/g, '%21')
+      .replace(/'/g, '%27')
+      .replace(/\(/g, '%28')
+      .replace(/\)/g, '%29')
+      .replace(/\*/g, '%2A')
+      .replace(/%20/g, '+');
+    signatureString += `&passphrase=${encodedPassphrase}`;
   }
   
   // 4. Hash using MD5
@@ -205,6 +220,15 @@ export async function POST(req: Request) {
       amount: totalAmount.toFixed(2),
       item_name: `CartMate Order ${orderNumber}`,
     };
+
+    // Strip out empty parameters completely (PayFast requirement) and trim the rest
+    Object.keys(payfastParams).forEach(key => {
+      if (!payfastParams[key] || payfastParams[key].trim() === '') {
+        delete payfastParams[key];
+      } else {
+        payfastParams[key] = payfastParams[key].trim();
+      }
+    });
 
     // 7. Generate MD5 Signature
     const signature = generateSignature(payfastParams, PASSPHRASE);

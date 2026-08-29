@@ -12,13 +12,27 @@ function generateSignature(params: Record<string, string>, passphrase?: string):
   sortedKeys.forEach((key) => {
     const val = params[key];
     if (val !== undefined && val !== null && val !== '') {
-      paramString += `${key}=${encodeURIComponent(val.trim()).replace(/%20/g, '+')}&`;
+      const encodedVal = encodeURIComponent(val.trim())
+        .replace(/!/g, '%21')
+        .replace(/'/g, '%27')
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29')
+        .replace(/\*/g, '%2A')
+        .replace(/%20/g, '+');
+      paramString += `${key}=${encodedVal}&`;
     }
   });
   
   let signatureString = paramString.slice(0, -1);
   if (passphrase) {
-    signatureString += `&passphrase=${encodeURIComponent(passphrase.trim()).replace(/%20/g, '+')}`;
+    const encodedPassphrase = encodeURIComponent(passphrase.trim())
+      .replace(/!/g, '%21')
+      .replace(/'/g, '%27')
+      .replace(/\(/g, '%28')
+      .replace(/\)/g, '%29')
+      .replace(/\*/g, '%2A')
+      .replace(/%20/g, '+');
+    signatureString += `&passphrase=${encodedPassphrase}`;
   }
   
   return crypto.createHash('md5').update(signatureString).digest('hex');
