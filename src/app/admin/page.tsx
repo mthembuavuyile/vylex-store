@@ -10,7 +10,7 @@ import {
   Tag, Sparkles, Layers, Edit3, Copy, Search, CheckCircle2, ChevronRight, Globe, Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { ProductIcon, Product, CATEGORIES, isImageUrl, ProductSpecification } from '@/lib/products';
+import { ProductIcon, Product, isImageUrl, ProductSpecification } from '@/lib/products';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'customers'>('products');
@@ -1565,7 +1565,7 @@ export default function AdminDashboard() {
                                 className="admin-input"
                                 style={{ marginBottom: '6px' }}
                               >
-                                {CATEGORIES.filter(c => c !== 'All').map(c => (
+                                {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(c => (
                                   <option key={c} value={c}>{c}</option>
                                 ))}
                                 <option value="Custom">+ Add Custom Category</option>

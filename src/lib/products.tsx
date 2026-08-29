@@ -43,9 +43,6 @@ export interface CartItem {
 }
 
 
-
-export const CATEGORIES = ['All', 'Supplements', 'Earbuds', 'Power Banks', 'Smartwatches', 'Chargers'];
-
 // Helper to normalize and check if an image identifier is a real URL
 export function isImageUrl(str?: string): boolean {
   if (!str || typeof str !== 'string') return false;

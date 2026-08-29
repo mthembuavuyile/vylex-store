@@ -6,7 +6,7 @@ import {
   Search, SlidersHorizontal, X, 
   Store, RotateCcw, ChevronDown, Tag
 } from 'lucide-react';
-import { Product, CATEGORIES } from '@/lib/products';
+import { Product } from '@/lib/products';
 import { ProductCard } from '@/components/ProductCard';
 
 interface ShopClientProps {
@@ -62,7 +62,6 @@ export function ShopClient({ initialProducts }: ShopClientProps) {
   // Derive dynamic list of categories
   const dynamicCategories = useMemo(() => {
     const set = new Set<string>(['All']);
-    CATEGORIES.forEach(c => set.add(c));
     products.forEach(p => {
       if (p.category) set.add(p.category);
     });

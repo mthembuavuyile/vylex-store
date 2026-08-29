@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { CATEGORIES } from '@/lib/products';
+const CATEGORIES = ['All', 'Supplements', 'Earbuds', 'Power Banks', 'Smartwatches', 'Chargers'];
 import { ShieldCheck, Truck, MessageSquare } from 'lucide-react';
 
 export function Footer() {

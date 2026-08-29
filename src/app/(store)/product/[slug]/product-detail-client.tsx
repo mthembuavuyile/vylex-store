@@ -28,15 +28,29 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const activeImage = rawImages[activeImageIndex] || rawImages[0] || 'powerbank';
 
-  // Define dynamic variant choices based on product category
-  const colors = 
-    product.category === 'Smartwatches' ? ['Titanium Gray', 'Midnight Black', 'Sport Orange'] :
-    product.category === 'Power Banks' ? ['Matte Black', 'Space Gray', 'Navy Blue'] :
-    product.category === 'Earbuds' ? ['Glossy White', 'Matte Black'] : [];
+  // Helper to extract clean key-value specs
+  const parsedSpecs: { key: string; value: string }[] = [];
+  if (Array.isArray(product.specifications)) {
+    product.specifications.forEach((spec: ProductSpecification, idx: number) => {
+      if (typeof spec === 'object' && spec !== null && 'key' in spec) {
+        parsedSpecs.push({ key: spec.key, value: spec.value });
+      } else if (typeof spec === 'string') {
+        if (spec.includes(':')) {
+          const [k, ...v] = spec.split(':');
+          parsedSpecs.push({ key: k.trim(), value: v.join(':').trim() });
+        } else {
+          parsedSpecs.push({ key: `Feature ${idx + 1}`, value: spec });
+        }
+      }
+    });
+  }
 
-  const sizes = 
-    product.category === 'Smartwatches' ? ['41mm', '45mm'] :
-    product.category === 'Chargers' ? ['Standard 2-Pin', '3-Pin Heavy Duty'] : [];
+  // Extract dynamic colors and sizes from parsedSpecs
+  const colorSpec = parsedSpecs.find(s => ['colors', 'color'].includes(s.key.toLowerCase()));
+  const sizeSpec = parsedSpecs.find(s => ['sizes', 'size', 'options'].includes(s.key.toLowerCase()));
+
+  const colors = colorSpec ? colorSpec.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const sizes = sizeSpec ? sizeSpec.value.split(',').map(s => s.trim()).filter(Boolean) : [];
 
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -44,7 +58,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
   useEffect(() => {
     if (colors.length > 0) setSelectedColor(colors[0]);
     if (sizes.length > 0) setSelectedSize(sizes[0]);
-  }, [product.category]);
+  }, [product.id]);
 
   const price = Number(product.price) || 0;
   const compareAtPrice = product.compare_at_price ? Number(product.compare_at_price) : null;
@@ -78,25 +92,8 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
     setIsCartOpen(true);
   };
 
-  // Helper to extract clean key-value specs
-  const parsedSpecs: { key: string; value: string }[] = [];
-  if (Array.isArray(product.specifications)) {
-    product.specifications.forEach((spec: ProductSpecification, idx: number) => {
-      if (typeof spec === 'object' && spec !== null && 'key' in spec) {
-        parsedSpecs.push({ key: spec.key, value: spec.value });
-      } else if (typeof spec === 'string') {
-        if (spec.includes(':')) {
-          const [k, ...v] = spec.split(':');
-          parsedSpecs.push({ key: k.trim(), value: v.join(':').trim() });
-        } else {
-          parsedSpecs.push({ key: `Feature ${idx + 1}`, value: spec });
-        }
-      }
-    });
-  }
-
-  // Highlights for the bullet points section (up to 4 key highlights)
-  const topHighlights = parsedSpecs.slice(0, 4);
+  // Highlights for the bullet points section
+  const topHighlights = parsedSpecs.slice(0, 6);
 
   return (
     <div>
@@ -257,22 +254,12 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
               </p>
 
               <ul className="product-bullet-list">
-                <li className="product-bullet-item">
-                  <span className="product-bullet-dot">•</span>
-                  <span><strong className="product-bullet-key">Category:</strong> <span className="product-bullet-val">{product.category}</span></span>
-                </li>
-
                 {topHighlights.map((hl, i) => (
                   <li key={i} className="product-bullet-item">
                     <span className="product-bullet-dot">•</span>
                     <span><strong className="product-bullet-key">{hl.key}:</strong> <span className="product-bullet-val">{hl.value}</span></span>
                   </li>
                 ))}
-
-                <li className="product-bullet-item">
-                  <span className="product-bullet-dot">•</span>
-                  <span><strong className="product-bullet-key">Stock & Dispatch:</strong> <span className="product-bullet-val">Locally stocked in Johannesburg, ready for delivery</span></span>
-                </li>
               </ul>
 
               <p className="product-editorial-closing">
@@ -465,21 +452,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
                   </tr>
                 ))}
 
-                {/* Logistics & Availability */}
-                <tr>
-                  <th>Dispatch Location</th>
-                  <td>Johannesburg Warehouse, South Africa</td>
-                </tr>
 
-                <tr>
-                  <th>Delivery Courier</th>
-                  <td>The Courier Guy (1–3 business days nationwide)</td>
-                </tr>
-
-                <tr>
-                  <th>Warranty & Guarantee</th>
-                  <td>12-Month Quality & Safety Guarantee</td>
-                </tr>
               </tbody>
             </table>
           </div>

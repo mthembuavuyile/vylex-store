@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Product, ProductIcon, CATEGORIES } from '@/lib/products';
+import { Product, ProductIcon } from '@/lib/products';
 import { ProductCard } from '@/components/ProductCard';
 
 export const revalidate = 300; // Cache at edge & revalidate every 5 minutes
@@ -29,6 +29,7 @@ export default async function HomePage() {
   const activeProducts = products.filter(p => p.status !== 'draft');
   const featuredProduct = activeProducts.find(p => p.is_featured) || activeProducts[0];
   const bestSellers = activeProducts.slice(0, 4);
+  const categories = Array.from(new Set(activeProducts.map(p => p.category).filter(Boolean)));
 
   return (
     <div className="home-wrapper">
@@ -101,7 +102,7 @@ export default async function HomePage() {
           </div>
 
           <div className="category-grid-clean">
-            {CATEGORIES.filter(c => c !== 'All').map(cat => (
+            {categories.map(cat => (
               <Link 
                 key={cat} 
                 href={`/shop?category=${encodeURIComponent(cat)}`}

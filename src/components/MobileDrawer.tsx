@@ -7,7 +7,7 @@ import {
   X, Search, ShoppingBag, Info, MessageSquare, 
   Truck, RefreshCw, FileText, UserCheck, ChevronRight
 } from 'lucide-react';
-import { CATEGORIES } from '@/lib/products';
+const CATEGORIES = ['All', 'Supplements', 'Earbuds', 'Power Banks', 'Smartwatches', 'Chargers'];
 
 interface MobileDrawerProps {
   isOpen: boolean;
