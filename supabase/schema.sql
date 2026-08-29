@@ -392,7 +392,39 @@ CREATE POLICY "Admin tracking info full access" ON public.tracking_info FOR ALL 
 CREATE POLICY "Admin logs full access" ON public.supplier_sync_logs FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
 
 -- =========================================================
--- 8. SEED CORE CATALOG PRODUCTS (VybeTek & True Organics)
+-- 8. STORAGE BUCKETS & POLICIES
+-- =========================================================
+
+-- Create the product-images bucket
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('product-images', 'product-images', true) 
+ON CONFLICT DO NOTHING;
+
+-- Clean up any existing storage policies for this bucket to avoid conflicts during re-initialization
+DROP POLICY IF EXISTS "Public View Images" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Upload Images" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Delete Images" ON storage.objects;
+
+-- Allow public access to view images
+CREATE POLICY "Public View Images" ON storage.objects 
+FOR SELECT USING ( bucket_id = 'product-images' );
+
+-- Allow Admins to upload images
+CREATE POLICY "Admin Upload Images" ON storage.objects 
+FOR INSERT WITH CHECK ( 
+  bucket_id = 'product-images' 
+  AND (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role')
+);
+
+-- Allow Admins to delete images
+CREATE POLICY "Admin Delete Images" ON storage.objects 
+FOR DELETE USING ( 
+  bucket_id = 'product-images' 
+  AND (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role')
+);
+
+-- =========================================================
+-- 9. SEED CORE CATALOG PRODUCTS (VybeTek & True Organics)
 -- =========================================================
 INSERT INTO public.products (
   id, title, slug, category, vendor, price, compare_at_price, cost_price, sku, stock_quantity, description, specifications, images, tags, status, is_featured, source
