@@ -11,22 +11,48 @@ type Props = {
 };
 
 async function getProduct(slug: string): Promise<Product | null> {
+  const decoded = decodeURIComponent(slug).trim();
+
+  // 1. Try fetching from Supabase by slug
   try {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('slug', slug)
-      .single();
+      .eq('slug', decoded)
+      .maybeSingle();
 
     if (!error && data) {
       return data as Product;
     }
   } catch (err) {
-    console.warn('Error fetching product by slug from Supabase:', err);
+    console.warn('Error querying product by slug:', err);
   }
 
-  // Fallback to mock data by slug or id
-  const fallback = MOCK_PRODUCTS.find(p => p.slug === slug || p.id === slug);
+  // 2. Try fetching from Supabase by id
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', decoded)
+      .maybeSingle();
+
+    if (!error && data) {
+      return data as Product;
+    }
+  } catch (err) {
+    console.warn('Error querying product by id:', err);
+  }
+
+  // 3. Fallback to mock data by slug or id (case-insensitive)
+  const lowerDecoded = decoded.toLowerCase();
+  const fallback = MOCK_PRODUCTS.find(
+    p =>
+      (p.slug && p.slug.toLowerCase() === lowerDecoded) ||
+      (p.id && p.id.toLowerCase() === lowerDecoded) ||
+      p.slug === slug ||
+      p.id === slug
+  );
+
   return fallback || null;
 }
 

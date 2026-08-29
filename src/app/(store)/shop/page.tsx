@@ -49,7 +49,7 @@ export default async function ShopPage() {
         breadcrumbs={[{ label: 'Shop Catalog' }]}
       />
 
-      <div className="container" style={{ padding: '32px 24px 80px' }}>
+      <div className="container shop-catalog-container">
         <Suspense fallback={
           <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--sdark)' }}>
             Loading catalog...

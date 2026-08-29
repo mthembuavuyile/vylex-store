@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { ProductIcon } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
+import { ProductCard } from '@/components/ProductCard';
 import type { Product, ProductSpecification } from '@/lib/products';
 
 interface Props {
@@ -490,27 +491,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
             <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '24px', color: 'var(--navy)' }}>You May Also Like</h2>
             <div className="product-grid">
               {relatedProducts.map((rp: Product) => (
-                <Link
-                  key={rp.id}
-                  href={`/product/${rp.slug || rp.id}`}
-                  className="product-card product-card-link"
-                >
-                  <div className="product-image-wrapper" style={{ aspectRatio: '4/3' }}>
-                    <ProductIcon name={Array.isArray(rp.images) ? rp.images[0] : (rp.images || 'powerbank')} alt={rp.title} />
-                  </div>
-                  <div className="product-details">
-                    <span className="product-category">
-                      {rp.vendor ? `${rp.vendor} • ` : ''}{rp.category}
-                    </span>
-                    <h3 className="product-title">{rp.title}</h3>
-                    <div className="product-price-row">
-                      <span className="product-price">R{Number(rp.price).toFixed(2)}</span>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--orange)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        View <ChevronRight size={14} />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard key={rp.id} product={rp} />
               ))}
             </div>
           </section>

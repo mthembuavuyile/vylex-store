@@ -672,10 +672,18 @@ export default function AdminDashboard() {
         <div style={{ width: '100%', maxWidth: '420px', background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '36px', color: '#fff' }}>
           
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', background: 'rgba(249, 115, 22, 0.1)', borderRadius: '14px', color: '#f97316', marginBottom: '16px' }}>
-              <Lock size={28} />
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', background: 'rgba(251, 169, 25, 0.1)', borderRadius: '14px', marginBottom: '16px' }}>
+              <img 
+                src="/logo.png" 
+                alt="Vybetek Logo" 
+                width="34" 
+                height="34" 
+                style={{ objectFit: 'contain' }} 
+              />
             </div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '6px' }}>Vybetek Admin Hub</h1>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '6px', color: '#ffffff', letterSpacing: '-0.5px' }}>
+              vybetek<span style={{ color: 'var(--orange, #FBA919)', fontWeight: 600, fontSize: '1rem', marginLeft: '6px' }}>.admin</span>
+            </h1>
             <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Sign in to manage inventory, catalog & customer orders</p>
           </div>
 
@@ -734,61 +742,73 @@ export default function AdminDashboard() {
     <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a' }}>
       
       {/* Admin Top Header Bar */}
-      <header className="crm-top-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.5px' }}>
-              VybeTek<span style={{ color: '#f97316' }}>.Admin</span>
+      <header className="admin-top-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/" className="admin-logo-link">
+            <img 
+              src="/logo.png" 
+              alt="Vybetek Logo" 
+              width="30" 
+              height="30" 
+              style={{ flexShrink: 0, objectFit: 'contain' }} 
+            />
+            <span className="admin-logo-text">
+              vybetek
+              <span className="admin-badge-tag">Admin</span>
             </span>
           </Link>
-          <span className="hide-mobile" style={{ fontSize: '0.7rem', background: '#1e293b', padding: '2px 8px', borderRadius: '12px', color: '#94a3b8', border: '1px solid #334155' }}>
-            Shopify-Engine
-          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Link href="/" target="_blank" style={{ fontSize: '0.8rem', color: '#cbd5e1', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', background: '#1e293b', padding: '6px 12px', borderRadius: '6px', border: '1px solid #334155' }}>
-            <Eye size={14} /> <span>View Storefront</span> <ExternalLink size={11} style={{ opacity: 0.7 }} />
+        <div className="admin-top-actions">
+          <Link href="/" target="_blank" className="admin-storefront-btn">
+            <Eye size={14} /> <span>View Storefront</span> <ExternalLink size={11} style={{ opacity: 0.6 }} />
           </Link>
 
           <button 
             onClick={handleLogout}
-            style={{ background: 'transparent', border: '1px solid #334155', color: '#fca5a5', padding: '6px 10px', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            className="admin-signout-btn"
           >
-            <LogOut size={14} /> <span className="hide-mobile">Sign Out</span>
+            <LogOut size={14} /> <span>Sign Out</span>
           </button>
         </div>
       </header>
 
       {/* Admin Navigation Tabs */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 20 }}>
-        <div className="crm-tab-scroll">
+      <div className="admin-nav-bar">
+        <div className="admin-nav-scroll">
           <button 
             onClick={() => setActiveTab('products')}
-            style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'products' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'products' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
           >
-            <ShoppingBag size={18} /> Products ({products.length})
+            <ShoppingBag size={17} /> 
+            <span>Products</span>
+            <span className="admin-tab-count">{products.length}</span>
           </button>
 
           <button 
             onClick={() => setActiveTab('orders')}
-            style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'orders' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'orders' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
           >
-            <ShoppingCart size={18} /> Orders ({orders.length})
+            <ShoppingCart size={17} /> 
+            <span>Orders</span>
+            <span className="admin-tab-count">{orders.length}</span>
           </button>
 
           <button 
             onClick={() => setActiveTab('customers')}
-            style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'customers' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'customers' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            className={`admin-tab-btn ${activeTab === 'customers' ? 'active' : ''}`}
           >
-            <Users size={18} /> Customers ({customers.length})
+            <Users size={17} /> 
+            <span>Customers</span>
+            <span className="admin-tab-count">{customers.length}</span>
           </button>
 
           <button 
             onClick={() => setActiveTab('overview')}
-            style={{ padding: '16px 20px', border: 'none', borderBottom: activeTab === 'overview' ? '2px solid #f97316' : '2px solid transparent', background: 'transparent', fontWeight: 600, fontSize: '0.9rem', color: activeTab === 'overview' ? '#f97316' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            className={`admin-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           >
-            <BarChart3 size={18} /> Analytics Overview
+            <BarChart3 size={17} /> 
+            <span>Analytics Overview</span>
           </button>
         </div>
       </div>

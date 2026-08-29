@@ -12,11 +12,11 @@ export default function StoreLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="app-shell">
       <AnnouncementBar />
       <Header />
       <CartDrawer />
-      <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <main className="app-main">
         {children}
       </main>
       <Footer />

@@ -77,21 +77,19 @@ export function ProductCard({ product }: ProductCardProps) {
                 </span>
               )}
             </div>
-            <span className="product-view-link">
-              <span className="product-view-text">View</span> <ChevronRight size={14} />
-            </span>
+
+            <button
+              type="button"
+              className={`product-quick-add ${isAdded ? 'added' : ''}`}
+              onClick={handleQuickAdd}
+              aria-label={`Add ${product.title} to cart`}
+              title="Add to cart"
+            >
+              {isAdded ? <Check size={16} /> : <Plus size={16} />}
+            </button>
           </div>
         </div>
       </Link>
-
-      <button
-        className={`product-quick-add ${isAdded ? 'added' : ''}`}
-        onClick={handleQuickAdd}
-        aria-label={`Add ${product.title} to cart`}
-        title="Add to cart"
-      >
-        {isAdded ? <Check size={16} /> : <Plus size={16} />}
-      </button>
     </div>
   );
 }
