@@ -77,7 +77,7 @@ export async function POST(req: Request) {
         .single();
 
       let unitPrice = Number(item.price) || 0;
-      let title = item.title || 'Vylex Tech Gear';
+      let title = item.title || 'CartMate Essentials';
 
       if (!productError && product) {
         unitPrice = Number(product.price);
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
       cell_number: shippingDetails.phone || '',
       m_payment_id: orderId,
       amount: totalAmount.toFixed(2),
-      item_name: `Vylex Order ${orderNumber}`,
+      item_name: `CartMate Order ${orderNumber}`,
     };
 
     // 7. Generate MD5 Signature

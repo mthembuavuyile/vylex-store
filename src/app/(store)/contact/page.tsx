@@ -46,7 +46,7 @@ export default function ContactPage() {
                 For immediate assistance regarding ongoing deliveries, instant EFT confirmations, or product questions:
               </p>
               <a
-                href="https://wa.me/27821234567?text=Hi%20Vybetek%20Store%20Support%2C%20I%20have%20an%20inquiry"
+                href="https://wa.me/27821234567?text=Hi%20CartMate%20Support%2C%20I%20have%20an%20inquiry"
                 target="_blank"
                 rel="noreferrer"
                 className="whatsapp-btn-clean"

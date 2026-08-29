@@ -41,7 +41,7 @@ export default async function HomePage() {
               Premium Everyday Essentials, <span>Delivered Fast</span>.
             </h1>
             <p className="hero-description">
-              Reliable tech accessories, fast GaN power delivery, wireless audio, and lifestyle essentials. Handled locally and dispatched nationwide across South Africa.
+              High-quality lifestyle essentials, skincare, and everyday goods. Handled locally and dispatched nationwide across South Africa.
             </p>
             <div className="hero-cta-group">
               <Link href="/shop" className="btn btn-primary" prefetch={true}>
@@ -128,7 +128,7 @@ export default async function HomePage() {
           <div className="catalog-header-row">
             <div>
               <h2 className="section-title">Popular Items</h2>
-              <p className="section-subtitle">Our most demanded tech and everyday accessories</p>
+              <p className="section-subtitle">Our most demanded everyday essentials</p>
             </div>
             <Link href="/shop" className="btn btn-outline btn-sm" prefetch={true}>
               View All Products <ArrowRight size={15} />

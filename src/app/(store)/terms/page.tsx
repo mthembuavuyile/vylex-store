@@ -22,7 +22,7 @@ export default function TermsPage() {
             <section className="editorial-block">
               <h2>1. Agreement & Acceptance</h2>
               <p>
-                By visiting, browsing, and placing orders on <strong>Vybetek Store</strong> (<code>store.vylex.co.za</code>), you acknowledge and agree to comply with these terms, our Refund Policy, and South African Consumer Protection Act (CPA) regulations.
+                By visiting, browsing, and placing orders on <strong>CartMate</strong> (<code>store.vylex.co.za</code>), you acknowledge and agree to comply with these terms, our Refund Policy, and South African Consumer Protection Act (CPA) regulations.
               </p>
             </section>
 

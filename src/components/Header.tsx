@@ -41,12 +41,12 @@ export function Header() {
           <Link href="/" className="logo logo-light">
             <img 
               src="/logo.png" 
-              alt="Vybetek Logo" 
+              alt="CartMate Logo" 
               width="36" 
               height="36" 
               style={{ flexShrink: 0, objectFit: 'contain' }} 
             />
-            <span className="logo-text">vybetek</span>
+            <span className="logo-text">CartMate</span>
           </Link>
 
           {/* Desktop Search */}

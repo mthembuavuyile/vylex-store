@@ -17,23 +17,23 @@ const firaCode = Fira_Code({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://store.vylex.co.za"),
-  title: "Vylex Store | Premium Consumer Tech & Accessories",
-  description: "Premium online store for Vylex high-quality consumer electronics, power banks, audio, smart wearables, and chargers with nationwide delivery across South Africa.",
+  title: "CartMate | Premium General Store",
+  description: "Premium online store for CartMate high-quality everyday essentials with nationwide delivery across South Africa.",
   alternates: {
     canonical: "https://store.vylex.co.za",
   },
   openGraph: {
-    title: "Vylex Store | Premium Consumer Tech & Accessories",
-    description: "Premium online store for Vylex high-quality consumer electronics, power banks, audio, smart wearables, and chargers across South Africa.",
+    title: "CartMate | Premium General Store",
+    description: "Premium online store for CartMate high-quality everyday essentials across South Africa.",
     url: "https://store.vylex.co.za",
-    siteName: "Vylex Store",
+    siteName: "CartMate",
     locale: "en_ZA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vylex Store | Premium Consumer Tech & Accessories",
-    description: "Discover top-tier power banks, audio gear, smartwatches, and accessories at Vylex Store.",
+    title: "CartMate | Premium General Store",
+    description: "Discover top-tier everyday essentials at CartMate.",
   },
   icons: {
     icon: [
@@ -52,7 +52,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": "https://store.vylex.co.za/#organization",
-      "name": "Vylex Store",
+      "name": "CartMate",
       "url": "https://store.vylex.co.za",
       "sameAs": ["https://vylex.co.za"],
       "logo": "https://store.vylex.co.za/logo.png"
@@ -61,7 +61,7 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": "https://store.vylex.co.za/#website",
       "url": "https://store.vylex.co.za",
-      "name": "Vylex Store",
+      "name": "CartMate",
       "publisher": {
         "@id": "https://store.vylex.co.za/#organization"
       }

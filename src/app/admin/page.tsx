@@ -217,7 +217,7 @@ export default function AdminDashboard() {
       description: '',
       category: 'Supplements',
       customCategory: '',
-      vendor: 'VybeTek',
+      vendor: 'CartMate',
       price: '',
       compare_at_price: '',
       cost_price: '',
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
       description: prod.description || '',
       category: prod.category || 'Supplements',
       customCategory: '',
-      vendor: prod.vendor || 'VybeTek',
+      vendor: prod.vendor || 'CartMate',
       price: prod.price !== undefined ? String(prod.price) : '',
       compare_at_price: prod.compare_at_price !== undefined ? String(prod.compare_at_price) : '',
       cost_price: prod.cost_price !== undefined ? String(prod.cost_price) : '',
@@ -420,7 +420,7 @@ export default function AdminDashboard() {
       slug,
       description: productForm.description.trim(),
       category,
-      vendor: productForm.vendor.trim() || 'VybeTek',
+      vendor: productForm.vendor.trim() || 'CartMate',
       price,
       compare_at_price: compareAt || undefined,
       cost_price: costPrice,
@@ -576,14 +576,14 @@ export default function AdminDashboard() {
     const phone = order.customer_phone ? order.customer_phone.replace(/[^0-9]/g, '') : '';
     const cleanPhone = phone.startsWith('0') ? '27' + phone.substring(1) : phone;
 
-    let text = `Hi ${order.customer_name},\n\nUpdate regarding your Vybetek Order *${order.order_number}*:\n`;
+    let text = `Hi ${order.customer_name},\n\nUpdate regarding your CartMate Order *${order.order_number}*:\n`;
     text += `• Status: *${order.order_status.toUpperCase()}*\n`;
     if (order.courier_name && order.tracking_number) {
       text += `• Courier: ${order.courier_name}\n`;
       text += `• Tracking Number: ${order.tracking_number}\n`;
       if (order.tracking_url) text += `• Track Online: ${order.tracking_url}\n`;
     }
-    text += `\nThank you for shopping with Vybetek!`;
+    text += `\nThank you for shopping with CartMate!`;
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -659,7 +659,7 @@ export default function AdminDashboard() {
               />
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '6px', color: '#ffffff', letterSpacing: '-0.5px' }}>
-              vybetek<span style={{ color: 'var(--orange, #FBA919)', fontWeight: 600, fontSize: '1rem', marginLeft: '6px' }}>.admin</span>
+              CartMate<span style={{ color: 'var(--orange, #FBA919)', fontWeight: 600, fontSize: '1rem', marginLeft: '6px' }}>.admin</span>
             </h1>
             <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Sign in to manage inventory, catalog & customer orders</p>
           </div>
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
               style={{ flexShrink: 0, objectFit: 'contain' }} 
             />
             <span className="admin-logo-text">
-              vybetek
+              CartMate
               <span className="admin-badge-tag">Admin</span>
             </span>
           </Link>

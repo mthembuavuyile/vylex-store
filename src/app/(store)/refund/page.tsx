@@ -25,7 +25,7 @@ export default function RefundPage() {
             <section className="editorial-block">
               <h2>7-Day Satisfaction Guarantee</h2>
               <p>
-                We want you to be completely satisfied with your purchase from <strong>Vybetek Store</strong>. If you are not satisfied or simply change your mind, you may return any unused item in its original, undamaged packaging within <strong>7 days of receipt</strong> for a full refund or exchange.
+                We want you to be completely satisfied with your purchase from <strong>CartMate</strong>. If you are not satisfied or simply change your mind, you may return any unused item in its original, undamaged packaging within <strong>7 days of receipt</strong> for a full refund or exchange.
               </p>
             </section>
 
@@ -90,7 +90,7 @@ export default function RefundPage() {
               </p>
               
               <a
-                href="https://wa.me/27821234567?text=Hi%20Vybetek%20Store%2C%20I%20would%20like%20to%20return%20an%20order"
+                href="https://wa.me/27821234567?text=Hi%20CartMate%2C%20I%20would%20like%20to%20return%20an%20order"
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary"

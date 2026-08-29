@@ -8,16 +8,16 @@ import { ShopClient } from './shop-client';
 export const revalidate = 300; // Edge cached, revalidates every 5 minutes
 
 export const metadata: Metadata = {
-  title: 'Shop All Products | Vylex Store South Africa',
-  description: 'Explore the full catalog of safety-certified power banks, GaN fast chargers, wireless audio, and tech essentials with nationwide delivery across South Africa.',
+  title: 'Shop All Products | CartMate South Africa',
+  description: 'Explore our full catalog of high-quality everyday essentials with nationwide delivery across South Africa.',
   alternates: {
     canonical: 'https://store.vylex.co.za/shop',
   },
   openGraph: {
-    title: 'Shop All Products | Vylex Store South Africa',
-    description: 'Browse certified power banks, chargers, audio, and accessories delivered nationwide.',
+    title: 'Shop All Products | CartMate South Africa',
+    description: 'Browse our collection of everyday essentials delivered nationwide.',
     url: 'https://store.vylex.co.za/shop',
-    siteName: 'Vylex Store',
+    siteName: 'CartMate',
   },
 };
 
@@ -45,7 +45,7 @@ export default async function ShopPage() {
     <div>
       <PageHeader 
         title="Shop All Products"
-        subtitle="Explore our full collection of power banks, wireless audio, smart wearables, chargers, and tech essentials."
+        subtitle="Explore our curated collection of high-quality everyday essentials designed for your lifestyle."
         breadcrumbs={[{ label: 'Shop Catalog' }]}
       />
 

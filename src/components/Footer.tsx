@@ -15,19 +15,19 @@ export function Footer() {
             <Link href="/" className="logo logo-light" style={{ marginBottom: '16px' }}>
               <img 
                 src="/logo.png" 
-                alt="Vybetek Logo" 
+                alt="CartMate Logo" 
                 width="32" 
                 height="32" 
                 style={{ flexShrink: 0, objectFit: 'contain' }} 
               />
-              <span className="logo-text">vybetek</span>
+              <span className="logo-text">CartMate</span>
             </Link>
             <p style={{ maxWidth: '300px', lineHeight: 1.6, color: 'rgba(255, 255, 255, 0.7)' }}>
-              Premium online technology retail store. High-performance power banks, wireless audio, smart wearables, and chargers dispatched direct across South Africa.
+              Premium online general retail store. High-quality lifestyle essentials, skincare, and everyday goods dispatched direct across South Africa.
             </p>
             <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
               <a
-                href="https://wa.me/27821234567?text=Hi%20Vybetek%20Store"
+                href="https://wa.me/27821234567?text=Hi%20CartMate"
                 target="_blank"
                 rel="noreferrer"
                 style={{ 
@@ -73,7 +73,7 @@ export function Footer() {
                 <Link href="/terms">Terms & Conditions</Link>
               </li>
               <li>
-                <Link href="/about">About Vybetek</Link>
+                <Link href="/about">About CartMate</Link>
               </li>
               <li>
                 <Link href="/contact">Contact Us</Link>
@@ -105,7 +105,7 @@ export function Footer() {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <p>
-            &copy; {new Date().getFullYear()} Vybetek. All rights reserved.
+            &copy; {new Date().getFullYear()} CartMate. All rights reserved.
           </p>
           <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <a 

@@ -64,7 +64,7 @@ function SuccessContent() {
             Payment Successful!
           </h1>
           <p style={{ color: 'var(--sdark)' }}>
-            Thank you for your order with Vybetek Store. Your transaction has been securely processed.
+            Thank you for your order with CartMate. Your transaction has been securely processed.
           </p>
         </div>
 

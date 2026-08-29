@@ -12,8 +12,8 @@ export default function AboutPage() {
   return (
     <div className="about-page">
       <PageHeader 
-        title="About Vybetek Store"
-        subtitle="Empowering your everyday tech with safety-certified power accessories, audio gear, and lifestyle products."
+        title="About CartMate"
+        subtitle="Your premier destination for high-quality lifestyle essentials, skincare, and everyday goods."
         breadcrumbs={[{ label: 'About Us' }]}
       />
 
@@ -22,12 +22,12 @@ export default function AboutPage() {
           
           <main className="editorial-main-flow">
             <section className="editorial-block">
-              <h2>Direct South African Tech Retail</h2>
+              <h2>Direct South African Retail</h2>
               <p>
-                <strong>Vybetek Store</strong> (<code>store.vylex.co.za</code>) was established to solve a common frustration in the local market: unreliable power banks, counterfeit charging cables, and inflated markups on consumer electronics.
+                <strong>CartMate</strong> (<code>store.vylex.co.za</code>) was established to provide South Africans with a reliable source for premium everyday essentials, skincare, and high-quality lifestyle products without inflated markups.
               </p>
               <p>
-                We source, inspect, and supply high-performance mobile technology, GaN fast chargers, wireless audio, smart wearables, and wellness essentials directly to South African customers at honest, upfront prices.
+                We source, inspect, and supply a curated range of high-performance goods directly to South African customers at honest, upfront prices.
               </p>
             </section>
 
@@ -49,8 +49,8 @@ export default function AboutPage() {
                     <ShieldCheck size={22} />
                   </div>
                   <div>
-                    <h3>Safety & Certification</h3>
-                    <p>Every power bank and GaN charger includes built-in surge, over-voltage, and short-circuit safeguards.</p>
+                    <h3>Quality Assurance</h3>
+                    <p>Every product is rigorously tested and verified to ensure it meets our strict quality standards.</p>
                   </div>
                 </div>
 
@@ -76,11 +76,11 @@ export default function AboutPage() {
 
                 <div className="pillar-item-clean">
                   <div className="pillar-icon-box">
-                    <Zap size={22} />
+                    <Check size={22} />
                   </div>
                   <div>
-                    <h3>Modern GaN Tech</h3>
-                    <p>Next-generation Gallium Nitride charging to fast-charge laptops, tablets, and phones simultaneously.</p>
+                    <h3>Curated Selection</h3>
+                    <p>Carefully selected items that enhance your everyday life, from skincare routines to daily wellness.</p>
                   </div>
                 </div>
               </div>

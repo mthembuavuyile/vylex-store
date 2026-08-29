@@ -51,11 +51,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(slug);
 
   if (!product) {
-    return { title: 'Product Not Found | Vylex Store' };
+    return { title: 'Product Not Found | CartMate' };
   }
 
-  const metaTitle = product.seo_title || `${product.title} | Vylex Store`;
-  const metaDescription = product.seo_description || product.description || 'Shop premium tech accessories and electronics online at Vylex Store South Africa with fast nationwide delivery.';
+  const metaTitle = product.seo_title || `${product.title} | CartMate`;
+  const metaDescription = product.seo_description || product.description || 'Shop premium everyday essentials, skincare, and lifestyle products online at CartMate South Africa with fast nationwide delivery.';
   const canonicalUrl = `https://store.vylex.co.za/product/${slug}`;
 
   return {
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: metaTitle,
       description: metaDescription,
       type: 'website',
-      siteName: 'Vylex Store',
+      siteName: 'CartMate',
       url: canonicalUrl,
       images: Array.isArray(product.images) && product.images.length > 0 ? [product.images[0]] : []
     },
@@ -126,7 +126,7 @@ export default async function ProductPage({ params }: Props) {
         image: Array.isArray(product.images) && product.images.length > 0 ? product.images : undefined,
         brand: {
           '@type': 'Brand',
-          name: product.vendor || 'Vylex',
+          name: product.vendor || 'CartMate',
         },
         category: product.category,
         offers: {
@@ -138,7 +138,7 @@ export default async function ProductPage({ params }: Props) {
           availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
           seller: {
             '@type': 'Organization',
-            name: 'Vylex Store',
+            name: 'CartMate',
             url: 'https://store.vylex.co.za',
           },
         },

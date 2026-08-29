@@ -132,7 +132,7 @@ export function CartDrawer({ onCheckoutClick }: CartDrawerProps) {
                 <ShoppingCart size={36} />
               </div>
               <h3>Your cart is empty</h3>
-              <p>Discover fast-charging tech, audio gear, and lifestyle essentials with nationwide delivery.</p>
+              <p>Discover high-quality lifestyle essentials, skincare, and everyday goods with nationwide delivery.</p>
               <Link 
                 href="/shop"
                 className="btn btn-primary" 
