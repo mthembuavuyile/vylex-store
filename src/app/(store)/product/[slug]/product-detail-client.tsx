@@ -3,9 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  ShoppingCart, ArrowLeft, ShieldCheck, Truck, CheckCircle2,
-  ChevronRight, Star, Package, Tag, AlertCircle, Sparkles,
-  Layers, Check
+  ShoppingCart, ShieldCheck, Truck, CheckCircle2,
+  ChevronRight, Package, Tag, AlertCircle, Check
 } from 'lucide-react';
 import { ProductIcon } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
@@ -77,6 +76,26 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
     setTimeout(() => setAddedFeedback(false), 2000);
     setIsCartOpen(true);
   };
+
+  // Helper to extract clean key-value specs
+  const parsedSpecs: { key: string; value: string }[] = [];
+  if (Array.isArray(product.specifications)) {
+    product.specifications.forEach((spec: ProductSpecification, idx: number) => {
+      if (typeof spec === 'object' && spec !== null && 'key' in spec) {
+        parsedSpecs.push({ key: spec.key, value: spec.value });
+      } else if (typeof spec === 'string') {
+        if (spec.includes(':')) {
+          const [k, ...v] = spec.split(':');
+          parsedSpecs.push({ key: k.trim(), value: v.join(':').trim() });
+        } else {
+          parsedSpecs.push({ key: `Feature ${idx + 1}`, value: spec });
+        }
+      }
+    });
+  }
+
+  // Highlights for the bullet points section (up to 4 key highlights)
+  const topHighlights = parsedSpecs.slice(0, 4);
 
   return (
     <div>
@@ -155,7 +174,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
             )}
           </div>
 
-          {/* Right: Product Info */}
+          {/* Right: Product Info & Editorial Details */}
           <div className="product-detail-info">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               {product.vendor && (
@@ -230,9 +249,35 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
               )}
             </div>
 
-            <p style={{ color: 'var(--sdark)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '24px' }}>
-              {product.description}
-            </p>
+            {/* Minimal Editorial Overview & Bullet Points (Ref Image 2) */}
+            <div className="product-highlights-box">
+              <p className="product-editorial-lead">
+                {product.description}
+              </p>
+
+              <ul className="product-bullet-list">
+                <li className="product-bullet-item">
+                  <span className="product-bullet-dot">•</span>
+                  <span><strong className="product-bullet-key">Category:</strong> <span className="product-bullet-val">{product.category}</span></span>
+                </li>
+
+                {topHighlights.map((hl, i) => (
+                  <li key={i} className="product-bullet-item">
+                    <span className="product-bullet-dot">•</span>
+                    <span><strong className="product-bullet-key">{hl.key}:</strong> <span className="product-bullet-val">{hl.value}</span></span>
+                  </li>
+                ))}
+
+                <li className="product-bullet-item">
+                  <span className="product-bullet-dot">•</span>
+                  <span><strong className="product-bullet-key">Stock & Dispatch:</strong> <span className="product-bullet-val">Locally stocked in Johannesburg, ready for delivery</span></span>
+                </li>
+              </ul>
+
+              <p className="product-editorial-closing">
+                Dispatched nationwide across South Africa with door-to-door tracking and a 7-day hassle-free exchange guarantee.
+              </p>
+            </div>
 
             {/* Product Tags */}
             {product.tags && product.tags.length > 0 && (
@@ -347,10 +392,10 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
             {/* Trust Badges */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
-                <ShieldCheck size={16} style={{ color: 'var(--green)' }} /> Warranty & Guarantee
+                <ShieldCheck size={16} style={{ color: 'var(--green)' }} /> 12-Month Guarantee
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
-                <Truck size={16} style={{ color: 'var(--orange)' }} /> Fast Courier Dispatch (2-4 Days)
+                <Truck size={16} style={{ color: 'var(--orange)' }} /> The Courier Guy Delivery (1–3 Days)
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
                 <Package size={16} style={{ color: '#2563eb' }} /> Securely Packaged
@@ -382,53 +427,58 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
           </div>
         </div>
 
-        {/* Specifications & Metafields Section */}
-        {product.specifications && product.specifications.length > 0 && (
-          <section className="product-specs-section" style={{ marginTop: '48px', background: 'var(--white)', padding: '32px', borderRadius: '16px', border: '1px solid var(--slate)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <Layers size={22} style={{ color: 'var(--orange)' }} />
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: 'var(--navy)' }}>Product Details & Specifications</h2>
-            </div>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '14px'
-            }}>
-              {product.specifications.map((spec: ProductSpecification, idx: number) => {
-                const isObject = typeof spec === 'object' && spec !== null && 'key' in spec;
-                const label = isObject ? (spec as { key: string; value: string }).key : `Feature ${idx + 1}`;
-                const val = isObject ? (spec as { key: string; value: string }).value : String(spec);
+        {/* Minimalist Specifications Section (Ref Image 1 & AGENTS.md clean layout) */}
+        <section className="product-specs-wrapper">
+          <h2 className="specs-heading">Product Specifications</h2>
 
-                return (
-                  <div
-                    key={idx}
-                    style={{
-                      background: 'var(--bg, #f8fafc)',
-                      border: '1px solid var(--slate, #e2e8f0)',
-                      borderRadius: '10px',
-                      padding: '14px 16px',
-                      display: 'flex',
-                      flexDirection: isObject ? 'column' : 'row',
-                      alignItems: isObject ? 'flex-start' : 'center',
-                      gap: isObject ? '4px' : '10px'
-                    }}
-                  >
-                    {!isObject && <CheckCircle2 size={16} style={{ color: 'var(--orange)', flexShrink: 0 }} />}
-                    {isObject && (
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--sdark)', letterSpacing: '0.4px' }}>
-                        {label}
-                      </span>
-                    )}
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--navy)' }}>
-                      {val}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+          <div className="table-responsive-container">
+            <table className="specs-minimal-table">
+              <tbody>
+                {/* Standard Base Specs */}
+                {product.vendor && (
+                  <tr>
+                    <th>Brand / Vendor</th>
+                    <td>{product.vendor}</td>
+                  </tr>
+                )}
+
+                <tr>
+                  <th>Category</th>
+                  <td>{product.category}</td>
+                </tr>
+
+                <tr>
+                  <th>Model / SKU</th>
+                  <td style={{ fontFamily: 'var(--font-mono)' }}>{product.sku}</td>
+                </tr>
+
+                {/* Dynamic Product Specifications */}
+                {parsedSpecs.map((spec, idx) => (
+                  <tr key={idx}>
+                    <th>{spec.key}</th>
+                    <td>{spec.value}</td>
+                  </tr>
+                ))}
+
+                {/* Logistics & Availability */}
+                <tr>
+                  <th>Dispatch Location</th>
+                  <td>Johannesburg Warehouse, South Africa</td>
+                </tr>
+
+                <tr>
+                  <th>Delivery Courier</th>
+                  <td>The Courier Guy (1–3 business days nationwide)</td>
+                </tr>
+
+                <tr>
+                  <th>Warranty</th>
+                  <td>12-Month Quality & Safety Guarantee</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

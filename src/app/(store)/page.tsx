@@ -1,45 +1,34 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { 
   ArrowRight, ShieldCheck, Truck, MessageSquare, 
-  RotateCcw, ChevronRight, Check
+  RotateCcw, Check
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { MOCK_PRODUCTS, Product, ProductIcon, CATEGORIES } from '@/lib/products';
 import { ProductCard } from '@/components/ProductCard';
 
-export default function HomePage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+export const revalidate = 300; // Cache at edge & revalidate every 5 minutes
 
-  // Fetch live active products from Supabase with fallback to mock data
-  useEffect(() => {
-    async function fetchProducts() {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .neq('status', 'draft')
-          .order('created_at', { ascending: false });
+async function getActiveProducts(): Promise<Product[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .neq('status', 'draft')
+      .order('created_at', { ascending: false });
 
-        if (error || !data || data.length === 0) {
-          setProducts(MOCK_PRODUCTS.filter(p => p.status !== 'draft'));
-        } else {
-          setProducts(data as Product[]);
-        }
-      } catch (err) {
-        console.warn('Supabase product query error:', err);
-        setProducts(MOCK_PRODUCTS.filter(p => p.status !== 'draft'));
-      } finally {
-        setLoading(false);
-      }
+    if (!error && data && data.length > 0) {
+      return data as Product[];
     }
-    fetchProducts();
-  }, []);
+  } catch (err) {
+    console.warn('Supabase product query error:', err);
+  }
+  return MOCK_PRODUCTS.filter(p => p.status !== 'draft');
+}
 
+export default async function HomePage() {
+  const products = await getActiveProducts();
   const activeProducts = products.filter(p => p.status !== 'draft');
   const featuredProduct = activeProducts.find(p => p.is_featured) || activeProducts[0] || MOCK_PRODUCTS[0];
   const bestSellers = activeProducts.slice(0, 4);
@@ -57,7 +46,7 @@ export default function HomePage() {
               Reliable tech accessories, fast GaN power delivery, wireless audio, and lifestyle essentials. Handled locally and dispatched nationwide across South Africa.
             </p>
             <div className="hero-cta-group">
-              <Link href="/shop" className="btn btn-primary">
+              <Link href="/shop" className="btn btn-primary" prefetch={true}>
                 Shop Catalog <ArrowRight size={17} />
               </Link>
               <Link href="/about" className="btn btn-secondary">
@@ -95,6 +84,7 @@ export default function HomePage() {
                     <Link
                       href={`/product/${featuredProduct.slug || featuredProduct.id}`}
                       className="btn btn-primary btn-sm"
+                      prefetch={true}
                     >
                       View <ArrowRight size={14} />
                     </Link>
@@ -159,6 +149,7 @@ export default function HomePage() {
                 key={cat} 
                 href={`/shop?category=${encodeURIComponent(cat)}`}
                 className="category-pill-card"
+                prefetch={true}
               >
                 <div className="category-pill-icon">
                   <ProductIcon name={cat.toLowerCase()} />
@@ -181,29 +172,16 @@ export default function HomePage() {
               <h2 className="section-title">Popular Items</h2>
               <p className="section-subtitle">Our most demanded tech and everyday accessories</p>
             </div>
-            <Link href="/shop" className="btn btn-outline btn-sm">
+            <Link href="/shop" className="btn btn-outline btn-sm" prefetch={true}>
               View All Products <ArrowRight size={15} />
             </Link>
           </div>
 
-          {loading ? (
-            <div className="product-grid">
-              {[1, 2, 3, 4].map(n => (
-                <div key={n} className="product-skeleton-card">
-                  <div style={{ width: '100%', aspectRatio: '1', background: '#e2e8f0', borderRadius: '8px', marginBottom: '12px' }} />
-                  <div style={{ width: '40%', height: '12px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '8px' }} />
-                  <div style={{ width: '80%', height: '16px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '10px' }} />
-                  <div style={{ width: '50%', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="product-grid">
-              {bestSellers.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          <div className="product-grid">
+            {bestSellers.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -258,4 +236,3 @@ export default function HomePage() {
     </div>
   );
 }
-
