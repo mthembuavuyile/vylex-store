@@ -17,7 +17,7 @@ export async function GET() {
     const db = getClient();
     const { data, error } = await db
       .from('products')
-      .select('*')
+      .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     if (error) {
