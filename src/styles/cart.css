@@ -1,0 +1,442 @@
+/* ==========================================================================
+   Cart Drawer & Cart Experience Styles
+   Desktop slide-in panel & Mobile full-viewport drawer with high-converting UX
+   ========================================================================== */
+
+/* Overlay Backdrop */
+.cart-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 27, 56, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+  display: flex;
+  justify-content: flex-end;
+  animation: cartFadeIn 0.2s ease-out forwards;
+}
+
+@keyframes cartFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide-In Drawer Container */
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 440px;
+  background: var(--white);
+  color: var(--navy);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(5, 27, 56, 0.2);
+  animation: cartSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+}
+
+@keyframes cartSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Drawer Header */
+.cart-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  background: var(--navy);
+  color: var(--white);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.cart-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cart-title-group h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.cart-header-icon {
+  color: var(--orange);
+}
+
+.cart-item-count-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(251, 169, 25, 0.18);
+  color: var(--orange);
+  border: 1px solid rgba(251, 169, 25, 0.35);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.cart-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.cart-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--orange);
+}
+
+/* Free Shipping Progress Strip */
+.cart-shipping-banner {
+  background: #062347;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.shipping-progress-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.shipping-progress-text strong {
+  color: var(--orange);
+}
+
+.shipping-progress-text.qualifies {
+  color: #4ADE80;
+  font-weight: 600;
+}
+
+.shipping-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.shipping-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), #fcd34d);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.shipping-progress-bar.unlocked {
+  background: #22C55E;
+}
+
+/* Cart Items Body */
+.cart-items-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Empty State */
+.cart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 16px;
+  margin: auto 0;
+}
+
+.cart-empty-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--slate-light);
+  color: var(--sdark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.cart-empty-state h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.cart-empty-state p {
+  font-size: 0.88rem;
+  color: var(--sdark);
+  max-width: 260px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Individual Cart Item Card */
+.cart-item-card {
+  display: flex;
+  gap: 14px;
+  background: var(--white);
+  border: 1px solid var(--slate);
+  border-radius: var(--radius);
+  padding: 12px;
+  transition: border-color 0.15s ease;
+}
+
+.cart-item-card:hover {
+  border-color: var(--slate-border);
+}
+
+.cart-item-img-box {
+  width: 64px;
+  height: 64px;
+  background: var(--slate-light);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.cart-icon-medium {
+  width: 36px;
+  height: 36px;
+  color: var(--navy);
+}
+
+.cart-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cart-item-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.cart-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.3;
+  margin: 0;
+  word-break: break-word;
+}
+
+.cart-item-variant {
+  font-size: 0.75rem;
+  color: var(--sdark);
+  margin-bottom: 6px;
+  display: inline-block;
+  background: var(--slate-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cart-item-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.cart-item-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Quantity Pill Controls */
+.cart-qty-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--slate);
+  border-radius: var(--radius-full);
+  background: var(--white);
+  padding: 2px;
+}
+
+.cart-qty-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--navy);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cart-qty-btn:hover {
+  background: var(--slate-light);
+  color: var(--orange-hover);
+}
+
+.cart-qty-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: center;
+  color: var(--navy);
+}
+
+.cart-remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--sdark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.cart-remove-btn:hover {
+  color: var(--red);
+  background: var(--red-light);
+}
+
+/* Drawer Footer & Checkout Action */
+.cart-drawer-footer {
+  border-top: 1px solid var(--slate);
+  background: #FAFBFD;
+  padding: 18px 20px 20px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-summary-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--sdark);
+}
+
+.summary-item strong {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.free-shipping-tag {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid var(--slate);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.summary-total .total-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.summary-total .total-vat-hint {
+  font-size: 0.72rem;
+  color: var(--sdark);
+  font-weight: 400;
+  display: block;
+}
+
+.summary-total .total-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.cart-checkout-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(251, 169, 25, 0.35);
+  border-radius: var(--radius);
+}
+
+.cart-trust-pills {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  gap: 8px;
+}
+
+.cart-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--sdark);
+  font-weight: 500;
+}
+
+.cart-trust-item svg {
+  color: var(--green);
+  flex-shrink: 0;
+}

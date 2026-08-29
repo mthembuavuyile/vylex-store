@@ -323,59 +323,63 @@ export default function CheckoutPage() {
             </div>
 
             {/* PAYMENT OPTIONS */}
-            <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div className="payment-section-wrapper">
+              <h3 className="payment-section-title">
+                <Lock size={16} /> Choose Payment Method
+              </h3>
               
               {/* Stripe Primary Gateway */}
               <button 
                 type="button" 
                 disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
                 onClick={handleStripeCheckout}
-                className="btn btn-primary" 
-                style={{ width: '100%', gap: '12px', padding: '16px', fontSize: '1rem', fontWeight: 700 }}
+                className="payment-btn-primary"
               >
-                <CreditCard size={20} />
-                {loadingStripe ? 'Preparing Stripe Checkout...' : `Pay R${total.toFixed(2)} with Card / Apple Pay / Google Pay`}
+                <div className="payment-btn-main-row">
+                  <CreditCard size={18} />
+                  <span>{loadingStripe ? 'Connecting to Card Gateway...' : `Pay with Card • R${total.toFixed(2)}`}</span>
+                </div>
+                <div className="payment-btn-badges-row">
+                  <span className="payment-mini-tag">Visa</span>
+                  <span className="payment-mini-tag">Mastercard</span>
+                  <span className="payment-mini-tag">Apple Pay</span>
+                  <span className="payment-mini-tag">Google Pay</span>
+                </div>
               </button>
 
               {/* PayFast Secondary / Instant EFT Option */}
               <button 
                 type="submit" 
                 disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
-                className="btn btn-outline" 
-                style={{ width: '100%', gap: '12px', padding: '14px' }}
+                className="payment-btn-secondary"
               >
-                <ShieldCheck size={18} />
-                {loadingPayFast ? 'Connecting to PayFast...' : `Pay via PayFast / Instant EFT (SA Banks)`}
+                <div className="payment-btn-secondary-title">
+                  <ShieldCheck size={18} />
+                  <span>{loadingPayFast ? 'Connecting to PayFast...' : 'Instant EFT & Capitec Pay'}</span>
+                </div>
+                <span className="payment-btn-secondary-sub">
+                  PayFast SA • Capitec, FNB, Standard Bank, Absa, Nedbank
+                </span>
               </button>
 
-              <div style={{ textAlign: 'center', margin: '4px 0', fontSize: '0.8rem', color: 'var(--sdark)', fontWeight: 600 }}>
-                ── OR NEED ASSISTANCE? ──
+              <div className="payment-divider">
+                <span className="payment-divider-text">Need Assistance?</span>
               </div>
 
-              {/* WhatsApp Secondary Order Inquiry */}
+              {/* WhatsApp Direct Order / Inquiry */}
               <button 
                 type="button" 
                 disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
                 onClick={handleWhatsAppCheckout}
-                className="btn" 
-                style={{ 
-                  width: '100%', 
-                  gap: '12px', 
-                  padding: '14px',
-                  background: '#16a34a',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '10px'
-                }}
+                className="payment-btn-whatsapp"
               >
                 <MessageSquare size={18} />
-                {loadingWhatsApp ? 'Generating WhatsApp request...' : 'Instant Order Request via WhatsApp'}
+                <span>{loadingWhatsApp ? 'Generating WhatsApp request...' : 'Order Assistance via WhatsApp'}</span>
               </button>
 
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--sdark)', fontSize: '0.8rem', marginTop: '16px' }}>
-              <Lock size={14} /> 256-bit encrypted secure checkout
+              <div className="checkout-security-footer">
+                <Lock size={14} /> 256-bit bank-grade encryption • Safe & secure checkout
+              </div>
             </div>
           </form>
 
