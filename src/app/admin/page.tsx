@@ -443,7 +443,7 @@ export default function AdminDashboard() {
       slug,
       description: productForm.description.trim(),
       category,
-      vendor: productForm.vendor.trim() || 'CartMate',
+      vendor: productForm.vendor.trim() || 'Vylex',
       price,
       compare_at_price: compareAt,
       cost_price: costPrice,
@@ -1209,7 +1209,7 @@ export default function AdminDashboard() {
                                 required
                                 value={productForm.title}
                                 onChange={e => handleTitleChange(e.target.value)}
-                                placeholder="e.g. True Organics Liquid Chlorophyll Juice (500 ml)"
+                                placeholder="e.g. Ergonomic Office Desk Mat (90x40cm)"
                                 className="admin-input"
                                 style={{ fontWeight: 600, fontSize: '0.95rem' }}
                               />
@@ -1224,7 +1224,7 @@ export default function AdminDashboard() {
                                 type="text"
                                 value={productForm.slug}
                                 onChange={e => setProductForm({ ...productForm, slug: e.target.value, isSlugManual: true })}
-                                placeholder="true-organics-liquid-chlorophyll-juice-500-ml"
+                                placeholder="ergonomic-office-desk-mat-90x40cm"
                                 className="admin-input"
                                 style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}
                               />
@@ -1236,7 +1236,7 @@ export default function AdminDashboard() {
                                 rows={4}
                                 value={productForm.description}
                                 onChange={e => setProductForm({ ...productForm, description: e.target.value })}
-                                placeholder="Detailed description of benefits, usage, specifications, and what's in the box..."
+                                placeholder="Detailed description of features, materials, benefits, usage instructions, and what's in the box..."
                                 className="admin-textarea"
                               />
                             </div>
@@ -1447,7 +1447,7 @@ export default function AdminDashboard() {
                                 type="text"
                                 value={productForm.sku}
                                 onChange={e => setProductForm({ ...productForm, sku: e.target.value })}
-                                placeholder="TO-CHL-500ML"
+                                placeholder="VY-1082"
                                 className="admin-input"
                               />
                             </div>
@@ -1485,9 +1485,9 @@ export default function AdminDashboard() {
                             <div>
                               <div className="admin-card-title">
                                 <Sparkles size={18} style={{ color: '#f97316' }} />
-                                <span>Custom Metafields & Specifications</span>
+                                <span>Custom Specifications & Highlights</span>
                               </div>
-                              <div className="admin-card-subtitle">Add key-value pairs (e.g. Dietary, Form, Ingredients, Volume)</div>
+                              <div className="admin-card-subtitle">Add key-value pairs (e.g. Material, Color, Dimensions, Warranty, Volume)</div>
                             </div>
 
                             <button
@@ -1501,7 +1501,7 @@ export default function AdminDashboard() {
 
                           {/* Quick suggestions */}
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                            {['Form', 'Volume', 'Dietary', 'Health Goal', 'Flavor', 'Ingredients', 'Battery', 'Warranty'].map(suggested => (
+                            {['Brand', 'Material', 'Color', 'Dimensions', 'Warranty', 'Weight', 'Battery', 'Connectivity', 'Volume', 'Ingredients'].map(suggested => (
                               <button
                                 key={suggested}
                                 type="button"
@@ -1515,33 +1515,39 @@ export default function AdminDashboard() {
 
                           {/* Rows */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {productForm.specifications.map((spec, idx) => (
-                              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '130px 1fr 32px', gap: '8px', alignItems: 'center' }}>
-                                <input 
-                                  type="text"
-                                  placeholder="Attribute (e.g. Form)"
-                                  value={spec.key}
-                                  onChange={e => handleUpdateSpecRow(idx, 'key', e.target.value)}
-                                  className="admin-input"
-                                  style={{ fontSize: '0.82rem', fontWeight: 600 }}
-                                />
-                                <input 
-                                  type="text"
-                                  placeholder="Value (e.g. 100% Vegan Liquid)"
-                                  value={spec.value}
-                                  onChange={e => handleUpdateSpecRow(idx, 'value', e.target.value)}
-                                  className="admin-input"
-                                  style={{ fontSize: '0.82rem' }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveSpecRow(idx)}
-                                  style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
-                                >
-                                  ✕
-                                </button>
+                            {productForm.specifications.length === 0 ? (
+                              <div style={{ padding: '16px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', textAlign: 'center', color: '#64748b', fontSize: '0.8rem' }}>
+                                No custom specifications added. Click a quick tag above or &quot;+ Add Row&quot; to add details.
                               </div>
-                            ))}
+                            ) : (
+                              productForm.specifications.map((spec, idx) => (
+                                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '130px 1fr 32px', gap: '8px', alignItems: 'center' }}>
+                                  <input 
+                                    type="text"
+                                    placeholder="Key (e.g. Material)"
+                                    value={spec.key}
+                                    onChange={e => handleUpdateSpecRow(idx, 'key', e.target.value)}
+                                    className="admin-input"
+                                    style={{ fontSize: '0.82rem', fontWeight: 600 }}
+                                  />
+                                  <input 
+                                    type="text"
+                                    placeholder="Value (e.g. Stainless Steel / 12 Months)"
+                                    value={spec.value}
+                                    onChange={e => handleUpdateSpecRow(idx, 'value', e.target.value)}
+                                    className="admin-input"
+                                    style={{ fontSize: '0.82rem' }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveSpecRow(idx)}
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </div>
 
@@ -1608,7 +1614,14 @@ export default function AdminDashboard() {
                                 className="admin-input"
                                 style={{ marginBottom: '6px' }}
                               >
-                                {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(c => (
+                                {Array.from(new Set([
+                                  'General Merchandise',
+                                  'Electronics & Tech',
+                                  'Home & Living',
+                                  'Health & Beauty',
+                                  'Fashion & Apparel',
+                                  ...products.map(p => p.category).filter(Boolean)
+                                ])).map(c => (
                                   <option key={c} value={c}>{c}</option>
                                 ))}
                                 <option value="Custom">+ Add Custom Category</option>
@@ -1617,7 +1630,7 @@ export default function AdminDashboard() {
                               {productForm.category === 'Custom' && (
                                 <input 
                                   type="text"
-                                  placeholder="Type new category..."
+                                  placeholder="Type new category name..."
                                   value={productForm.customCategory}
                                   onChange={e => setProductForm({ ...productForm, customCategory: e.target.value })}
                                   className="admin-input"
@@ -1633,7 +1646,7 @@ export default function AdminDashboard() {
                                 type="text"
                                 value={productForm.vendor}
                                 onChange={e => setProductForm({ ...productForm, vendor: e.target.value })}
-                                placeholder="VybeTek / True Organics"
+                                placeholder="e.g. Vylex, Sony, Nike, Anker"
                                 className="admin-input"
                               />
                             </div>
@@ -1644,7 +1657,7 @@ export default function AdminDashboard() {
                               <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                                 <input 
                                   type="text"
-                                  placeholder="e.g. vegan, chlorophyll"
+                                  placeholder="e.g. bestseller, new-arrival, wireless"
                                   value={tagInput}
                                   onChange={e => setTagInput(e.target.value)}
                                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } }}
