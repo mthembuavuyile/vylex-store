@@ -45,9 +45,16 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
     });
   }
 
-  // Extract dynamic colors and sizes from parsedSpecs
+  // Extract dyn amic colors, sizes, and guarantee from parsedSpecs
   const colorSpec = parsedSpecs.find(s => ['colors', 'color'].includes(s.key.toLowerCase()));
   const sizeSpec = parsedSpecs.find(s => ['sizes', 'size', 'options'].includes(s.key.toLowerCase()));
+  const guaranteeSpec = parsedSpecs.find(s => ['warranty', 'guarantee', 'returns'].includes(s.key.toLowerCase()));
+
+  const guaranteeText = guaranteeSpec
+    ? (guaranteeSpec.value.toLowerCase().includes('guarantee') || guaranteeSpec.value.toLowerCase().includes('warranty')
+      ? guaranteeSpec.value
+      : `${guaranteeSpec.value} Guarantee`)
+    : '7-Day Guarantee';
 
   const colors = colorSpec ? colorSpec.value.split(',').map(s => s.trim()).filter(Boolean) : [];
   const sizes = sizeSpec ? sizeSpec.value.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -86,7 +93,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
       slug: product.slug,
       variant: variantStr || undefined,
     });
-    
+
     setAddedFeedback(true);
     setTimeout(() => setAddedFeedback(false), 2000);
     setIsCartOpen(true);
@@ -193,11 +200,11 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
               {product.vendor && <span style={{ color: 'var(--sdark)' }}>•</span>}
               <span className="product-category" style={{ margin: 0 }}>{product.category}</span>
             </div>
-            
+
             <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 700, lineHeight: 1.2, marginBottom: '12px', color: 'var(--navy)' }}>
               {product.title}
             </h1>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
               <span style={{
                 fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--sdark)',

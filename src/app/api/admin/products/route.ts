@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { supabase } from '@/lib/supabase';
 
@@ -9,6 +10,18 @@ function getClient() {
     return supabaseAdmin;
   }
   return supabase;
+}
+
+function triggerRevalidation(slug?: string) {
+  try {
+    revalidatePath('/');
+    revalidatePath('/shop');
+    if (slug) {
+      revalidatePath(`/product/${slug}`);
+    }
+  } catch (err) {
+    console.warn('Path revalidation warning:', err);
+  }
 }
 
 // GET: List all products for admin
@@ -42,6 +55,7 @@ export async function POST(req: Request) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
+      triggerRevalidation();
       return NextResponse.json({ success: true, count: body.length });
     }
 
@@ -51,6 +65,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    triggerRevalidation(body.slug);
     return NextResponse.json({ success: true, product: body });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
@@ -80,6 +95,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    triggerRevalidation(body.slug);
     return NextResponse.json({ success: true, product: updatePayload });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
@@ -103,6 +119,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    triggerRevalidation();
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });

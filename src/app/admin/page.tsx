@@ -46,9 +46,9 @@ export default function AdminDashboard() {
     slug: '',
     isSlugManual: false,
     description: '',
-    category: 'Supplements',
+    category: 'General Merchandise',
     customCategory: '',
-    vendor: 'VybeTek',
+    vendor: 'Vylex',
     price: '',
     compare_at_price: '',
     cost_price: '',
@@ -235,9 +235,9 @@ export default function AdminDashboard() {
       slug: '',
       isSlugManual: false,
       description: '',
-      category: 'Supplements',
+      category: 'General Merchandise',
       customCategory: '',
-      vendor: 'CartMate',
+      vendor: 'Vylex',
       price: '',
       compare_at_price: '',
       cost_price: '',
@@ -249,10 +249,7 @@ export default function AdminDashboard() {
       status: 'active',
       is_featured: false,
       tags: [],
-      specifications: [
-        { key: 'Dietary', value: 'Vegan, Non-GMO' },
-        { key: 'Volume', value: '500 ml' }
-      ],
+      specifications: [],
       seo_title: '',
       seo_description: '',
       weight_kg: ''
@@ -288,24 +285,24 @@ export default function AdminDashboard() {
       slug: prod.slug || generateSlug(prod.title || ''),
       isSlugManual: true,
       description: prod.description || '',
-      category: prod.category || 'Supplements',
+      category: prod.category || 'General Merchandise',
       customCategory: '',
-      vendor: prod.vendor || 'CartMate',
-      price: prod.price !== undefined ? String(prod.price) : '',
-      compare_at_price: prod.compare_at_price !== undefined ? String(prod.compare_at_price) : '',
-      cost_price: prod.cost_price !== undefined ? String(prod.cost_price) : '',
+      vendor: prod.vendor || 'Vylex',
+      price: prod.price !== undefined && prod.price !== null ? String(prod.price) : '',
+      compare_at_price: prod.compare_at_price !== undefined && prod.compare_at_price !== null ? String(prod.compare_at_price) : '',
+      cost_price: prod.cost_price !== undefined && prod.cost_price !== null ? String(prod.cost_price) : '',
       sku: prod.sku || '',
-      stock_quantity: prod.stock_quantity !== undefined ? String(prod.stock_quantity) : '0',
-      low_stock_threshold: prod.low_stock_threshold !== undefined ? String(prod.low_stock_threshold) : '5',
+      stock_quantity: prod.stock_quantity !== undefined && prod.stock_quantity !== null ? String(prod.stock_quantity) : '0',
+      low_stock_threshold: prod.low_stock_threshold !== undefined && prod.low_stock_threshold !== null ? String(prod.low_stock_threshold) : '5',
       allow_backorder: !!prod.allow_backorder,
       images: Array.isArray(prod.images) ? prod.images : (prod.images ? [prod.images] : []),
       status: (prod.status as 'active' | 'draft' | 'archived') || 'active',
       is_featured: !!prod.is_featured,
       tags: Array.isArray(prod.tags) ? prod.tags : [],
-      specifications: specs.length > 0 ? specs : [{ key: 'Form', value: 'Standard' }],
+      specifications: specs,
       seo_title: prod.seo_title || '',
       seo_description: prod.seo_description || '',
-      weight_kg: prod.weight_kg !== undefined ? String(prod.weight_kg) : ''
+      weight_kg: prod.weight_kg !== undefined && prod.weight_kg !== null ? String(prod.weight_kg) : ''
     });
     setImageUrlInput('');
     setTagInput('');
@@ -425,11 +422,17 @@ export default function AdminDashboard() {
     setIsSavingProduct(true);
 
     const price = parseFloat(productForm.price) || 0;
-    const compareAt = productForm.compare_at_price ? parseFloat(productForm.compare_at_price) : null;
-    const costPrice = productForm.cost_price ? parseFloat(productForm.cost_price) : 0;
+    const compareAt = productForm.compare_at_price && !isNaN(parseFloat(productForm.compare_at_price))
+      ? parseFloat(productForm.compare_at_price)
+      : null;
+    const costPrice = productForm.cost_price && !isNaN(parseFloat(productForm.cost_price))
+      ? parseFloat(productForm.cost_price)
+      : 0;
     const stockQty = parseInt(productForm.stock_quantity) || 0;
     const lowStock = parseInt(productForm.low_stock_threshold) || 5;
-    const weight = productForm.weight_kg ? parseFloat(productForm.weight_kg) : null;
+    const weight = productForm.weight_kg && !isNaN(parseFloat(productForm.weight_kg))
+      ? parseFloat(productForm.weight_kg)
+      : null;
     const slug = productForm.slug.trim() || generateSlug(productForm.title);
     const sku = productForm.sku.trim() || `VY-${Math.floor(1000 + Math.random() * 9000)}`;
     const category = productForm.customCategory.trim() || productForm.category;
@@ -442,7 +445,7 @@ export default function AdminDashboard() {
       category,
       vendor: productForm.vendor.trim() || 'CartMate',
       price,
-      compare_at_price: compareAt || undefined,
+      compare_at_price: compareAt,
       cost_price: costPrice,
       sku,
       stock_quantity: stockQty,
@@ -453,9 +456,9 @@ export default function AdminDashboard() {
       is_featured: productForm.is_featured,
       tags: productForm.tags,
       specifications: productForm.specifications.filter(s => s.key.trim() || s.value.trim()),
-      seo_title: productForm.seo_title.trim() || undefined,
-      seo_description: productForm.seo_description.trim() || undefined,
-      weight_kg: weight || undefined,
+      seo_title: productForm.seo_title.trim() || null,
+      seo_description: productForm.seo_description.trim() || null,
+      weight_kg: weight,
       source: 'manual',
       updated_at: new Date().toISOString()
     };

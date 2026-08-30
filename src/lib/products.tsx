@@ -10,8 +10,8 @@ export interface Product {
   title: string;
   category: string;
   price: number;
-  compare_at_price?: number;
-  cost_price?: number;
+  compare_at_price?: number | null;
+  cost_price?: number | null;
   sku: string;
   slug: string;
   description: string;
@@ -24,9 +24,9 @@ export interface Product {
   stock_quantity?: number;
   low_stock_threshold?: number;
   allow_backorder?: boolean;
-  weight_kg?: number;
-  seo_title?: string;
-  seo_description?: string;
+  weight_kg?: number | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
   source?: string;
   created_at?: string;
   updated_at?: string;
