@@ -2,19 +2,20 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { 
-  ShoppingBag, ShieldAlert, BarChart3, Database, RefreshCcw, 
-  Trash2, Plus, Upload, Check, Truck, Clock, 
+import {
+  ShoppingBag, ShieldAlert, BarChart3, Database, RefreshCcw,
+  Trash2, Plus, Upload, Check, Truck, Clock,
   DollarSign, ShoppingCart, LogOut, FileSpreadsheet, X,
   Users, MessageSquare, ExternalLink, Lock, Eye, AlertTriangle, ArrowLeft,
-  Tag, Sparkles, Layers, Edit3, Copy, Search, CheckCircle2, ChevronRight, Globe, Image as ImageIcon
+  Tag, Sparkles, Layers, Edit3, Copy, Search, CheckCircle2, ChevronRight, Globe, Image as ImageIcon,
+  Package, Phone, Mail, MapPin, Printer, Calendar, FileText, CheckCheck
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ProductIcon, Product, isImageUrl, ProductSpecification } from '@/lib/products';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'customers'>('products');
-  
+
   // Dynamic Supabase Data State
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
@@ -75,8 +76,11 @@ export default function AdminDashboard() {
     tracking_url: ''
   });
 
-  // Filter & Search states
+  // Order Search, Detail Drawer & Copy feedback state
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<any | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [isSeeding, setIsSeeding] = useState(false);
 
@@ -88,7 +92,7 @@ export default function AdminDashboard() {
       } else if (typeof window !== 'undefined') {
         const savedSession = localStorage.getItem('vylex_admin_session');
         if (savedSession) {
-          try { setSession(JSON.parse(savedSession)); } catch (e) {}
+          try { setSession(JSON.parse(savedSession)); } catch (e) { }
         }
       }
     });
@@ -211,7 +215,7 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-    } catch (e) {}
+    } catch (e) { }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('vylex_admin_session');
     }
@@ -262,7 +266,7 @@ export default function AdminDashboard() {
   // Open Product Modal for Editing
   const handleOpenEditProduct = (prod: Product) => {
     setEditingProductId(prod.id);
-    
+
     // Parse specifications into key-value objects
     const specs: { key: string; value: string }[] = [];
     if (Array.isArray(prod.specifications)) {
@@ -517,7 +521,7 @@ export default function AdminDashboard() {
   // Delete Product
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Are you sure you want to permanently delete this product?')) return;
-    
+
     setProducts(prev => prev.filter(p => p.id !== productId));
 
     try {
@@ -610,19 +614,77 @@ export default function AdminDashboard() {
     }
   };
 
-  // Send WhatsApp message to customer
+  // Helper to safely extract line items from an order object
+  const getOrderItems = (order: any): any[] => {
+    if (!order) return [];
+    if (Array.isArray(order.order_items) && order.order_items.length > 0) {
+      return order.order_items;
+    }
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      return order.items;
+    }
+    if (typeof order.items === 'string') {
+      try {
+        const parsed = JSON.parse(order.items);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) { }
+    }
+    return [];
+  };
+
+  // Helper to resolve an image or icon for an ordered item
+  const getItemImage = (item: any): string => {
+    if (item.image) return item.image;
+    if (item.product_id) {
+      const found = products.find(p => p.id === item.product_id || p.sku === item.product_id);
+      if (found && Array.isArray(found.images) && found.images.length > 0) {
+        return found.images[0];
+      }
+    }
+    return 'powerbank';
+  };
+
+  // Clipboard copy handler with temporary visual check
+  const handleCopyText = (text: string, identifier?: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      if (identifier) {
+        setCopiedId(identifier);
+        setTimeout(() => setCopiedId(null), 2000);
+      }
+    }
+  };
+
+  // Send WhatsApp message to customer with full itemized breakdown
   const handleSendWhatsAppUpdate = (order: any) => {
     const phone = order.customer_phone ? order.customer_phone.replace(/[^0-9]/g, '') : '';
     const cleanPhone = phone.startsWith('0') ? '27' + phone.substring(1) : phone;
+    const items = getOrderItems(order);
 
-    let text = `Hi ${order.customer_name},\n\nUpdate regarding your CartMate Order *${order.order_number}*:\n`;
-    text += `• Status: *${order.order_status.toUpperCase()}*\n`;
+    let text = `Hi ${order.customer_name},\n\nUpdate regarding your Vylex Store Order *${order.order_number || order.id}*:\n`;
+    text += `• Status: *${(order.order_status || 'pending').toUpperCase()}*\n`;
+    text += `• Total Amount: *R${Number(order.total_amount || 0).toFixed(2)}*\n\n`;
+
+    if (items.length > 0) {
+      text += `*Items Ordered:*\n`;
+      items.forEach((item: any) => {
+        const name = item.product_name || item.title || item.name || 'Item';
+        const qty = item.quantity || 1;
+        const lineTotal = item.total_price ? Number(item.total_price) : (Number(item.unit_price || item.price || 0) * qty);
+        text += `• ${qty}x ${name} (R${lineTotal.toFixed(2)})\n`;
+      });
+      text += `\n`;
+    }
+
     if (order.courier_name && order.tracking_number) {
+      text += `*Courier Tracking:*\n`;
       text += `• Courier: ${order.courier_name}\n`;
       text += `• Tracking Number: ${order.tracking_number}\n`;
       if (order.tracking_url) text += `• Track Online: ${order.tracking_url}\n`;
+      text += `\n`;
     }
-    text += `\nThank you for shopping with CartMate!`;
+
+    text += `Thank you for shopping with Vylex Store! If you need assistance, simply reply here.`;
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -659,17 +721,49 @@ export default function AdminDashboard() {
     .reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
 
   const activeOrdersCount = orders.filter(o => o.order_status !== 'delivered' && o.order_status !== 'cancelled').length;
+  const pendingOrdersCount = orders.filter(o => o.order_status === 'pending').length;
+  const processingOrdersCount = orders.filter(o => o.order_status === 'processing').length;
+  const shippedOrdersCount = orders.filter(o => o.order_status === 'shipped').length;
+  const deliveredOrdersCount = orders.filter(o => o.order_status === 'delivered').length;
+  const cancelledOrdersCount = orders.filter(o => o.order_status === 'cancelled').length;
 
-  const filteredOrders = orderStatusFilter === 'all' 
-    ? orders 
-    : orders.filter(o => o.order_status === orderStatusFilter);
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      // Status tab filter
+      if (orderStatusFilter !== 'all' && order.order_status !== orderStatusFilter) {
+        return false;
+      }
+
+      // Search query filter
+      const q = orderSearch.toLowerCase().trim();
+      if (!q) return true;
+
+      const items = getOrderItems(order);
+      const matchesItems = items.some((item: any) => {
+        const name = (item.product_name || item.title || item.name || '').toLowerCase();
+        return name.includes(q);
+      });
+
+      return (
+        (order.order_number || '').toLowerCase().includes(q) ||
+        (order.id || '').toLowerCase().includes(q) ||
+        (order.customer_name || '').toLowerCase().includes(q) ||
+        (order.customer_phone || '').includes(q) ||
+        (order.customer_email || '').toLowerCase().includes(q) ||
+        (order.shipping_address || '').toLowerCase().includes(q) ||
+        (order.courier_name || '').toLowerCase().includes(q) ||
+        (order.tracking_number || '').toLowerCase().includes(q) ||
+        matchesItems
+      );
+    });
+  }, [orders, orderStatusFilter, orderSearch]);
 
   const filteredCustomers = customerSearch
-    ? customers.filter(c => 
-        c.full_name?.toLowerCase().includes(customerSearch.toLowerCase()) || 
-        c.phone?.includes(customerSearch) ||
-        c.email?.toLowerCase().includes(customerSearch.toLowerCase())
-      )
+    ? customers.filter(c =>
+      c.full_name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+      c.phone?.includes(customerSearch) ||
+      c.email?.toLowerCase().includes(customerSearch.toLowerCase())
+    )
     : customers;
 
   // Live Calculations for Product Form (Profit Margin)
@@ -677,8 +771,8 @@ export default function AdminDashboard() {
   const formCostNum = parseFloat(productForm.cost_price) || 0;
   const formCompareAtNum = parseFloat(productForm.compare_at_price) || 0;
   const formProfit = formPriceNum - formCostNum;
-  const formMarginPercent = formPriceNum > 0 && formCostNum > 0 
-    ? Math.round(((formPriceNum - formCostNum) / formPriceNum) * 100) 
+  const formMarginPercent = formPriceNum > 0 && formCostNum > 0
+    ? Math.round(((formPriceNum - formCostNum) / formPriceNum) * 100)
     : 0;
 
   // Unauthenticated Login Screen
@@ -686,15 +780,15 @@ export default function AdminDashboard() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', padding: '24px' }}>
         <div style={{ width: '100%', maxWidth: '420px', background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '36px', color: '#fff' }}>
-          
+
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', background: 'rgba(251, 169, 25, 0.1)', borderRadius: '14px', marginBottom: '16px' }}>
-              <img 
-                src="/logo.png" 
-                alt="Vybetek Logo" 
-                width="34" 
-                height="34" 
-                style={{ objectFit: 'contain' }} 
+              <img
+                src="/logo.png"
+                alt="Vybetek Logo"
+                width="34"
+                height="34"
+                style={{ objectFit: 'contain' }}
               />
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '6px', color: '#ffffff', letterSpacing: '-0.5px' }}>
@@ -712,10 +806,10 @@ export default function AdminDashboard() {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>Email Address</label>
-              <input 
-                type="email" 
-                required 
-                placeholder="admin@vylex.co.za" 
+              <input
+                type="email"
+                required
+                placeholder="admin@vylex.co.za"
                 value={authEmail}
                 onChange={e => setAuthEmail(e.target.value)}
                 style={{ width: '100%', padding: '12px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
@@ -724,18 +818,18 @@ export default function AdminDashboard() {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>Password</label>
-              <input 
-                type="password" 
-                required 
-                placeholder="••••••••" 
+              <input
+                type="password"
+                required
+                placeholder="••••••••"
                 value={authPassword}
                 onChange={e => setAuthPassword(e.target.value)}
                 style={{ width: '100%', padding: '12px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
               />
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoggingIn}
               style={{ width: '100%', padding: '14px', background: '#f97316', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
@@ -756,17 +850,17 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a' }}>
-      
+
       {/* Admin Top Header Bar */}
       <header className="admin-top-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Link href="/" className="admin-logo-link">
-            <img 
-              src="/logo.png" 
-              alt="Vybetek Logo" 
-              width="30" 
-              height="30" 
-              style={{ flexShrink: 0, objectFit: 'contain' }} 
+            <img
+              src="/logo.png"
+              alt="Vybetek Logo"
+              width="30"
+              height="30"
+              style={{ flexShrink: 0, objectFit: 'contain' }}
             />
             <span className="admin-logo-text">
               CartMate
@@ -780,7 +874,7 @@ export default function AdminDashboard() {
             <Eye size={14} /> <span>View Storefront</span> <ExternalLink size={11} style={{ opacity: 0.6 }} />
           </Link>
 
-          <button 
+          <button
             onClick={handleLogout}
             className="admin-signout-btn"
           >
@@ -792,38 +886,38 @@ export default function AdminDashboard() {
       {/* Admin Navigation Tabs */}
       <div className="admin-nav-bar">
         <div className="admin-nav-scroll">
-          <button 
+          <button
             onClick={() => setActiveTab('products')}
             className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
           >
-            <ShoppingBag size={17} /> 
+            <ShoppingBag size={17} />
             <span>Products</span>
             <span className="admin-tab-count">{products.length}</span>
           </button>
 
-          <button 
+          <button
             onClick={() => setActiveTab('orders')}
             className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
           >
-            <ShoppingCart size={17} /> 
+            <ShoppingCart size={17} />
             <span>Orders</span>
             <span className="admin-tab-count">{orders.length}</span>
           </button>
 
-          <button 
+          <button
             onClick={() => setActiveTab('customers')}
             className={`admin-tab-btn ${activeTab === 'customers' ? 'active' : ''}`}
           >
-            <Users size={17} /> 
+            <Users size={17} />
             <span>Customers</span>
             <span className="admin-tab-count">{customers.length}</span>
           </button>
 
-          <button 
+          <button
             onClick={() => setActiveTab('overview')}
             className={`admin-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           >
-            <BarChart3 size={17} /> 
+            <BarChart3 size={17} />
             <span>Analytics Overview</span>
           </button>
         </div>
@@ -831,7 +925,7 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main style={{ padding: '32px 24px', maxWidth: '1360px', margin: '0 auto' }}>
-        
+
         {loadingData ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
             <RefreshCcw size={32} className="animate-spin" style={{ marginBottom: '12px' }} />
@@ -852,7 +946,7 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <button 
+                <button
                   onClick={handleOpenCreateProduct}
                   style={{ padding: '10px 18px', background: '#f97316', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 6px rgba(249, 115, 22, 0.3)' }}
                 >
@@ -863,7 +957,7 @@ export default function AdminDashboard() {
 
             {/* Filter Tabs & Search Bar */}
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '16px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-              
+
               {/* Tab Pills */}
               <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
                 <button
@@ -918,8 +1012,8 @@ export default function AdminDashboard() {
               {/* Search input */}
               <div style={{ position: 'relative', minWidth: '260px' }}>
                 <Search size={15} style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }} />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Filter by title, SKU, brand, tag..."
                   value={productSearch}
                   onChange={e => setProductSearch(e.target.value)}
@@ -961,7 +1055,7 @@ export default function AdminDashboard() {
 
                       return (
                         <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s ease' }}>
-                          
+
                           {/* Product Image & Title */}
                           <td style={{ padding: '14px 16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1043,7 +1137,7 @@ export default function AdminDashboard() {
 
                           {/* Inventory Level */}
                           <td style={{ padding: '14px 16px' }}>
-                            <span style={{ 
+                            <span style={{
                               padding: '4px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700,
                               background: stock <= 0 ? '#fee2e2' : stock <= 5 ? '#ffedd5' : '#f1f5f9',
                               color: stock <= 0 ? '#991b1b' : stock <= 5 ? '#c2410c' : '#334155'
@@ -1071,7 +1165,7 @@ export default function AdminDashboard() {
                                 <Copy size={14} />
                               </button>
 
-                              <button 
+                              <button
                                 onClick={() => handleDeleteProduct(p.id)}
                                 style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '6px 8px', color: '#ef4444', cursor: 'pointer' }}
                                 title="Delete Product"
@@ -1147,7 +1241,7 @@ export default function AdminDashboard() {
             {isProductModalOpen && (
               <div style={{ position: 'fixed', inset: 0, background: 'rgba(5, 27, 56, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
                 <div style={{ background: '#f8fafc', borderRadius: '16px', maxWidth: '1040px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-                  
+
                   {/* Sticky Top Header Bar with Actions */}
                   <div style={{ position: 'sticky', top: 0, background: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '16px 24px', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '16px 16px 0 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1165,7 +1259,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setIsProductModalOpen(false)}
                         style={{ padding: '8px 16px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
@@ -1173,7 +1267,7 @@ export default function AdminDashboard() {
                         Cancel
                       </button>
 
-                      <button 
+                      <button
                         onClick={handleSaveProduct}
                         disabled={isSavingProduct}
                         style={{ padding: '8px 20px', background: '#f97316', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(249, 115, 22, 0.3)' }}
@@ -1186,12 +1280,12 @@ export default function AdminDashboard() {
                   {/* 2-Column Shopify Grid Body */}
                   <form onSubmit={handleSaveProduct} style={{ padding: '24px' }}>
                     <div className="admin-shopify-grid">
-                      
+
                       {/* ===============================================================
                          LEFT COLUMN (65%): Main Content, Media, Pricing & Inventory
                          =============================================================== */}
                       <div>
-                        
+
                         {/* Card 1: Title, Slug & Description */}
                         <div className="admin-card">
                           <div className="admin-card-header">
@@ -1204,7 +1298,7 @@ export default function AdminDashboard() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div>
                               <label className="admin-label">Product Title *</label>
-                              <input 
+                              <input
                                 type="text"
                                 required
                                 value={productForm.title}
@@ -1220,7 +1314,7 @@ export default function AdminDashboard() {
                                 <label className="admin-label" style={{ margin: 0 }}>URL Slug Handle</label>
                                 <span style={{ fontSize: '0.72rem', color: '#64748b' }}>store.vylex.co.za/product/<strong>{productForm.slug || 'slug'}</strong></span>
                               </div>
-                              <input 
+                              <input
                                 type="text"
                                 value={productForm.slug}
                                 onChange={e => setProductForm({ ...productForm, slug: e.target.value, isSlugManual: true })}
@@ -1232,7 +1326,7 @@ export default function AdminDashboard() {
 
                             <div>
                               <label className="admin-label">Description / Product Story</label>
-                              <textarea 
+                              <textarea
                                 rows={4}
                                 value={productForm.description}
                                 onChange={e => setProductForm({ ...productForm, description: e.target.value })}
@@ -1258,7 +1352,7 @@ export default function AdminDashboard() {
                           {/* Upload Dropzone & URL input */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '16px' }}>
                             <div style={{ display: 'flex', gap: '10px' }}>
-                              <input 
+                              <input
                                 type="text"
                                 placeholder="Paste image URL (e.g. https://...)"
                                 value={imageUrlInput}
@@ -1293,11 +1387,11 @@ export default function AdminDashboard() {
                               <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
                                 Supports .webp, .png, .jpg, .jpeg (Auto-optimised)
                               </div>
-                              <input 
-                                type="file" 
-                                accept="image/*" 
-                                onChange={handleFileUpload} 
-                                style={{ display: 'none' }} 
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                style={{ display: 'none' }}
                               />
                             </label>
                           </div>
@@ -1345,7 +1439,7 @@ export default function AdminDashboard() {
                               <label className="admin-label">Selling Price (R) *</label>
                               <div style={{ position: 'relative' }}>
                                 <span style={{ position: 'absolute', left: '10px', top: '9px', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>R</span>
-                                <input 
+                                <input
                                   type="number"
                                   step="0.01"
                                   required
@@ -1362,7 +1456,7 @@ export default function AdminDashboard() {
                               <label className="admin-label">Compare-at Price (R)</label>
                               <div style={{ position: 'relative' }}>
                                 <span style={{ position: 'absolute', left: '10px', top: '9px', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>R</span>
-                                <input 
+                                <input
                                   type="number"
                                   step="0.01"
                                   value={productForm.compare_at_price}
@@ -1379,7 +1473,7 @@ export default function AdminDashboard() {
                               <label className="admin-label">Cost per item (R)</label>
                               <div style={{ position: 'relative' }}>
                                 <span style={{ position: 'absolute', left: '10px', top: '9px', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>R</span>
-                                <input 
+                                <input
                                   type="number"
                                   step="0.01"
                                   value={productForm.cost_price}
@@ -1443,7 +1537,7 @@ export default function AdminDashboard() {
                                   Generate
                                 </button>
                               </div>
-                              <input 
+                              <input
                                 type="text"
                                 value={productForm.sku}
                                 onChange={e => setProductForm({ ...productForm, sku: e.target.value })}
@@ -1454,7 +1548,7 @@ export default function AdminDashboard() {
 
                             <div>
                               <label className="admin-label">Quantity Available *</label>
-                              <input 
+                              <input
                                 type="number"
                                 required
                                 value={productForm.stock_quantity}
@@ -1466,7 +1560,7 @@ export default function AdminDashboard() {
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '8px' }}>
-                            <input 
+                            <input
                               type="checkbox"
                               id="allow_backorder"
                               checked={productForm.allow_backorder}
@@ -1522,7 +1616,7 @@ export default function AdminDashboard() {
                             ) : (
                               productForm.specifications.map((spec, idx) => (
                                 <div key={idx} style={{ display: 'grid', gridTemplateColumns: '130px 1fr 32px', gap: '8px', alignItems: 'center' }}>
-                                  <input 
+                                  <input
                                     type="text"
                                     placeholder="Key (e.g. Material)"
                                     value={spec.key}
@@ -1530,7 +1624,7 @@ export default function AdminDashboard() {
                                     className="admin-input"
                                     style={{ fontSize: '0.82rem', fontWeight: 600 }}
                                   />
-                                  <input 
+                                  <input
                                     type="text"
                                     placeholder="Value (e.g. Stainless Steel / 12 Months)"
                                     value={spec.value}
@@ -1557,7 +1651,7 @@ export default function AdminDashboard() {
                          RIGHT COLUMN (35%): Status, Organization & Live SEO Preview
                          =============================================================== */}
                       <div>
-                        
+
                         {/* Card 6: Status & Visibility */}
                         <div className="admin-card">
                           <div className="admin-card-header">
@@ -1569,8 +1663,8 @@ export default function AdminDashboard() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div>
                               <label className="admin-label">Product Status</label>
-                              <select 
-                                value={productForm.status} 
+                              <select
+                                value={productForm.status}
                                 onChange={e => setProductForm({ ...productForm, status: e.target.value as any })}
                                 className="admin-input"
                                 style={{ fontWeight: 600 }}
@@ -1582,7 +1676,7 @@ export default function AdminDashboard() {
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
-                              <input 
+                              <input
                                 type="checkbox"
                                 id="is_featured"
                                 checked={productForm.is_featured}
@@ -1608,7 +1702,7 @@ export default function AdminDashboard() {
                             {/* Category Selector */}
                             <div>
                               <label className="admin-label">Category</label>
-                              <select 
+                              <select
                                 value={productForm.category}
                                 onChange={e => setProductForm({ ...productForm, category: e.target.value })}
                                 className="admin-input"
@@ -1628,7 +1722,7 @@ export default function AdminDashboard() {
                               </select>
 
                               {productForm.category === 'Custom' && (
-                                <input 
+                                <input
                                   type="text"
                                   placeholder="Type new category name..."
                                   value={productForm.customCategory}
@@ -1642,7 +1736,7 @@ export default function AdminDashboard() {
                             {/* Vendor / Brand */}
                             <div>
                               <label className="admin-label">Vendor / Brand</label>
-                              <input 
+                              <input
                                 type="text"
                                 value={productForm.vendor}
                                 onChange={e => setProductForm({ ...productForm, vendor: e.target.value })}
@@ -1655,7 +1749,7 @@ export default function AdminDashboard() {
                             <div>
                               <label className="admin-label">Tags</label>
                               <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                                <input 
+                                <input
                                   type="text"
                                   placeholder="e.g. bestseller, new-arrival, wireless"
                                   value={tagInput}
@@ -1724,7 +1818,7 @@ export default function AdminDashboard() {
                                   {(productForm.seo_title || productForm.title).length} / 70
                                 </span>
                               </div>
-                              <input 
+                              <input
                                 type="text"
                                 value={productForm.seo_title}
                                 onChange={e => setProductForm({ ...productForm, seo_title: e.target.value })}
@@ -1740,7 +1834,7 @@ export default function AdminDashboard() {
                                   {(productForm.seo_description || productForm.description).length} / 160
                                 </span>
                               </div>
-                              <textarea 
+                              <textarea
                                 rows={2}
                                 value={productForm.seo_description}
                                 onChange={e => setProductForm({ ...productForm, seo_description: e.target.value })}
@@ -1775,61 +1869,122 @@ export default function AdminDashboard() {
           </div>
         ) : activeTab === 'orders' ? (
           /* =========================================================================
-             ORDERS TAB
+             ORDERS TAB - Full Items Breakdown & Management
              ========================================================================= */
           <div>
+            {/* Top Section Header */}
             <div className="crm-section-header">
               <div>
-                <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Orders & Sales Pipeline</h1>
-                <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Track order status, record courier tracking, and update buyers via WhatsApp</p>
+                <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Orders & Sales Pipeline</h1>
+                <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  Review line items purchased, update fulfillment statuses, track couriers, and dispatch WhatsApp invoices
+                </p>
               </div>
 
-              {/* Status Filter */}
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {['all', 'pending', 'paid', 'shipped', 'delivered'].map(status => (
-                  <button 
-                    key={status}
-                    onClick={() => setOrderStatusFilter(status)}
-                    style={{ 
-                      padding: '8px 14px', borderRadius: '20px', border: '1px solid #cbd5e1', 
-                      background: orderStatusFilter === status ? '#0f172a' : '#fff',
-                      color: orderStatusFilter === status ? '#fff' : '#64748b',
-                      fontSize: '0.82rem', fontWeight: 600, textTransform: 'capitalize', cursor: 'pointer',
-                      flexShrink: 0
-                    }}
-                  >
-                    {status}
-                  </button>
-                ))}
+              {/* Status Filter Tabs & Search Bar */}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', minWidth: '260px' }}>
+                  <Search size={15} style={{ position: 'absolute', left: '12px', top: '11px', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    placeholder="Search order #, customer, item..."
+                    value={orderSearch}
+                    onChange={e => setOrderSearch(e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', background: '#fff' }}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Tracking Info Modal */}
+            {/* Status Filter Pills Bar */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '12px 16px', marginBottom: '20px', display: 'flex', gap: '8px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+              {[
+                { id: 'all', label: 'All Orders', count: orders.length },
+                { id: 'pending', label: 'Pending', count: pendingOrdersCount },
+                { id: 'processing', label: 'Processing', count: processingOrdersCount },
+                { id: 'shipped', label: 'Shipped', count: shippedOrdersCount },
+                { id: 'delivered', label: 'Delivered', count: deliveredOrdersCount },
+                { id: 'cancelled', label: 'Cancelled', count: cancelledOrdersCount },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setOrderStatusFilter(tab.id)}
+                  style={{
+                    padding: '6px 14px', borderRadius: '20px', border: 'none',
+                    background: orderStatusFilter === tab.id ? '#0f172a' : '#f1f5f9',
+                    color: orderStatusFilter === tab.id ? '#fff' : '#64748b',
+                    fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                    whiteSpace: 'nowrap', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px'
+                  }}
+                >
+                  <span>{tab.label}</span>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    background: orderStatusFilter === tab.id ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
+                    color: orderStatusFilter === tab.id ? '#fff' : '#475569'
+                  }}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Courier Tracking Info Modal */}
             {isTrackingModalOpen && selectedOrderForTracking && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-                <div style={{ background: '#fff', borderRadius: '16px', maxWidth: '480px', width: '100%', padding: '28px' }}>
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(5, 27, 56, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+                <div style={{ background: '#fff', borderRadius: '16px', maxWidth: '480px', width: '100%', padding: '28px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Courier Tracking — {selectedOrderForTracking.order_number}</h3>
-                    <button onClick={() => setIsTrackingModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+                    <div>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Courier Tracking</h3>
+                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Order: {selectedOrderForTracking.order_number || selectedOrderForTracking.id}</span>
+                    </div>
+                    <button onClick={() => setIsTrackingModalOpen(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer' }}>
+                      <X size={18} />
+                    </button>
                   </div>
 
                   <form onSubmit={handleSaveTracking} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '4px' }}>Courier Service</label>
-                      <input type="text" required value={trackingForm.courier_name} onChange={e => setTrackingForm({ ...trackingForm, courier_name: e.target.value })} placeholder="The Courier Guy / RAM / Aramex" style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px' }} />
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '6px', color: '#334155' }}>Courier Service</label>
+                      <input
+                        type="text"
+                        required
+                        value={trackingForm.courier_name}
+                        onChange={e => setTrackingForm({ ...trackingForm, courier_name: e.target.value })}
+                        placeholder="The Courier Guy / RAM / Aramex / Fastway"
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                      />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '4px' }}>Tracking Number</label>
-                      <input type="text" required value={trackingForm.tracking_number} onChange={e => setTrackingForm({ ...trackingForm, tracking_number: e.target.value })} placeholder="TCG-12345678" style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px' }} />
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '6px', color: '#334155' }}>Tracking / Waybill Number</label>
+                      <input
+                        type="text"
+                        required
+                        value={trackingForm.tracking_number}
+                        onChange={e => setTrackingForm({ ...trackingForm, tracking_number: e.target.value })}
+                        placeholder="e.g. TCG-98421098"
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem', fontFamily: 'var(--font-mono)' }}
+                      />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '4px' }}>Tracking Portal URL</label>
-                      <input type="url" value={trackingForm.tracking_url} onChange={e => setTrackingForm({ ...trackingForm, tracking_url: e.target.value })} placeholder="https://portal.thecourierguy.co.za/track" style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px' }} />
+                      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '6px', color: '#334155' }}>Tracking Portal URL</label>
+                      <input
+                        type="url"
+                        value={trackingForm.tracking_url}
+                        onChange={e => setTrackingForm({ ...trackingForm, tracking_url: e.target.value })}
+                        placeholder="https://portal.thecourierguy.co.za/track"
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem' }}
+                      />
                     </div>
 
-                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#f97316', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', marginTop: '8px' }}>
+                    <button
+                      type="submit"
+                      style={{ width: '100%', padding: '12px', background: '#f97316', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', marginTop: '6px', fontSize: '0.9rem', boxShadow: '0 2px 6px rgba(249, 115, 22, 0.3)' }}
+                    >
                       Save & Mark Order Shipped
                     </button>
                   </form>
@@ -1837,38 +1992,86 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Orders Feed */}
-            {filteredOrders.length === 0 ? (
-              <div style={{ background: '#fff', padding: '40px', textAlign: 'center', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>
-                No orders match the selected status filter.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {filteredOrders.map(order => (
-                  <div key={order.id} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    
-                    <div className="crm-order-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{order.order_number || order.id}</span>
-                        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{new Date(order.created_at).toLocaleString()}</span>
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          padding: '2px 8px', 
-                          borderRadius: '10px', 
-                          background: order.payment_method === 'stripe' ? '#ede9fe' : order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', 
-                          color: order.payment_method === 'stripe' ? '#5b21b6' : order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', 
-                          fontWeight: 600 
-                        }}>
-                          {order.payment_method === 'stripe' ? 'Stripe Checkout' : order.payment_method === 'whatsapp_inquiry' ? 'WhatsApp Inquiry' : 'PayFast Gateway'}
+            {/* Detailed Order Modal Drawer */}
+            {selectedOrderForDetails && (
+              <div className="admin-order-modal-backdrop" onClick={() => setSelectedOrderForDetails(null)}>
+                <div className="admin-order-modal-dialog" onClick={e => e.stopPropagation()}>
+
+                  {/* Modal Header */}
+                  <div className="admin-order-modal-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: 'rgba(251, 169, 25, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                            {selectedOrderForDetails.order_number || selectedOrderForDetails.id}
+                          </h2>
+                          <button
+                            onClick={() => handleCopyText(selectedOrderForDetails.order_number || selectedOrderForDetails.id, 'modal_order')}
+                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '2px', display: 'inline-flex', alignItems: 'center' }}
+                            title="Copy Order ID"
+                          >
+                            {copiedId === 'modal_order' ? <Check size={14} style={{ color: '#16a34a' }} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                          Placed on {new Date(selectedOrderForDetails.created_at).toLocaleString('en-ZA', { dateStyle: 'full', timeStyle: 'short' })}
                         </span>
                       </div>
+                    </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Status:</label>
-                        <select 
-                          value={order.order_status} 
-                          onChange={e => handleUpdateOrderStatus(order.id, e.target.value)}
-                          style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.82rem' }}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => window.print()}
+                        style={{ padding: '7px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: '#334155' }}
+                      >
+                        <Printer size={14} /> Print Packing Slip
+                      </button>
+                      <button
+                        onClick={() => setSelectedOrderForDetails(null)}
+                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '7px', cursor: 'pointer', color: '#334155' }}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Modal Body */}
+                  <div className="admin-order-modal-body">
+
+                    {/* Status & Key Metrics Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                      <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Total Order Value</span>
+                        <strong style={{ fontSize: '1.25rem', color: '#0f172a' }}>R{Number(selectedOrderForDetails.total_amount || 0).toFixed(2)}</strong>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Payment Status</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize',
+                            background: selectedOrderForDetails.payment_status === 'paid' ? '#dcfce7' : '#fef3c7',
+                            color: selectedOrderForDetails.payment_status === 'paid' ? '#166534' : '#854d0e'
+                          }}>
+                            {selectedOrderForDetails.payment_status || 'Pending'}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({selectedOrderForDetails.payment_method === 'stripe' ? 'Stripe' : selectedOrderForDetails.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'})</span>
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Fulfillment Status</span>
+                        <select
+                          value={selectedOrderForDetails.order_status}
+                          onChange={async e => {
+                            const next = e.target.value;
+                            await handleUpdateOrderStatus(selectedOrderForDetails.id, next);
+                            setSelectedOrderForDetails({ ...selectedOrderForDetails, order_status: next });
+                          }}
+                          style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.8rem', background: '#fff', color: '#0f172a' }}
                         >
                           <option value="pending">Pending</option>
                           <option value="processing">Processing</option>
@@ -1877,32 +2080,451 @@ export default function AdminDashboard() {
                           <option value="cancelled">Cancelled</option>
                         </select>
                       </div>
+
+                      <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Courier Service</span>
+                        <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{selectedOrderForDetails.courier_name || 'Not yet dispatched'}</strong>
+                      </div>
                     </div>
 
-                    <div className="crm-order-grid">
-                      <div>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 700, marginBottom: '6px' }}>Buyer Details:</div>
-                        <div style={{ fontSize: '0.85rem', color: '#334155' }}>
-                          <div><strong>{order.customer_name}</strong> ({order.customer_phone})</div>
-                          {order.customer_email && <div>Email: {order.customer_email}</div>}
-                          <div>Address: {order.shipping_address}</div>
-                        </div>
-
-                        {order.courier_name && order.tracking_number && (
-                          <div style={{ marginTop: '12px', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.82rem' }}>
-                            <strong>{order.courier_name} Tracking:</strong> {order.tracking_number}
-                          </div>
-                        )}
+                    {/* Section 1: Purchased Items Table */}
+                    <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                      <div style={{ padding: '14px 18px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Package size={16} style={{ color: '#f97316' }} />
+                          Ordered Items ({getOrderItems(selectedOrderForDetails).length})
+                        </span>
+                        <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Itemized receipt</span>
                       </div>
 
-                      <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                        <div>
-                          <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Total Order Value:</div>
-                          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>R{Number(order.total_amount).toFixed(2)}</div>
+                      <div className="table-responsive-container">
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                          <thead>
+                            <tr style={{ background: '#ffffff', textAlign: 'left', borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
+                              <th style={{ padding: '12px 18px' }}>Product</th>
+                              <th style={{ padding: '12px 18px' }}>SKU / ID</th>
+                              <th style={{ padding: '12px 18px', textAlign: 'right' }}>Unit Price</th>
+                              <th style={{ padding: '12px 18px', textAlign: 'center' }}>Qty</th>
+                              <th style={{ padding: '12px 18px', textAlign: 'right' }}>Line Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getOrderItems(selectedOrderForDetails).length === 0 ? (
+                              <tr>
+                                <td colSpan={5} style={{ padding: '24px 18px', textAlign: 'center', color: '#64748b' }}>
+                                  No itemized lines recorded for this order. Total order amount: <strong>R{Number(selectedOrderForDetails.total_amount || 0).toFixed(2)}</strong>
+                                </td>
+                              </tr>
+                            ) : (
+                              getOrderItems(selectedOrderForDetails).map((item: any, idx: number) => {
+                                const unitPrice = Number(item.unit_price || item.price || 0);
+                                const qty = item.quantity || 1;
+                                const lineTotal = item.total_price ? Number(item.total_price) : (unitPrice * qty);
+                                const imgVal = getItemImage(item);
+
+                                return (
+                                  <tr key={idx} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                    <td style={{ padding: '12px 18px' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                                          {isImageUrl(imgVal) ? (
+                                            <img src={imgVal} alt={item.product_name || item.title || 'Product'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                          ) : (
+                                            <ProductIcon name={imgVal} className="cart-icon-small" />
+                                          )}
+                                        </div>
+                                        <div>
+                                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.9rem' }}>
+                                            {item.product_name || item.title || item.name || 'Purchased Item'}
+                                          </div>
+                                          {item.variant && <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Variant: {item.variant}</span>}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td style={{ padding: '12px 18px', color: '#64748b', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                                      {item.product_id || item.sku || 'VY-ITEM'}
+                                    </td>
+                                    <td style={{ padding: '12px 18px', textAlign: 'right', color: '#334155' }}>
+                                      R{unitPrice.toFixed(2)}
+                                    </td>
+                                    <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                                      <span style={{ padding: '2px 8px', background: '#f1f5f9', borderRadius: '10px', fontWeight: 700, fontSize: '0.8rem' }}>
+                                        {qty}
+                                      </span>
+                                    </td>
+                                    <td style={{ padding: '12px 18px', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>
+                                      R{lineTotal.toFixed(2)}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Financial Calculation Footer */}
+                      <div style={{ background: '#f8fafc', padding: '16px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '260px', fontSize: '0.85rem', color: '#64748b' }}>
+                          <span>Items Subtotal:</span>
+                          <strong>
+                            R{(Number(selectedOrderForDetails.total_amount || 0) - (Number(selectedOrderForDetails.shipping_cost) || 0)).toFixed(2)}
+                          </strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '260px', fontSize: '0.85rem', color: '#64748b' }}>
+                          <span>Delivery / Shipping:</span>
+                          <strong>
+                            {Number(selectedOrderForDetails.shipping_cost || 0) > 0 ? `R${Number(selectedOrderForDetails.shipping_cost).toFixed(2)}` : 'FREE'}
+                          </strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '260px', fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', paddingTop: '8px', borderTop: '1px solid #cbd5e1', marginTop: '4px' }}>
+                          <span>Grand Total:</span>
+                          <span>R{Number(selectedOrderForDetails.total_amount || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Customer & Shipping Information */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '18px' }}>
+                        <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Users size={16} style={{ color: '#0284c7' }} /> Customer Contact
+                        </h4>
+                        <div style={{ fontSize: '0.85rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div><strong>Name:</strong> {selectedOrderForDetails.customer_name}</div>
+                          <div><strong>Phone:</strong> {selectedOrderForDetails.customer_phone}</div>
+                          <div><strong>Email:</strong> {selectedOrderForDetails.customer_email || 'Not provided'}</div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                          <button 
+                        <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => handleSendWhatsAppUpdate(selectedOrderForDetails)}
+                            style={{ padding: '6px 12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                          >
+                            <MessageSquare size={13} /> Chat on WhatsApp
+                          </button>
+                          {selectedOrderForDetails.customer_phone && (
+                            <a
+                              href={`tel:${selectedOrderForDetails.customer_phone}`}
+                              style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            >
+                              <Phone size={13} /> Call
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '18px' }}>
+                        <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPin size={16} style={{ color: '#e11d48' }} /> Delivery Address & Courier
+                        </h4>
+                        <div style={{ fontSize: '0.85rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div><strong>Street Address:</strong> {selectedOrderForDetails.shipping_address}</div>
+                          {selectedOrderForDetails.courier_name && (
+                            <div style={{ marginTop: '6px', padding: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                              <div><strong>Courier:</strong> {selectedOrderForDetails.courier_name}</div>
+                              <div><strong>Waybill:</strong> {selectedOrderForDetails.tracking_number}</div>
+                              {selectedOrderForDetails.tracking_url && (
+                                <a
+                                  href={selectedOrderForDetails.tracking_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: '#f97316', fontWeight: 600, fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}
+                                >
+                                  Open Courier Tracking Portal <ExternalLink size={12} />
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setSelectedOrderForTracking(selectedOrderForDetails);
+                            setTrackingForm({
+                              courier_name: selectedOrderForDetails.courier_name || 'The Courier Guy',
+                              tracking_number: selectedOrderForDetails.tracking_number || '',
+                              tracking_url: selectedOrderForDetails.tracking_url || ''
+                            });
+                            setIsTrackingModalOpen(true);
+                          }}
+                          style={{ marginTop: '12px', padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#334155' }}
+                        >
+                          <Truck size={13} /> {selectedOrderForDetails.tracking_number ? 'Update Tracking Info' : 'Attach Courier Tracking'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Notes & Instructions */}
+                    {selectedOrderForDetails.notes && (
+                      <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px', padding: '14px', fontSize: '0.85rem', color: '#92400e' }}>
+                        <strong>Order Notes: </strong> {selectedOrderForDetails.notes}
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Orders Feed */}
+            {filteredOrders.length === 0 ? (
+              <div style={{ background: '#fff', padding: '60px 20px', textAlign: 'center', borderRadius: '12px', border: '1px solid #e2e8f0', color: '#64748b' }}>
+                <ShoppingCart size={40} style={{ margin: '0 auto 12px auto', opacity: 0.4 }} />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>No orders found</h3>
+                <p style={{ fontSize: '0.85rem', maxWidth: '400px', margin: '0 auto' }}>
+                  {orderSearch
+                    ? `No orders match your search "${orderSearch}". Try searching by customer name, phone, or order number.`
+                    : 'There are currently no orders in this status category.'}
+                </p>
+                {orderSearch && (
+                  <button
+                    onClick={() => setOrderSearch('')}
+                    style={{ marginTop: '14px', padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="crm-orders-feed">
+                {filteredOrders.map(order => {
+                  const items = getOrderItems(order);
+                  const orderSubtotal = items.reduce((acc: number, it: any) => {
+                    const line = it.total_price ? Number(it.total_price) : (Number(it.unit_price || it.price || 0) * (it.quantity || 1));
+                    return acc + line;
+                  }, 0) || Number(order.total_amount || 0);
+
+                  const shippingCostNum = Number(order.shipping_cost || 0);
+
+                  return (
+                    <div key={order.id} className="crm-order-card">
+
+                      {/* Card Header Bar */}
+                      <div className="crm-order-header">
+                        <div className="crm-order-header-left">
+                          {/* Order Number + Copy Button */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a', letterSpacing: '-0.3px' }}>
+                              {order.order_number || order.id}
+                            </span>
+                            <button
+                              onClick={() => handleCopyText(order.order_number || order.id, order.id)}
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                              title="Copy Order #"
+                            >
+                              {copiedId === order.id ? <Check size={13} style={{ color: '#16a34a' }} /> : <Copy size={13} />}
+                            </button>
+                          </div>
+
+                          <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                            {new Date(order.created_at).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' })}
+                          </span>
+
+                          {/* Payment Method Pill */}
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '3px 9px',
+                            borderRadius: '10px',
+                            background: order.payment_method === 'stripe' ? '#ede9fe' : order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe',
+                            color: order.payment_method === 'stripe' ? '#5b21b6' : order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985',
+                            fontWeight: 700
+                          }}>
+                            {order.payment_method === 'stripe' ? 'Stripe Checkout' : order.payment_method === 'whatsapp_inquiry' ? 'WhatsApp Direct' : 'PayFast Gateway'}
+                          </span>
+
+                          {/* Payment Status Pill */}
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '3px 9px',
+                            borderRadius: '10px',
+                            background: order.payment_status === 'paid' ? '#dcfce7' : order.payment_status === 'cancelled' ? '#fee2e2' : '#fef3c7',
+                            color: order.payment_status === 'paid' ? '#166534' : order.payment_status === 'cancelled' ? '#991b1b' : '#854d0e',
+                            fontWeight: 700,
+                            textTransform: 'capitalize'
+                          }}>
+                            Payment: {order.payment_status || 'Pending'}
+                          </span>
+                        </div>
+
+                        {/* Order Fulfillment Status Dropdown */}
+                        <div className="crm-order-header-right">
+                          <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Fulfillment:</label>
+                          <select
+                            value={order.order_status}
+                            onChange={e => handleUpdateOrderStatus(order.id, e.target.value)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              border: '1px solid #cbd5e1',
+                              fontWeight: 700,
+                              fontSize: '0.82rem',
+                              background: order.order_status === 'delivered' ? '#f0fdf4' : order.order_status === 'shipped' ? '#eff6ff' : '#ffffff',
+                              color: order.order_status === 'delivered' ? '#166534' : order.order_status === 'shipped' ? '#1d4ed8' : '#0f172a',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Card Body: 2-Column Grid */}
+                      <div className="crm-order-body">
+
+                        {/* Left: Ordered Items Breakdown */}
+                        <div className="crm-order-items-box">
+                          <div className="crm-order-box-title">
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Package size={14} style={{ color: '#f97316' }} />
+                              Purchased Products ({items.length})
+                            </span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
+                              Item Breakdown
+                            </span>
+                          </div>
+
+                          {items.length === 0 ? (
+                            <div style={{ padding: '14px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.84rem', color: '#64748b', textAlign: 'center' }}>
+                              Standard store purchase / Custom inquiry
+                            </div>
+                          ) : (
+                            <div className="crm-order-items-list">
+                              {items.map((item: any, idx: number) => {
+                                const unitPrice = Number(item.unit_price || item.price || 0);
+                                const qty = item.quantity || 1;
+                                const lineTotal = item.total_price ? Number(item.total_price) : (unitPrice * qty);
+                                const imgVal = getItemImage(item);
+
+                                return (
+                                  <div key={idx} className="crm-order-item-row">
+                                    <div className="crm-order-item-main">
+                                      <div className="crm-order-item-thumb">
+                                        {isImageUrl(imgVal) ? (
+                                          <img src={imgVal} alt={item.product_name || item.title || 'Product'} />
+                                        ) : (
+                                          <ProductIcon name={imgVal} className="cart-icon-small" />
+                                        )}
+                                      </div>
+                                      <div className="crm-order-item-info">
+                                        <div className="crm-order-item-name" title={item.product_name || item.title}>
+                                          {item.product_name || item.title || item.name || 'Product Item'}
+                                        </div>
+                                        <div className="crm-order-item-meta">
+                                          <span style={{ fontWeight: 700, color: '#0f172a' }}>Qty: {qty}</span>
+                                          <span>•</span>
+                                          <span>R{unitPrice.toFixed(2)} each</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="crm-order-item-price">
+                                      R{lineTotal.toFixed(2)}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Financial Subtotals & Total */}
+                          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+                            <div className="crm-order-breakdown-row">
+                              <span>Items Subtotal:</span>
+                              <span>R{orderSubtotal.toFixed(2)}</span>
+                            </div>
+                            <div className="crm-order-breakdown-row">
+                              <span>Delivery Fee:</span>
+                              <span>{shippingCostNum > 0 ? `R${shippingCostNum.toFixed(2)}` : 'FREE'}</span>
+                            </div>
+                            <div className="crm-order-total-row">
+                              <span>Order Total:</span>
+                              <span style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: 800 }}>
+                                R{Number(order.total_amount || 0).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Buyer & Delivery Details */}
+                        <div className="crm-order-customer-box">
+                          <div>
+                            <div className="crm-order-box-title">
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Users size={14} style={{ color: '#0284c7' }} />
+                                Buyer & Delivery Details
+                              </span>
+                              <button
+                                onClick={() => setSelectedOrderForDetails(order)}
+                                style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                              >
+                                View Details →
+                              </button>
+                            </div>
+
+                            <div style={{ fontSize: '0.85rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <strong style={{ fontSize: '0.92rem', color: '#0f172a' }}>{order.customer_name}</strong>
+                                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{order.customer_phone}</span>
+                              </div>
+
+                              {order.customer_email && (
+                                <div style={{ fontSize: '0.8rem', color: '#64748b', wordBreak: 'break-all' }}>
+                                  {order.customer_email}
+                                </div>
+                              )}
+
+                              <div style={{ marginTop: '4px', fontSize: '0.82rem', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                                <MapPin size={14} style={{ flexShrink: 0, marginTop: '2px', color: '#94a3b8' }} />
+                                <span>{order.shipping_address || 'No physical delivery address recorded.'}</span>
+                              </div>
+                            </div>
+
+                            {/* Courier Tracking snippet */}
+                            {order.courier_name && order.tracking_number ? (
+                              <div style={{ marginTop: '12px', padding: '10px 12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.8rem' }}>
+                                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>
+                                  🚚 {order.courier_name}
+                                </div>
+                                <div style={{ color: '#475569', fontFamily: 'var(--font-mono)', fontSize: '0.78rem' }}>
+                                  Tracking: {order.tracking_number}
+                                </div>
+                                {order.tracking_url && (
+                                  <a
+                                    href={order.tracking_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: '#0284c7', fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px' }}
+                                  >
+                                    Track Courier Online <ExternalLink size={11} />
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <div style={{ marginTop: '12px', padding: '8px 10px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', fontSize: '0.78rem', color: '#64748b' }}>
+                                No tracking number attached yet.
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      {/* Card Action Buttons */}
+                      <div className="crm-order-actions-bar">
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => setSelectedOrderForDetails(order)}
+                            className="crm-order-action-btn crm-order-action-btn-primary"
+                          >
+                            <Eye size={14} /> Full Details & Items
+                          </button>
+
+                          <button
                             onClick={() => {
                               setSelectedOrderForTracking(order);
                               setTrackingForm({
@@ -1912,23 +2534,25 @@ export default function AdminDashboard() {
                               });
                               setIsTrackingModalOpen(true);
                             }}
-                            style={{ padding: '8px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            className="crm-order-action-btn crm-order-action-btn-neutral"
                           >
-                            <Truck size={14} /> Add Tracking
+                            <Truck size={14} /> {order.tracking_number ? 'Edit Tracking' : 'Add Tracking'}
                           </button>
+                        </div>
 
-                          <button 
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
                             onClick={() => handleSendWhatsAppUpdate(order)}
-                            style={{ padding: '8px 12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            className="crm-order-action-btn crm-order-action-btn-whatsapp"
                           >
-                            <MessageSquare size={14} /> WhatsApp Buyer
+                            <MessageSquare size={14} /> WhatsApp Invoice & Status
                           </button>
                         </div>
                       </div>
-                    </div>
 
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -1944,9 +2568,9 @@ export default function AdminDashboard() {
                 <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Directory of buyers, leads, and customer order history</p>
               </div>
 
-              <input 
-                type="text" 
-                placeholder="Search customers by name or phone..." 
+              <input
+                type="text"
+                placeholder="Search customers by name or phone..."
                 value={customerSearch}
                 onChange={e => setCustomerSearch(e.target.value)}
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', maxWidth: '280px', fontSize: '0.85rem' }}
@@ -1983,7 +2607,7 @@ export default function AdminDashboard() {
                           {c.street_address || c.address || 'N/A'}
                         </td>
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{ 
+                          <span style={{
                             padding: '4px 10px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 600,
                             background: c.status === 'VIP' ? '#fef3c7' : c.status === 'Active' ? '#dcfce7' : '#e0f2fe',
                             color: c.status === 'VIP' ? '#854d0e' : c.status === 'Active' ? '#166534' : '#075985'
@@ -1992,7 +2616,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                          <button 
+                          <button
                             onClick={() => {
                               const cleanPhone = c.phone.replace(/[^0-9]/g, '');
                               const phoneWithCode = cleanPhone.startsWith('0') ? '27' + cleanPhone.substring(1) : cleanPhone;
@@ -2019,7 +2643,7 @@ export default function AdminDashboard() {
                       <h4 style={{ fontWeight: 700, fontSize: '0.98rem' }}>{c.full_name}</h4>
                       <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{c.phone}</span>
                     </div>
-                    <span style={{ 
+                    <span style={{
                       padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600,
                       background: c.status === 'VIP' ? '#fef3c7' : c.status === 'Active' ? '#dcfce7' : '#e0f2fe',
                       color: c.status === 'VIP' ? '#854d0e' : c.status === 'Active' ? '#166534' : '#075985'
@@ -2033,7 +2657,7 @@ export default function AdminDashboard() {
                     <div>Address: {c.street_address || c.address || 'N/A'}</div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => {
                       const cleanPhone = c.phone.replace(/[^0-9]/g, '');
                       const phoneWithCode = cleanPhone.startsWith('0') ? '27' + cleanPhone.substring(1) : cleanPhone;
@@ -2062,7 +2686,7 @@ export default function AdminDashboard() {
 
             {/* Metric KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-              
+
               <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', marginBottom: '8px' }}>
                   <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Total Revenue</span>
@@ -2111,42 +2735,83 @@ export default function AdminDashboard() {
               {orders.length === 0 ? (
                 <p style={{ color: '#64748b', fontSize: '0.9rem', padding: '20px 0' }}>No sales orders recorded yet.</p>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
+                <div className="table-responsive-container">
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                     <thead>
-                      <tr style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                        <th style={{ padding: '12px 8px' }}>Order #</th>
-                        <th style={{ padding: '12px 8px' }}>Customer</th>
-                        <th style={{ padding: '12px 8px' }}>Total</th>
-                        <th style={{ padding: '12px 8px' }}>Method</th>
-                        <th style={{ padding: '12px 8px' }}>Status</th>
+                      <tr style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', color: '#64748b', background: '#f8fafc' }}>
+                        <th style={{ padding: '12px 14px' }}>Order #</th>
+                        <th style={{ padding: '12px 14px' }}>Customer</th>
+                        <th style={{ padding: '12px 14px' }}>Items Purchased</th>
+                        <th style={{ padding: '12px 14px' }}>Total</th>
+                        <th style={{ padding: '12px 14px' }}>Payment</th>
+                        <th style={{ padding: '12px 14px' }}>Status</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {orders.slice(0, 5).map(o => (
-                        <tr key={o.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 8px', fontWeight: 700 }}>{o.order_number || o.id.substring(0, 8)}</td>
-                          <td style={{ padding: '12px 8px' }}>{o.customer_name}</td>
-                          <td style={{ padding: '12px 8px', fontWeight: 700 }}>R{Number(o.total_amount).toFixed(2)}</td>
-                          <td style={{ padding: '12px 8px' }}>
-                            <span style={{ 
-                              fontSize: '0.75rem', 
-                              padding: '2px 8px', 
-                              borderRadius: '10px', 
-                              background: o.payment_method === 'stripe' ? '#ede9fe' : o.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe', 
-                              color: o.payment_method === 'stripe' ? '#5b21b6' : o.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985', 
-                              fontWeight: 600 
-                            }}>
-                              {o.payment_method === 'stripe' ? 'Stripe' : o.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'}
-                            </span>
-                          </td>
-                          <td style={{ padding: '12px 8px' }}>
-                            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', background: o.order_status === 'delivered' ? '#dcfce7' : '#fef3c7', color: o.order_status === 'delivered' ? '#166534' : '#854d0e', fontWeight: 600, textTransform: 'capitalize' }}>
-                              {o.order_status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {orders.slice(0, 8).map(o => {
+                        const items = getOrderItems(o);
+                        const firstItemName = items.length > 0 ? (items[0].product_name || items[0].title || items[0].name) : 'Store Order';
+                        const extraItemsCount = items.length > 1 ? items.length - 1 : 0;
+
+                        return (
+                          <tr key={o.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0f172a' }}>
+                              {o.order_number || o.id.substring(0, 8)}
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <div style={{ fontWeight: 600 }}>{o.customer_name}</div>
+                              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{o.customer_phone}</span>
+                            </td>
+                            <td style={{ padding: '12px 14px', maxWidth: '240px' }}>
+                              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {items.length > 0 ? `${items[0].quantity || 1}x ${firstItemName}` : 'Direct Purchase'}
+                              </div>
+                              {extraItemsCount > 0 && (
+                                <span style={{ fontSize: '0.72rem', color: '#f97316', fontWeight: 600 }}>
+                                  +{extraItemsCount} more {extraItemsCount === 1 ? 'item' : 'items'}
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0f172a' }}>
+                              R{Number(o.total_amount).toFixed(2)}
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                background: o.payment_method === 'stripe' ? '#ede9fe' : o.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe',
+                                color: o.payment_method === 'stripe' ? '#5b21b6' : o.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985',
+                                fontWeight: 600
+                              }}>
+                                {o.payment_method === 'stripe' ? 'Stripe' : o.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                background: o.order_status === 'delivered' ? '#dcfce7' : o.order_status === 'shipped' ? '#eff6ff' : '#fef3c7',
+                                color: o.order_status === 'delivered' ? '#166534' : o.order_status === 'shipped' ? '#1d4ed8' : '#854d0e',
+                                fontWeight: 600,
+                                textTransform: 'capitalize'
+                              }}>
+                                {o.order_status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'right' }}>
+                              <button
+                                onClick={() => setSelectedOrderForDetails(o)}
+                                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '5px 10px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                <Eye size={12} /> Details
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
