@@ -1,42 +1,10 @@
-import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { verifyPayfastItnSignature } from '@/lib/payfast';
 
 const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
 const PASSPHRASE = process.env.PAYFAST_PASSPHRASE || '';
 const PAYFAST_URL = process.env.PAYFAST_URL || 'https://sandbox.payfast.co.za/eng/process';
 const IS_SANDBOX = PAYFAST_URL.includes('sandbox');
-
-function generateSignature(params: Record<string, string>, passphrase?: string): string {
-  const sortedKeys = Object.keys(params).sort();
-  let paramString = '';
-  sortedKeys.forEach((key) => {
-    const val = params[key];
-    if (val !== undefined && val !== null && val !== '') {
-      const encodedVal = encodeURIComponent(val.trim())
-        .replace(/!/g, '%21')
-        .replace(/'/g, '%27')
-        .replace(/\(/g, '%28')
-        .replace(/\)/g, '%29')
-        .replace(/\*/g, '%2A')
-        .replace(/%20/g, '+');
-      paramString += `${key}=${encodedVal}&`;
-    }
-  });
-  
-  let signatureString = paramString.slice(0, -1);
-  if (passphrase) {
-    const encodedPassphrase = encodeURIComponent(passphrase.trim())
-      .replace(/!/g, '%21')
-      .replace(/'/g, '%27')
-      .replace(/\(/g, '%28')
-      .replace(/\)/g, '%29')
-      .replace(/\*/g, '%2A')
-      .replace(/%20/g, '+');
-    signatureString += `&passphrase=${encodedPassphrase}`;
-  }
-  
-  return crypto.createHash('md5').update(signatureString).digest('hex');
-}
 
 /**
  * Validates the ITN callback payload with PayFast servers via server-to-server query.
@@ -89,9 +57,9 @@ export async function POST(req: Request) {
       return new Response('Invalid Merchant ID', { status: 400 });
     }
 
-    // Step 2: Validate MD5 Signature
-    const calculatedSignature = generateSignature(payfastData, PASSPHRASE);
-    if (calculatedSignature !== receivedSignature) {
+    // Step 2: Validate MD5 Signature (checks defined order, raw received order, and sorted order)
+    const isValidSignature = verifyPayfastItnSignature(payfastData, receivedSignature, PASSPHRASE);
+    if (!isValidSignature) {
       console.error('PayFast ITN failed: Signature verification mismatch');
       return new Response('Invalid Signature', { status: 400 });
     }

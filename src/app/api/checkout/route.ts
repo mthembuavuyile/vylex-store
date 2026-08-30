@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { buildPayfastPayload } from '@/lib/payfast';
 
 const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
 const MERCHANT_KEY = process.env.PAYFAST_MERCHANT_KEY;
@@ -12,46 +12,6 @@ if (!MERCHANT_ID || !MERCHANT_KEY) {
     'WARNING: PAYFAST_MERCHANT_ID or PAYFAST_MERCHANT_KEY is missing from env. ' +
     'Checkout will fail in production.'
   );
-}
-
-function generateSignature(params: Record<string, string>, passphrase?: string): string {
-  // 1. Sort fields alphabetically
-  const sortedKeys = Object.keys(params).sort();
-  
-  // 2. Build parameter string
-  let paramString = '';
-  sortedKeys.forEach((key) => {
-    const val = params[key];
-    if (val !== undefined && val !== null && val !== '') {
-      // Match PHP's urlencode behaviour precisely
-      const encodedVal = encodeURIComponent(val.trim())
-        .replace(/!/g, '%21')
-        .replace(/'/g, '%27')
-        .replace(/\(/g, '%28')
-        .replace(/\)/g, '%29')
-        .replace(/\*/g, '%2A')
-        .replace(/%20/g, '+');
-      paramString += `${key}=${encodedVal}&`;
-    }
-  });
-  
-  // Remove trailing ampersand
-  let signatureString = paramString.slice(0, -1);
-  
-  // 3. Append passphrase if defined
-  if (passphrase) {
-    const encodedPassphrase = encodeURIComponent(passphrase.trim())
-      .replace(/!/g, '%21')
-      .replace(/'/g, '%27')
-      .replace(/\(/g, '%28')
-      .replace(/\)/g, '%29')
-      .replace(/\*/g, '%2A')
-      .replace(/%20/g, '+');
-    signatureString += `&passphrase=${encodedPassphrase}`;
-  }
-  
-  // 4. Hash using MD5
-  return crypto.createHash('md5').update(signatureString).digest('hex');
 }
 
 export async function POST(req: Request) {
@@ -92,7 +52,7 @@ export async function POST(req: Request) {
         .single();
 
       let unitPrice = Number(item.price) || 0;
-      let title = item.title || 'CartMate Essentials';
+      let title = item.title || 'Vylex Item';
 
       if (!productError && product) {
         unitPrice = Number(product.price);
@@ -205,34 +165,24 @@ export async function POST(req: Request) {
     
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || requestOrigin || 'http://localhost:3000').replace(/\/$/, '');
 
-    // 6. Prepare PayFast Payload
-    const payfastParams: Record<string, string> = {
-      merchant_id: MERCHANT_ID,
-      merchant_key: MERCHANT_KEY,
-      return_url: `${baseUrl}/checkout/success?order_id=${orderId}`,
-      cancel_url: `${baseUrl}/checkout/cancel?order_id=${orderId}`,
-      notify_url: `${baseUrl}/api/payfast/itn`,
-      name_first: shippingDetails.fullName.split(' ')[0] || 'Customer',
-      name_last: shippingDetails.fullName.split(' ').slice(1).join(' ') || 'Customer',
-      email_address: shippingDetails.email,
-      cell_number: shippingDetails.phone || '',
-      m_payment_id: orderId,
-      amount: totalAmount.toFixed(2),
-      item_name: `CartMate Order ${orderNumber}`,
-    };
-
-    // Strip out empty parameters completely (PayFast requirement) and trim the rest
-    Object.keys(payfastParams).forEach(key => {
-      if (!payfastParams[key] || payfastParams[key].trim() === '') {
-        delete payfastParams[key];
-      } else {
-        payfastParams[key] = payfastParams[key].trim();
-      }
-    });
-
-    // 7. Generate MD5 Signature
-    const signature = generateSignature(payfastParams, PASSPHRASE);
-    payfastParams['signature'] = signature;
+    // 6. Prepare PayFast Payload with strict documentation order & MD5 signature
+    const payfastParams = buildPayfastPayload(
+      {
+        merchant_id: MERCHANT_ID,
+        merchant_key: MERCHANT_KEY,
+        return_url: `${baseUrl}/checkout/success?order_id=${orderId}`,
+        cancel_url: `${baseUrl}/checkout/cancel?order_id=${orderId}`,
+        notify_url: `${baseUrl}/api/payfast/itn`,
+        name_first: shippingDetails.fullName.split(' ')[0] || 'Customer',
+        name_last: shippingDetails.fullName.split(' ').slice(1).join(' ') || 'Customer',
+        email_address: shippingDetails.email,
+        cell_number: shippingDetails.phone || '',
+        m_payment_id: orderId,
+        amount: totalAmount.toFixed(2),
+        item_name: `Vylex Order ${orderNumber}`,
+      },
+      PASSPHRASE
+    );
 
     return NextResponse.json({
       payfastUrl: PAYFAST_URL,
