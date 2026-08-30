@@ -33,17 +33,18 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
   return (
     <div className="error-container">
       <div className="error-card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--red)', marginBottom: '24px' }}>
+        <div className="error-icon-circle error-500">
           <AlertOctagon size={32} />
         </div>
 
-        <div className="error-code" style={{ background: 'linear-gradient(135deg, var(--red) 30%, var(--navy) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          500
+        <div className="error-badge" style={{ color: 'var(--red)', background: 'var(--red-light)', borderColor: 'var(--red-border)' }}>
+          Server Error 500
         </div>
-        <h1 className="error-title">System Glitch</h1>
+
+        <h1 className="error-title">Something Went Wrong</h1>
         
         <p className="error-description">
-          Something went offline. Our systems encountered an unexpected technical error. Let's try reconnecting your session.
+          We encountered an unexpected issue while loading this page. You can retry loading or return to the store homepage.
         </p>
 
         <div className="error-actions">
@@ -54,7 +55,7 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
             style={{ opacity: isResetting ? 0.7 : 1 }}
           >
             <RefreshCw size={18} className={isResetting ? 'animate-spin' : ''} />
-            {isResetting ? 'Reconnecting...' : 'Try Reconnecting'}
+            {isResetting ? 'Retrying...' : 'Try Again'}
           </button>
           
           <Link href="/" className="error-btn-secondary">
@@ -67,13 +68,13 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
           onClick={() => setShowDetails(!showDetails)} 
           className="error-diagnostics-toggle"
         >
-          {showDetails ? 'Hide Diagnostic Logs' : 'Show Diagnostic Logs'}
+          {showDetails ? 'Hide Technical Details' : 'Show Technical Details'}
         </button>
 
         {showDetails && (
           <div className="error-diagnostics-content">
             <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'var(--orange)' }}>
-              DIAGNOSTIC REPORT:
+              ERROR DETAILS:
             </div>
             <div><strong>Message:</strong> {error.message || 'Unknown runtime error'}</div>
             {error.digest && <div style={{ marginTop: '4px' }}><strong>Digest ID:</strong> {error.digest}</div>}
