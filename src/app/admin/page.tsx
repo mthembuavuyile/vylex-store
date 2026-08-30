@@ -105,32 +105,52 @@ export default function AdminDashboard() {
     setLoadingData(true);
     try {
       // Fetch Products
-      const { data: dbProducts, error: prodErr } = await supabase
-        .from('products')
-        .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
-        .order('created_at', { ascending: false });
-
-      if (dbProducts) {
-        setProducts(dbProducts as Product[]);
+      try {
+        const prodRes = await fetch('/api/admin/products');
+        const prodJson = await prodRes.json();
+        if (prodJson.products) {
+          setProducts(prodJson.products as Product[]);
+        }
+      } catch (e) {
+        const { data: dbProducts } = await supabase
+          .from('products')
+          .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
+          .order('created_at', { ascending: false });
+        if (dbProducts) setProducts(dbProducts as Product[]);
       }
 
       // Fetch Orders with Order Items
-      const { data: dbOrders } = await supabase
-        .from('orders')
-        .select('*, order_items(*)')
-        .order('created_at', { ascending: false });
-      if (dbOrders) setOrders(dbOrders);
+      try {
+        const ordRes = await fetch('/api/admin/orders');
+        const ordJson = await ordRes.json();
+        if (ordJson.orders) {
+          setOrders(ordJson.orders);
+        }
+      } catch (e) {
+        const { data: dbOrders } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .order('created_at', { ascending: false });
+        if (dbOrders) setOrders(dbOrders);
+      }
 
       // Fetch Customers
-      const { data: dbCustomers } = await supabase
-        .from('customers')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (dbCustomers) setCustomers(dbCustomers);
+      try {
+        const custRes = await fetch('/api/admin/customers');
+        const custJson = await custRes.json();
+        if (custJson.customers) {
+          setCustomers(custJson.customers);
+        }
+      } catch (e) {
+        const { data: dbCustomers } = await supabase
+          .from('customers')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (dbCustomers) setCustomers(dbCustomers);
+      }
 
     } catch (err) {
       console.error('Error loading Supabase CRM data:', err);
-      setProducts([]);
     } finally {
       setLoadingData(false);
     }
@@ -536,16 +556,24 @@ export default function AdminDashboard() {
 
   // Update Order Status
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase.from('orders').update({ 
-      order_status: newStatus,
-      payment_status: newStatus === 'paid' || newStatus === 'shipped' || newStatus === 'delivered' ? 'paid' : 'pending',
-      updated_at: new Date().toISOString() 
-    }).eq('id', orderId);
-
-    if (error) {
-      alert('Error updating order status: ' + error.message);
-    } else {
-      await refreshAllData();
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: orderId,
+          order_status: newStatus,
+          payment_status: newStatus === 'paid' || newStatus === 'shipped' || newStatus === 'delivered' ? 'paid' : 'pending',
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert('Error updating order status: ' + (data.error || 'Server error'));
+      } else {
+        await refreshAllData();
+      }
+    } catch (e: any) {
+      alert('Error updating order status: ' + e.message);
     }
   };
 
@@ -554,20 +582,28 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!selectedOrderForTracking) return;
 
-    const { error } = await supabase.from('orders').update({
-      courier_name: trackingForm.courier_name,
-      tracking_number: trackingForm.tracking_number,
-      tracking_url: trackingForm.tracking_url,
-      order_status: 'shipped',
-      updated_at: new Date().toISOString()
-    }).eq('id', selectedOrderForTracking.id);
-
-    if (error) {
-      alert('Error saving tracking info: ' + error.message);
-    } else {
-      setIsTrackingModalOpen(false);
-      setSelectedOrderForTracking(null);
-      await refreshAllData();
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedOrderForTracking.id,
+          courier_name: trackingForm.courier_name,
+          tracking_number: trackingForm.tracking_number,
+          tracking_url: trackingForm.tracking_url,
+          order_status: 'shipped',
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert('Error saving tracking info: ' + (data.error || 'Server error'));
+      } else {
+        setIsTrackingModalOpen(false);
+        setSelectedOrderForTracking(null);
+        await refreshAllData();
+      }
+    } catch (e: any) {
+      alert('Error saving tracking info: ' + e.message);
     }
   };
 
