@@ -20,6 +20,24 @@ export function ShopClient({ initialProducts }: ShopClientProps) {
   // Products from Server Component
   const products = initialProducts;
 
+  // Collapsible Accordion Sections State
+  const [openSections, setOpenSections] = useState<{
+    categories: boolean;
+    tags: boolean;
+    price: boolean;
+  }>({
+    categories: true,
+    tags: true,
+    price: true,
+  });
+
+  const toggleSection = (section: 'categories' | 'tags' | 'price') => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   // Filter States
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
@@ -265,118 +283,172 @@ export function ShopClient({ initialProducts }: ShopClientProps) {
             
             {/* Category Filter */}
             <div className="filter-section">
-              <h3 className="filter-title">Categories</h3>
-              <div className="filter-category-list">
-                {dynamicCategories.map(cat => (
-                  <button
-                    key={cat}
-                    className={`filter-category-btn ${selectedCategory === cat ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      setSelectedTag('');
-                    }}
-                  >
-                    <span>{cat}</span>
-                    <span className="category-count">
-                      {categoryCounts[cat] || 0}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <button 
+                type="button" 
+                className="filter-section-header"
+                onClick={() => toggleSection('categories')}
+                aria-expanded={openSections.categories}
+              >
+                <div className="filter-title-wrap">
+                  <h3 className="filter-title">Categories</h3>
+                  {selectedCategory !== 'All' && !openSections.categories && (
+                    <span className="filter-active-indicator">{selectedCategory}</span>
+                  )}
+                </div>
+                <ChevronDown 
+                  size={16} 
+                  className={`filter-chevron ${openSections.categories ? 'open' : ''}`} 
+                />
+              </button>
+
+              {openSections.categories && (
+                <div className="filter-section-body">
+                  <div className="filter-category-list">
+                    {dynamicCategories.map(cat => (
+                      <button
+                        key={cat}
+                        className={`filter-category-btn ${selectedCategory === cat ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setSelectedTag('');
+                        }}
+                      >
+                        <span>{cat}</span>
+                        <span className="category-count">
+                          {categoryCounts[cat] || 0}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tag Filters */}
             {popularTags.length > 0 && (
               <div className="filter-section">
-                <h3 className="filter-title">Popular Tags</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {popularTags.map(tag => {
-                    const isSelected = selectedTag.toLowerCase() === tag.toLowerCase();
-                    return (
-                      <button
-                        key={tag}
-                        onClick={() => setSelectedTag(isSelected ? '' : tag)}
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          border: isSelected ? '1px solid var(--orange)' : '1px solid var(--slate)',
-                          background: isSelected ? 'var(--orange)' : 'var(--white)',
-                          color: isSelected ? '#051b38' : 'var(--navy)',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                      >
-                        <Tag size={10} /> {tag}
-                      </button>
-                    );
-                  })}
-                </div>
+                <button 
+                  type="button" 
+                  className="filter-section-header"
+                  onClick={() => toggleSection('tags')}
+                  aria-expanded={openSections.tags}
+                >
+                  <div className="filter-title-wrap">
+                    <h3 className="filter-title">Popular Tags</h3>
+                    {selectedTag && !openSections.tags && (
+                      <span className="filter-active-indicator">#{selectedTag}</span>
+                    )}
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`filter-chevron ${openSections.tags ? 'open' : ''}`} 
+                  />
+                </button>
+
+                {openSections.tags && (
+                  <div className="filter-section-body">
+                    <div className="filter-tags-list">
+                      {popularTags.map(tag => {
+                        const isSelected = selectedTag.toLowerCase() === tag.toLowerCase();
+                        return (
+                          <button
+                            key={tag}
+                            onClick={() => setSelectedTag(isSelected ? '' : tag)}
+                            className={`filter-tag-pill ${isSelected ? 'active' : ''}`}
+                          >
+                            <Tag size={10} /> {tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Price Filter */}
             <div className="filter-section">
-              <h3 className="filter-title">Filter by Price</h3>
-              
-              {/* Price Presets */}
-              <div className="price-presets-list">
-                {[
-                  { id: 'all', label: 'All Prices' },
-                  { id: 'under-500', label: 'Under R500' },
-                  { id: '500-1000', label: 'R500 – R1,000' },
-                  { id: '1000-2000', label: 'R1,000 – R2,000' },
-                  { id: 'over-2000', label: 'Over R2,000' },
-                ].map(preset => (
-                  <label key={preset.id} className="price-preset-radio">
-                    <input 
-                      type="radio" 
-                      name="price-preset" 
-                      checked={pricePreset === preset.id}
-                      onChange={() => handlePricePresetChange(preset.id)}
-                    />
-                    <span>{preset.label}</span>
-                  </label>
-                ))}
-              </div>
+              <button 
+                type="button" 
+                className="filter-section-header"
+                onClick={() => toggleSection('price')}
+                aria-expanded={openSections.price}
+              >
+                <div className="filter-title-wrap">
+                  <h3 className="filter-title">Filter by Price</h3>
+                  {(pricePreset !== 'all' || minPrice > 0 || maxPrice < 3000) && !openSections.price && (
+                    <span className="filter-active-indicator">
+                      {pricePreset !== 'all' && pricePreset !== 'custom' 
+                        ? (pricePreset === 'under-500' ? '< R500' : pricePreset === '500-1000' ? 'R500-1k' : pricePreset === '1000-2000' ? 'R1k-2k' : '> R2k')
+                        : `R${minPrice} - R${maxPrice}`}
+                    </span>
+                  )}
+                </div>
+                <ChevronDown 
+                  size={16} 
+                  className={`filter-chevron ${openSections.price ? 'open' : ''}`} 
+                />
+              </button>
 
-              {/* Custom Min / Max Range Inputs */}
-              <div className="price-custom-inputs">
-                <div className="price-input-group">
-                  <span className="price-currency">R</span>
-                  <input 
-                    type="number" 
-                    min={0}
-                    max={maxPrice}
-                    value={minPrice}
-                    onChange={e => {
-                      setMinPrice(Number(e.target.value));
-                      setPricePreset('custom');
-                    }}
-                    className="price-number-input"
-                    placeholder="Min"
-                  />
+              {openSections.price && (
+                <div className="filter-section-body">
+                  {/* Price Presets */}
+                  <div className="price-presets-list">
+                    {[
+                      { id: 'all', label: 'All Prices' },
+                      { id: 'under-500', label: 'Under R500' },
+                      { id: '500-1000', label: 'R500 – R1,000' },
+                      { id: '1000-2000', label: 'R1,000 – R2,000' },
+                      { id: 'over-2000', label: 'Over R2,000' },
+                    ].map(preset => (
+                      <label key={preset.id} className="price-preset-radio">
+                        <input 
+                          type="radio" 
+                          name="price-preset" 
+                          checked={pricePreset === preset.id}
+                          onChange={() => handlePricePresetChange(preset.id)}
+                        />
+                        <span>{preset.label}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Custom Min / Max Range Inputs */}
+                  <div className="price-custom-inputs">
+                    <div className="price-input-group">
+                      <span className="price-currency">R</span>
+                      <input 
+                        type="number" 
+                        min={0}
+                        max={maxPrice}
+                        value={minPrice}
+                        onChange={e => {
+                          setMinPrice(Number(e.target.value));
+                          setPricePreset('custom');
+                        }}
+                        className="price-number-input"
+                        placeholder="Min"
+                      />
+                    </div>
+                    <span style={{ color: 'var(--sdark)' }}>to</span>
+                    <div className="price-input-group">
+                      <span className="price-currency">R</span>
+                      <input 
+                        type="number" 
+                        min={minPrice}
+                        max={10000}
+                        value={maxPrice}
+                        onChange={e => {
+                          setMaxPrice(Number(e.target.value));
+                          setPricePreset('custom');
+                        }}
+                        className="price-number-input"
+                        placeholder="Max"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <span style={{ color: 'var(--sdark)' }}>to</span>
-                <div className="price-input-group">
-                  <span className="price-currency">R</span>
-                  <input 
-                    type="number" 
-                    min={minPrice}
-                    max={10000}
-                    value={maxPrice}
-                    onChange={e => {
-                      setMaxPrice(Number(e.target.value));
-                      setPricePreset('custom');
-                    }}
-                    className="price-number-input"
-                    placeholder="Max"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Reset button */}
@@ -451,45 +523,133 @@ export function ShopClient({ initialProducts }: ShopClientProps) {
             <div className="mobile-drawer-body">
               {/* Category */}
               <div className="filter-section">
-                <h4 className="filter-title">Category</h4>
-                <div className="filter-category-list">
-                  {dynamicCategories.map(cat => (
-                    <button
-                      key={cat}
-                      className={`filter-category-btn ${selectedCategory === cat ? 'active' : ''}`}
-                      onClick={() => setSelectedCategory(cat)}
-                    >
-                      <span>{cat}</span>
-                      <span className="category-count">
-                        {categoryCounts[cat] || 0}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <button 
+                  type="button" 
+                  className="filter-section-header"
+                  onClick={() => toggleSection('categories')}
+                  aria-expanded={openSections.categories}
+                >
+                  <div className="filter-title-wrap">
+                    <h4 className="filter-title">Categories</h4>
+                    {selectedCategory !== 'All' && !openSections.categories && (
+                      <span className="filter-active-indicator">{selectedCategory}</span>
+                    )}
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`filter-chevron ${openSections.categories ? 'open' : ''}`} 
+                  />
+                </button>
+
+                {openSections.categories && (
+                  <div className="filter-section-body">
+                    <div className="filter-category-list">
+                      {dynamicCategories.map(cat => (
+                        <button
+                          key={cat}
+                          className={`filter-category-btn ${selectedCategory === cat ? 'active' : ''}`}
+                          onClick={() => setSelectedCategory(cat)}
+                        >
+                          <span>{cat}</span>
+                          <span className="category-count">
+                            {categoryCounts[cat] || 0}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Price */}
-              <div className="filter-section" style={{ marginTop: '20px' }}>
-                <h4 className="filter-title">Price Range</h4>
-                <div className="price-presets-list">
-                  {[
-                    { id: 'all', label: 'All Prices' },
-                    { id: 'under-500', label: 'Under R500' },
-                    { id: '500-1000', label: 'R500 – R1,000' },
-                    { id: '1000-2000', label: 'R1,000 – R2,000' },
-                    { id: 'over-2000', label: 'Over R2,000' },
-                  ].map(preset => (
-                    <label key={preset.id} className="price-preset-radio">
-                      <input 
-                        type="radio" 
-                        name="mobile-price-preset" 
-                        checked={pricePreset === preset.id}
-                        onChange={() => handlePricePresetChange(preset.id)}
-                      />
-                      <span>{preset.label}</span>
-                    </label>
-                  ))}
+              {/* Popular Tags */}
+              {popularTags.length > 0 && (
+                <div className="filter-section" style={{ marginTop: '16px' }}>
+                  <button 
+                    type="button" 
+                    className="filter-section-header"
+                    onClick={() => toggleSection('tags')}
+                    aria-expanded={openSections.tags}
+                  >
+                    <div className="filter-title-wrap">
+                      <h4 className="filter-title">Popular Tags</h4>
+                      {selectedTag && !openSections.tags && (
+                        <span className="filter-active-indicator">#{selectedTag}</span>
+                      )}
+                    </div>
+                    <ChevronDown 
+                      size={16} 
+                      className={`filter-chevron ${openSections.tags ? 'open' : ''}`} 
+                    />
+                  </button>
+
+                  {openSections.tags && (
+                    <div className="filter-section-body">
+                      <div className="filter-tags-list">
+                        {popularTags.map(tag => {
+                          const isSelected = selectedTag.toLowerCase() === tag.toLowerCase();
+                          return (
+                            <button
+                              key={tag}
+                              onClick={() => setSelectedTag(isSelected ? '' : tag)}
+                              className={`filter-tag-pill ${isSelected ? 'active' : ''}`}
+                            >
+                              <Tag size={10} /> {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {/* Price */}
+              <div className="filter-section" style={{ marginTop: '16px' }}>
+                <button 
+                  type="button" 
+                  className="filter-section-header"
+                  onClick={() => toggleSection('price')}
+                  aria-expanded={openSections.price}
+                >
+                  <div className="filter-title-wrap">
+                    <h4 className="filter-title">Filter by Price</h4>
+                    {(pricePreset !== 'all' || minPrice > 0 || maxPrice < 3000) && !openSections.price && (
+                      <span className="filter-active-indicator">
+                        {pricePreset !== 'all' && pricePreset !== 'custom' 
+                          ? (pricePreset === 'under-500' ? '< R500' : pricePreset === '500-1000' ? 'R500-1k' : pricePreset === '1000-2000' ? 'R1k-2k' : '> R2k')
+                          : `R${minPrice} - R${maxPrice}`}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`filter-chevron ${openSections.price ? 'open' : ''}`} 
+                  />
+                </button>
+
+                {openSections.price && (
+                  <div className="filter-section-body">
+                    <div className="price-presets-list">
+                      {[
+                        { id: 'all', label: 'All Prices' },
+                        { id: 'under-500', label: 'Under R500' },
+                        { id: '500-1000', label: 'R500 – R1,000' },
+                        { id: '1000-2000', label: 'R1,000 – R2,000' },
+                        { id: 'over-2000', label: 'Over R2,000' },
+                      ].map(preset => (
+                        <label key={preset.id} className="price-preset-radio">
+                          <input 
+                            type="radio" 
+                            name="mobile-price-preset" 
+                            checked={pricePreset === preset.id}
+                            onChange={() => handlePricePresetChange(preset.id)}
+                          />
+                          <span>{preset.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
