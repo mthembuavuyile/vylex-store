@@ -62,9 +62,9 @@ export default function ShippingPage() {
                 <table className="clean-data-table">
                   <thead>
                     <tr>
-                      <th style={{ minWidth: '180px' }}>Region / Destination</th>
-                      <th style={{ minWidth: '150px' }}>Estimated Transit</th>
-                      <th style={{ minWidth: '170px' }}>Carrier Partner</th>
+                      <th style={{ width: '42%', minWidth: '150px' }}>Region / Destination</th>
+                      <th style={{ width: '28%', minWidth: '125px' }}>Estimated Transit</th>
+                      <th style={{ width: '30%', minWidth: '140px' }}>Carrier Partner</th>
                     </tr>
                   </thead>
                   <tbody>
