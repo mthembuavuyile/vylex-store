@@ -387,7 +387,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
             {/* Trust Badges */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
-                <ShieldCheck size={16} style={{ color: 'var(--green)' }} /> 12-Month Guarantee
+                <ShieldCheck size={16} style={{ color: 'var(--green)' }} /> {guaranteeText}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--sdark)' }}>
                 <Truck size={16} style={{ color: 'var(--orange)' }} /> The Courier Guy Delivery (1–3 Days)
