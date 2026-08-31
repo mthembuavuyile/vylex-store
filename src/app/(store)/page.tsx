@@ -29,7 +29,47 @@ export default async function HomePage() {
   const activeProducts = products.filter(p => p.status !== 'draft');
   const featuredProduct = activeProducts.find(p => p.is_featured) || activeProducts[0];
   const bestSellers = activeProducts.slice(0, 4);
-  const categories = Array.from(new Set(activeProducts.map(p => p.category).filter(Boolean)));
+
+  // Group active products by category and calculate stats for intelligent ranking
+  const categoryStatsMap = activeProducts.reduce((acc, p) => {
+    if (!p.category) return acc;
+    const cat = p.category.trim();
+    if (!cat) return acc;
+
+    if (!acc[cat]) {
+      acc[cat] = {
+        name: cat,
+        count: 0,
+        firstCreatedAt: p.created_at || new Date().toISOString(),
+        hasFeatured: false,
+      };
+    }
+    acc[cat].count += 1;
+    if (p.is_featured) {
+      acc[cat].hasFeatured = true;
+    }
+    if (p.created_at && new Date(p.created_at) < new Date(acc[cat].firstCreatedAt)) {
+      acc[cat].firstCreatedAt = p.created_at;
+    }
+    return acc;
+  }, {} as Record<string, { name: string; count: number; firstCreatedAt: string; hasFeatured: boolean }>);
+
+  // Deterministic 3-tier sort:
+  // 1. Categories containing featured products
+  // 2. Highest product count (deepest inventory first)
+  // 3. Earliest established category (firstCreatedAt ASC)
+  const sortedCategories = Object.values(categoryStatsMap).sort((a, b) => {
+    if (a.hasFeatured !== b.hasFeatured) {
+      return a.hasFeatured ? -1 : 1;
+    }
+    if (b.count !== a.count) {
+      return b.count - a.count;
+    }
+    return new Date(a.firstCreatedAt).getTime() - new Date(b.firstCreatedAt).getTime();
+  });
+
+  const featuredCategories = sortedCategories.slice(0, 6);
+  const totalCategoriesCount = sortedCategories.length;
 
   return (
     <div className="home-wrapper">
@@ -94,34 +134,44 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Category Navigation */}
-      <section className="categories-section">
-        <div className="container">
-          <div className="section-header-clean">
-            <h2 className="section-title">Shop by Category</h2>
-            <p className="section-subtitle">Browse curated collections designed for daily utility</p>
-          </div>
-
-          <div className="category-grid-clean">
-            {categories.map(cat => (
-              <Link
-                key={cat}
-                href={`/shop?category=${encodeURIComponent(cat)}`}
-                className="category-pill-card"
-                prefetch={true}
-              >
-                <div className="category-pill-icon">
-                  <ProductIcon name={cat.toLowerCase()} />
-                </div>
-                <div className="category-pill-text">
-                  <h3>{cat}</h3>
-                  <span>Browse &rarr;</span>
-                </div>
+      {/* Category Navigation - Capped to Top 6 with Direct Full Catalog Link */}
+      {featuredCategories.length > 0 && (
+        <section className="categories-section">
+          <div className="container">
+            <div className="catalog-header-row categories-header-row">
+              <div>
+                <h2 className="section-title">Shop by Category</h2>
+                <p className="section-subtitle">Browse curated collections designed for daily utility</p>
+              </div>
+              <Link href="/shop" className="btn btn-outline btn-sm" prefetch={true}>
+                View All Categories {totalCategoriesCount > 0 ? `(${totalCategoriesCount})` : ''} <ArrowRight size={15} />
               </Link>
-            ))}
+            </div>
+
+            <div className="category-grid-clean">
+              {featuredCategories.map(cat => (
+                <Link
+                  key={cat.name}
+                  href={`/shop?category=${encodeURIComponent(cat.name)}`}
+                  className="category-pill-card"
+                  prefetch={true}
+                >
+                  <div className="category-pill-icon">
+                    <ProductIcon name={cat.name.toLowerCase()} />
+                  </div>
+                  <div className="category-pill-text">
+                    <h3>{cat.name}</h3>
+                    <div className="category-pill-meta">
+                      <span className="category-pill-count">{cat.count} {cat.count === 1 ? 'item' : 'items'}</span>
+                      <span className="category-pill-arrow">Browse &rarr;</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured Catalog Preview */}
       <section className="catalog-preview-section">

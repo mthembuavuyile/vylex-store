@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import {
   BatteryCharging, Headphones, Watch, Zap, Smartphone, 
-  Leaf, Pill
+  Leaf, Pill, ShoppingBag, Sparkles, Home, Laptop, Dumbbell, Package, Shirt, Tag
 } from 'lucide-react';
 import { isImageUrl } from '@/lib/products';
 
@@ -22,13 +22,17 @@ function getIconForKey(key: string) {
   if (
     normalized === 'earbuds' || 
     normalized === '🎧' ||
-    normalized === 'audio'
+    normalized === 'audio' ||
+    normalized === 'headphones' ||
+    normalized === 'speakers'
   ) {
     return Headphones;
   }
   if (
     normalized === 'smartwatch' || 
     normalized === 'smartwatches' || 
+    normalized === 'watch' ||
+    normalized === 'watches' ||
     normalized === '⌚'
   ) {
     return Watch;
@@ -36,6 +40,7 @@ function getIconForKey(key: string) {
   if (
     normalized === 'charger' || 
     normalized === 'chargers' || 
+    normalized === 'cables' ||
     normalized === '⚡'
   ) {
     return Zap;
@@ -46,6 +51,7 @@ function getIconForKey(key: string) {
     normalized === 'chlorophyll' ||
     normalized === 'vitamins' ||
     normalized === 'herbal' ||
+    normalized === 'wellness' ||
     normalized === '🌱' ||
     normalized === '🌿'
   ) {
@@ -54,9 +60,74 @@ function getIconForKey(key: string) {
   if (
     normalized === 'pills' ||
     normalized === 'health' ||
+    normalized === 'medical' ||
     normalized === '💊'
   ) {
     return Pill;
+  }
+  if (
+    normalized === 'skincare' ||
+    normalized === 'beauty' ||
+    normalized === 'cosmetics' ||
+    normalized === 'care' ||
+    normalized === '✨'
+  ) {
+    return Sparkles;
+  }
+  if (
+    normalized === 'clothing' ||
+    normalized === 'apparel' ||
+    normalized === 'fashion' ||
+    normalized === 'wear'
+  ) {
+    return Shirt;
+  }
+  if (
+    normalized === 'bags' ||
+    normalized === 'accessories' ||
+    normalized === 'store'
+  ) {
+    return ShoppingBag;
+  }
+  if (
+    normalized === 'home' ||
+    normalized === 'kitchen' ||
+    normalized === 'living'
+  ) {
+    return Home;
+  }
+  if (
+    normalized === 'electronics' ||
+    normalized === 'computers' ||
+    normalized === 'laptops' ||
+    normalized === 'tech'
+  ) {
+    return Laptop;
+  }
+  if (
+    normalized === 'fitness' ||
+    normalized === 'gym' ||
+    normalized === 'sports'
+  ) {
+    return Dumbbell;
+  }
+  if (
+    normalized === 'smartphone' ||
+    normalized === 'phone' ||
+    normalized === 'phones' ||
+    normalized === 'mobile' ||
+    normalized === '📱'
+  ) {
+    return Smartphone;
+  }
+  if (
+    normalized === 'general' ||
+    normalized === 'merchandise' ||
+    normalized === 'package' ||
+    normalized === 'essentials' ||
+    normalized === '📦'
+  ) {
+    return Package;
   }
 
   return null;
@@ -109,6 +180,7 @@ export function ProductIcon({ name, iconKey, className, alt = 'Product Image' }:
   }
 
   // 5. Final fallback
-  return <Smartphone className={className} strokeWidth={1.5} />;
+  return <Package className={className} strokeWidth={1.5} />;
 }
+
 
