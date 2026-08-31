@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
-  CreditCard, ShieldCheck, MessageSquare, Lock, 
+  ShieldCheck, MessageSquare, Lock, 
   ArrowLeft, ShoppingCart, RefreshCw, Truck, ArrowRight
 } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { ProductIcon } from '@/lib/products';
 import { PageHeader } from '@/components/PageHeader';
+import { PaymentBadges } from '@/components/PaymentBadges';
 
 export default function CheckoutPage() {
   const {
@@ -26,7 +27,6 @@ export default function CheckoutPage() {
     postalCode: '',
   });
 
-  const [loadingStripe, setLoadingStripe] = useState(false);
   const [loadingPayFast, setLoadingPayFast] = useState(false);
   const [loadingWhatsApp, setLoadingWhatsApp] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -35,46 +35,11 @@ export default function CheckoutPage() {
   const shippingCost = getShippingCost();
   const total = getTotal();
 
-  // 1. Stripe Checkout
-  const handleStripeCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!shippingDetails.fullName || !shippingDetails.email || !shippingDetails.streetAddress) {
-      alert('Please fill in your Full Name, Email, and Street Address first.');
-      return;
-    }
-    setLoadingStripe(true);
-    setIsRedirecting(true);
-
-    try {
-      const response = await fetch('/api/checkout/stripe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartItems: cart, shippingDetails }),
-      });
-
-      const data = await response.json();
-      if (!response.ok || !data.url) {
-        alert(data.error || 'Checkout process failed.');
-        setIsRedirecting(false);
-        setLoadingStripe(false);
-        return;
-      }
-
-      clearCart();
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Stripe checkout error:', error);
-      alert('An unexpected error occurred. Please try again.');
-      setIsRedirecting(false);
-      setLoadingStripe(false);
-    }
-  };
-
-  // 2. PayFast Gateway
+  // 1. PayFast Gateway (Cards, Instant EFT, Capitec Pay)
   const handlePayFastCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shippingDetails.fullName || !shippingDetails.phone || !shippingDetails.streetAddress) {
-      alert('Please fill in your Full Name, Mobile Phone, and Street Address first.');
+    if (!shippingDetails.fullName || !shippingDetails.email || !shippingDetails.phone || !shippingDetails.streetAddress) {
+      alert('Please fill in your Full Name, Email, Mobile Phone, and Street Address first.');
       return;
     }
     setLoadingPayFast(true);
@@ -118,7 +83,7 @@ export default function CheckoutPage() {
     }
   };
 
-  // 3. WhatsApp Direct Order Inquiry
+  // 2. WhatsApp Direct Order Inquiry
   const handleWhatsAppCheckout = async () => {
     if (!shippingDetails.fullName || !shippingDetails.phone || !shippingDetails.streetAddress) {
       alert('Please fill in your Full Name, Phone Number, and Street Address first.');
@@ -160,7 +125,7 @@ export default function CheckoutPage() {
         <div style={{ display: 'inline-block', marginBottom: '24px' }}>
           <RefreshCw size={48} className="animate-spin" style={{ color: 'var(--orange)' }} />
         </div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>Connecting to Secure Payment Gateway...</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>Connecting to PayFast Secure Gateway...</h2>
         <p style={{ color: 'var(--sdark)' }}>Please wait while we transfer you securely to complete payment.</p>
       </div>
     );
@@ -325,60 +290,41 @@ export default function CheckoutPage() {
             {/* PAYMENT OPTIONS */}
             <div className="payment-section-wrapper">
               <h3 className="payment-section-title">
-                <Lock size={16} /> Choose Payment Method
+                <Lock size={16} /> Secure Payment Gateway
               </h3>
               
-              {/* Stripe Primary Gateway */}
+              {/* PayFast Primary Payment Button */}
               <button 
-                type="button" 
-                disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
-                onClick={handleStripeCheckout}
+                type="submit" 
+                disabled={loadingPayFast || loadingWhatsApp}
                 className="payment-btn-primary"
               >
                 <div className="payment-btn-main-row">
-                  <CreditCard size={18} />
-                  <span>{loadingStripe ? 'Connecting to Card Gateway...' : `Pay with Card • R${total.toFixed(2)}`}</span>
+                  <ShieldCheck size={20} />
+                  <span>{loadingPayFast ? 'Connecting to PayFast...' : `Pay via PayFast • R${total.toFixed(2)}`}</span>
                 </div>
-                <div className="payment-btn-badges-row">
-                  <span className="payment-mini-tag">Visa</span>
-                  <span className="payment-mini-tag">Mastercard</span>
-                  <span className="payment-mini-tag">Apple Pay</span>
-                  <span className="payment-mini-tag">Google Pay</span>
+                <div style={{ marginTop: '4px' }}>
+                  <PaymentBadges size="sm" />
                 </div>
-              </button>
-
-              {/* PayFast Secondary / Instant EFT Option */}
-              <button 
-                type="submit" 
-                disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
-                className="payment-btn-secondary"
-              >
-                <div className="payment-btn-secondary-title">
-                  <ShieldCheck size={18} />
-                  <span>{loadingPayFast ? 'Connecting to PayFast...' : 'Instant EFT & Capitec Pay'}</span>
-                </div>
-                <span className="payment-btn-secondary-sub">
-                  PayFast SA • Capitec, FNB, Standard Bank, Absa, Nedbank
-                </span>
               </button>
 
               <div className="payment-divider">
-                <span className="payment-divider-text">Need Assistance?</span>
+                <span className="payment-divider-text">Or Order via WhatsApp</span>
               </div>
 
               {/* WhatsApp Direct Order / Inquiry */}
               <button 
                 type="button" 
-                disabled={loadingStripe || loadingPayFast || loadingWhatsApp}
+                disabled={loadingPayFast || loadingWhatsApp}
                 onClick={handleWhatsAppCheckout}
                 className="payment-btn-whatsapp"
               >
                 <MessageSquare size={18} />
-                <span>{loadingWhatsApp ? 'Generating WhatsApp request...' : 'Order Assistance via WhatsApp'}</span>
+                <span>{loadingWhatsApp ? 'Generating WhatsApp request...' : 'Order Inquiry via WhatsApp'}</span>
               </button>
 
               <div className="checkout-security-footer">
-                <Lock size={14} /> 256-bit bank-grade encryption • Safe & secure checkout
+                <Lock size={14} /> 256-bit PCI-DSS compliant encryption • Certified PayFast South Africa
               </div>
             </div>
           </form>

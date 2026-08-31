@@ -110,7 +110,7 @@ export default function AboutPage() {
                   <ShieldCheck size={16} className="fact-icon" />
                   <div>
                     <strong>Payment Options</strong>
-                    <span>Stripe (Card/Apple Pay), PayFast Instant EFT</span>
+                    <span>PayFast (Cards, Instant EFT, Capitec Pay)</span>
                   </div>
                 </li>
               </ul>

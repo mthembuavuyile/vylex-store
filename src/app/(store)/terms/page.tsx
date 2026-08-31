@@ -36,7 +36,7 @@ export default function TermsPage() {
             <section className="editorial-block">
               <h2>3. Payment Methods & Security</h2>
               <p>
-                Payments are processed through certified, PCI-DSS compliant bank gateways (Stripe and PayFast). We do not store or process sensitive credit card details directly on our servers. All transactions utilize 256-bit SSL encryption.
+                Payments are processed through certified, PCI-DSS compliant South African payment gateway (PayFast, supporting Visa, Mastercard, Instant EFT, and Capitec Pay). We do not store or process sensitive credit card details directly on our servers. All transactions utilize 256-bit SSL encryption.
               </p>
             </section>
 

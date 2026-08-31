@@ -2058,7 +2058,7 @@ export default function AdminDashboard() {
                           }}>
                             {selectedOrderForDetails.payment_status || 'Pending'}
                           </span>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({selectedOrderForDetails.payment_method === 'stripe' ? 'Stripe' : selectedOrderForDetails.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'})</span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>({selectedOrderForDetails.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'})</span>
                         </div>
                       </div>
 
@@ -2326,11 +2326,11 @@ export default function AdminDashboard() {
                             fontSize: '0.75rem',
                             padding: '3px 9px',
                             borderRadius: '10px',
-                            background: order.payment_method === 'stripe' ? '#ede9fe' : order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe',
-                            color: order.payment_method === 'stripe' ? '#5b21b6' : order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985',
+                            background: order.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe',
+                            color: order.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985',
                             fontWeight: 700
                           }}>
-                            {order.payment_method === 'stripe' ? 'Stripe Checkout' : order.payment_method === 'whatsapp_inquiry' ? 'WhatsApp Direct' : 'PayFast Gateway'}
+                            {order.payment_method === 'whatsapp_inquiry' ? 'WhatsApp Direct' : 'PayFast Gateway'}
                           </span>
 
                           {/* Payment Status Pill */}
@@ -2781,11 +2781,11 @@ export default function AdminDashboard() {
                                 fontSize: '0.75rem',
                                 padding: '2px 8px',
                                 borderRadius: '10px',
-                                background: o.payment_method === 'stripe' ? '#ede9fe' : o.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe',
-                                color: o.payment_method === 'stripe' ? '#5b21b6' : o.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985',
+                                background: o.payment_method === 'whatsapp_inquiry' ? '#dcfce7' : '#e0f2fe',
+                                color: o.payment_method === 'whatsapp_inquiry' ? '#166534' : '#075985',
                                 fontWeight: 600
                               }}>
-                                {o.payment_method === 'stripe' ? 'Stripe' : o.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'}
+                                {o.payment_method === 'whatsapp_inquiry' ? 'WhatsApp' : 'PayFast'}
                               </span>
                             </td>
                             <td style={{ padding: '12px 14px' }}>

@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS public.customers (
   updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- ORDERS TABLE (Unified Stripe, PayFast, WhatsApp)
+-- ORDERS TABLE (PayFast & WhatsApp Direct)
 CREATE TABLE IF NOT EXISTS public.orders (
   id TEXT PRIMARY KEY,
   order_number TEXT UNIQUE NOT NULL,
@@ -141,10 +141,9 @@ CREATE TABLE IF NOT EXISTS public.orders (
   total_amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (total_amount >= 0),
   shipping_cost NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
   currency TEXT NOT NULL DEFAULT 'ZAR',
-  payment_method TEXT NOT NULL DEFAULT 'stripe',
-  payment_provider TEXT NOT NULL DEFAULT 'stripe',
+  payment_method TEXT NOT NULL DEFAULT 'payfast',
+  payment_provider TEXT NOT NULL DEFAULT 'payfast',
   payment_reference TEXT,
-  stripe_session_id TEXT,
   payment_status TEXT NOT NULL DEFAULT 'pending',
   order_status TEXT NOT NULL DEFAULT 'pending',
   courier_name TEXT,

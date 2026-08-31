@@ -5,6 +5,8 @@ import Link from 'next/link';
 const CATEGORIES = ['All', 'Supplements', 'Earbuds', 'Power Banks', 'Smartwatches', 'Chargers'];
 import { ShieldCheck, Truck, MessageSquare } from 'lucide-react';
 
+import { PaymentBadges } from '@/components/PaymentBadges';
+
 export function Footer() {
   return (
     <footer className="footer">
@@ -19,7 +21,7 @@ export function Footer() {
                 width="32" 
                 height="32" 
                 style={{ flexShrink: 0, objectFit: 'contain' }} 
-              />
+                />
               <span className="logo-text">CartMate</span>
             </Link>
             <p style={{ maxWidth: '300px', lineHeight: 1.6, color: 'rgba(255, 255, 255, 0.7)' }}>
@@ -104,19 +106,17 @@ export function Footer() {
 
         {/* Footer Bottom */}
         <div className="footer-bottom">
-          <p>
-            &copy; {new Date().getFullYear()} CartMate. All rights reserved.
-          </p>
-          <p style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <a 
-              href="https://vylex.co.za" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{ color: 'var(--orange)', fontSize: '0.85rem', fontWeight: 600 }}
-            >
-              vylex.co.za
-            </a>
-          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <p>
+              &copy; {new Date().getFullYear()} CartMate. All rights reserved.
+            </p>
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)' }}>
+              Powered by <a href="https://vylex.co.za" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)' }}>vylex.co.za</a>
+            </p>
+          </div>
+          <div>
+            <PaymentBadges size="md" />
+          </div>
         </div>
       </div>
     </footer>
