@@ -54,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
         className="product-card product-card-link"
       >
         <div className="product-image-wrapper">
-          <ProductIcon name={imageName} alt={product.title} />
+          <ProductIcon name={imageName} iconKey={product.icon_key} alt={product.title} />
         </div>
 
         <div className="product-details">

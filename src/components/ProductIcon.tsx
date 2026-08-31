@@ -7,11 +7,65 @@ import {
 } from 'lucide-react';
 import { isImageUrl } from '@/lib/products';
 
-export function ProductIcon({ name, className, alt = 'Product Image' }: { name: string, className?: string, alt?: string }) {
-  const [imageError, setImageError] = useState(false);
-  const normalized = (name || '').toLowerCase().trim();
+// Maps an icon key string to the corresponding Lucide icon component
+function getIconForKey(key: string) {
+  const normalized = (key || '').toLowerCase().trim();
 
-  // If it's a real image URL and hasn't failed to load, render actual image
+  if (
+    normalized === 'powerbank' || 
+    normalized === 'power banks' || 
+    normalized === '🔋' || 
+    normalized === '🔌'
+  ) {
+    return BatteryCharging;
+  }
+  if (
+    normalized === 'earbuds' || 
+    normalized === '🎧' ||
+    normalized === 'audio'
+  ) {
+    return Headphones;
+  }
+  if (
+    normalized === 'smartwatch' || 
+    normalized === 'smartwatches' || 
+    normalized === '⌚'
+  ) {
+    return Watch;
+  }
+  if (
+    normalized === 'charger' || 
+    normalized === 'chargers' || 
+    normalized === '⚡'
+  ) {
+    return Zap;
+  }
+  if (
+    normalized === 'supplements' ||
+    normalized === 'herbal supplements' ||
+    normalized === 'chlorophyll' ||
+    normalized === 'vitamins' ||
+    normalized === 'herbal' ||
+    normalized === '🌱' ||
+    normalized === '🌿'
+  ) {
+    return Leaf;
+  }
+  if (
+    normalized === 'pills' ||
+    normalized === 'health' ||
+    normalized === '💊'
+  ) {
+    return Pill;
+  }
+
+  return null;
+}
+
+export function ProductIcon({ name, iconKey, className, alt = 'Product Image' }: { name: string, iconKey?: string | null, className?: string, alt?: string }) {
+  const [imageError, setImageError] = useState(false);
+
+  // 1. If it's a real image URL and hasn't failed to load, render actual image
   if (isImageUrl(name) && !imageError) {
     return (
       <img
@@ -31,56 +85,21 @@ export function ProductIcon({ name, className, alt = 'Product Image' }: { name: 
     );
   }
 
-  // Map categories and item identifiers
-  if (
-    normalized === 'powerbank' || 
-    normalized === 'power banks' || 
-    normalized === '🔋' || 
-    normalized === '🔌'
-  ) {
-    return <BatteryCharging className={className} strokeWidth={1.5} />;
-  }
-  if (
-    normalized === 'earbuds' || 
-    normalized === '🎧' ||
-    normalized === 'audio'
-  ) {
-    return <Headphones className={className} strokeWidth={1.5} />;
-  }
-  if (
-    normalized === 'smartwatch' || 
-    normalized === 'smartwatches' || 
-    normalized === '⌚'
-  ) {
-    return <Watch className={className} strokeWidth={1.5} />;
-  }
-  if (
-    normalized === 'charger' || 
-    normalized === 'chargers' || 
-    normalized === '⚡'
-  ) {
-    return <Zap className={className} strokeWidth={1.5} />;
-  }
-  if (
-    normalized === 'supplements' ||
-    normalized === 'herbal supplements' ||
-    normalized === 'chlorophyll' ||
-    normalized === 'vitamins' ||
-    normalized === 'herbal' ||
-    normalized === '🌱' ||
-    normalized === '🌿'
-  ) {
-    return <Leaf className={className} strokeWidth={1.5} />;
-  }
-  if (
-    normalized === 'pills' ||
-    normalized === 'health' ||
-    normalized === '💊'
-  ) {
-    return <Pill className={className} strokeWidth={1.5} />;
+  // 2. If an explicit iconKey is provided, use it as the primary icon lookup
+  if (iconKey) {
+    const IconFromKey = getIconForKey(iconKey);
+    if (IconFromKey) {
+      return <IconFromKey className={className} strokeWidth={1.5} />;
+    }
   }
 
-  // If the image is a single emoji character (e.g. from manual/csv upload), render it directly
+  // 3. Fall back to matching the name string against known category keywords
+  const IconFromName = getIconForKey(name);
+  if (IconFromName) {
+    return <IconFromName className={className} strokeWidth={1.5} />;
+  }
+
+  // 4. If the image is a single emoji character, render it directly
   if (name && name.length <= 4) {
     return (
       <span className={className} style={{ fontSize: '3rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -89,5 +108,7 @@ export function ProductIcon({ name, className, alt = 'Product Image' }: { name: 
     );
   }
 
+  // 5. Final fallback
   return <Smartphone className={className} strokeWidth={1.5} />;
 }
+

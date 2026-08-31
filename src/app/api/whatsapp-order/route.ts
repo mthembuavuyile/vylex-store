@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     const { error: custErr } = await supabaseAdmin
       .from('customers')
-      .upsert(customerPayload, { onConflict: 'id' });
+      .upsert(customerPayload, { onConflict: 'phone' });
 
     if (custErr) {
       console.warn('Customer upsert note:', custErr.message);

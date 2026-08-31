@@ -145,7 +145,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
                   SAVE {savingsPercent}%
                 </div>
               )}
-              <ProductIcon name={activeImage} className="detail-icon-hero" alt={product.title} />
+              <ProductIcon name={activeImage} iconKey={product.icon_key} className="detail-icon-hero" alt={product.title} />
             </div>
 
             {/* Multiple Thumbnails if available */}
@@ -171,7 +171,7 @@ export function ProductDetailClient({ product, relatedProducts }: Props) {
                         boxShadow: isActive ? '0 0 0 2px rgba(251, 169, 25, 0.2)' : 'none'
                       }}
                     >
-                      <ProductIcon name={imgUrl} alt={`${product.title} view ${idx + 1}`} />
+                      <ProductIcon name={imgUrl} iconKey={product.icon_key} alt={`${product.title} view ${idx + 1}`} />
                     </button>
                   );
                 })}

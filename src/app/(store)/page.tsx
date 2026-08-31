@@ -11,7 +11,7 @@ async function getActiveProducts(): Promise<Product[]> {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
+      .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, icon_key, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
       .neq('status', 'draft')
       .order('created_at', { ascending: false });
 
@@ -60,6 +60,7 @@ export default async function HomePage() {
                 <div className="hero-preview-image-box">
                   <ProductIcon
                     name={Array.isArray(featuredProduct.images) ? featuredProduct.images[0] : (featuredProduct.images || 'powerbank')}
+                    iconKey={featuredProduct.icon_key}
                     className="hero-preview-icon"
                     alt={featuredProduct.title}
                   />

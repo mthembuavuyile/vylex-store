@@ -111,7 +111,7 @@ export async function POST(req: Request) {
           status: 'Customer',
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'id' }
+        { onConflict: 'phone' }
       );
 
       // Insert Order record
@@ -127,7 +127,6 @@ export async function POST(req: Request) {
         shipping_cost: shippingCost,
         currency: 'ZAR',
         payment_method: 'payfast',
-        payment_provider: 'payfast',
         payment_status: 'pending',
         order_status: 'pending',
         notes: 'Order initiated via PayFast Gateway',

@@ -21,6 +21,7 @@ export interface Product {
   tags?: string[];
   specifications?: ProductSpecification[];
   images: string[];
+  icon_key?: string | null;
   stock_quantity?: number;
   low_stock_threshold?: number;
   allow_backorder?: boolean;

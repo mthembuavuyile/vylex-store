@@ -1,12 +1,11 @@
 -- ==============================================================================
--- VYBETEK (Formerly Vylex Store): COMPLETE UNIFIED DATABASE SCHEMA & SETUP SCRIPT
--- Reflects all historical changes, security policies, and feature additions.
--- From Vylex Store UUID schemas to the VybeTek Shopify-inspired TEXT schemas.
+-- CARTMATE (VYLEX STORE): COMPLETE DATABASE SCHEMA & SEED SCRIPT
+-- Clean-start schema with all historical fixes consolidated.
 -- ==============================================================================
 
 -- 1. DROP OLD TABLES (IF RE-INITIALIZING)
 DROP TABLE IF EXISTS public.order_items CASCADE;
-DROP TABLE IF EXISTS public.tracking_info CASCADE;
+DROP TABLE IF EXISTS public.tracking_info CASCADE;   -- Legacy table, no longer used
 DROP TABLE IF EXISTS public.orders CASCADE;
 DROP TABLE IF EXISTS public.customers CASCADE;
 DROP TABLE IF EXISTS public.products CASCADE;
@@ -30,7 +29,7 @@ $$ language 'plpgsql';
 -- 3. TABLES CREATION
 -- =========================================================
 
--- PROFILES TABLE (From initial schema)
+-- PROFILES TABLE
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT,
@@ -40,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Admin-check helper (From security fixes)
+-- Admin-check helper
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -54,7 +53,7 @@ AS $$
   );
 $$;
 
--- PRODUCTS TABLE (Text IDs, Slugs, Shopify-inspired fields)
+-- PRODUCTS TABLE
 CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -72,18 +71,19 @@ CREATE TABLE IF NOT EXISTS public.products (
   description TEXT,
   specifications JSONB DEFAULT '[]'::jsonb,
   images JSONB DEFAULT '[]'::jsonb,
+  icon_key TEXT DEFAULT NULL,
   tags JSONB DEFAULT '[]'::jsonb,
   status TEXT DEFAULT 'active',
   is_featured BOOLEAN DEFAULT FALSE,
   weight_kg NUMERIC(10, 2),
   seo_title TEXT,
   seo_description TEXT,
-  source TEXT DEFAULT 'manual' CHECK (source IN ('manual', 'supplier_sync')),
+  source TEXT DEFAULT 'manual' CHECK (source IN ('manual', 'supplier_sync', 'csv_import')),
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Auto-generate slug on insert if not provided (From product slugs)
+-- Auto-generate slug on insert if not provided
 CREATE OR REPLACE FUNCTION public.generate_product_slug()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -111,12 +111,14 @@ CREATE TRIGGER trigger_generate_product_slug
   FOR EACH ROW
   EXECUTE FUNCTION public.generate_product_slug();
 
--- CUSTOMERS TABLE (CRM - from later schemas)
+-- CUSTOMERS TABLE (CRM)
+-- phone is UNIQUE since every SA customer has a distinct cell number.
+-- email has a partial unique index (see indexes section) since it's optional on WhatsApp orders.
 CREATE TABLE IF NOT EXISTS public.customers (
   id TEXT PRIMARY KEY,
   full_name TEXT NOT NULL,
   email TEXT,
-  phone TEXT NOT NULL,
+  phone TEXT NOT NULL UNIQUE,
   street_address TEXT,
   suburb TEXT,
   city TEXT,
@@ -133,7 +135,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   id TEXT PRIMARY KEY,
   order_number TEXT UNIQUE NOT NULL,
   customer_id TEXT REFERENCES public.customers(id) ON DELETE SET NULL,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL, -- Keeping legacy user relation
+  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   customer_name TEXT NOT NULL,
   customer_email TEXT,
   customer_phone TEXT NOT NULL,
@@ -142,7 +144,6 @@ CREATE TABLE IF NOT EXISTS public.orders (
   shipping_cost NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
   currency TEXT NOT NULL DEFAULT 'ZAR',
   payment_method TEXT NOT NULL DEFAULT 'payfast',
-  payment_provider TEXT NOT NULL DEFAULT 'payfast',
   payment_reference TEXT,
   payment_status TEXT NOT NULL DEFAULT 'pending',
   order_status TEXT NOT NULL DEFAULT 'pending',
@@ -166,18 +167,6 @@ CREATE TABLE IF NOT EXISTS public.order_items (
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- TRACKING INFO TABLE (From initial schema)
-CREATE TABLE IF NOT EXISTS public.tracking_info (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_id TEXT REFERENCES public.orders(id) ON DELETE CASCADE UNIQUE NOT NULL,
-  courier_name TEXT NOT NULL,
-  tracking_number TEXT NOT NULL,
-  tracking_url TEXT,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_transit', 'delivered')),
-  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
 -- AUDIT & SYNC LOGS TABLE
 CREATE TABLE IF NOT EXISTS public.supplier_sync_logs (
   id BIGSERIAL PRIMARY KEY,
@@ -194,7 +183,6 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR E
 CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE PROCEDURE public.update_updated_at_column();
 CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON public.customers FOR EACH ROW EXECUTE PROCEDURE public.update_updated_at_column();
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE PROCEDURE public.update_updated_at_column();
-CREATE TRIGGER update_tracking_info_updated_at BEFORE UPDATE ON public.tracking_info FOR EACH ROW EXECUTE PROCEDURE public.update_updated_at_column();
 
 -- =========================================================
 -- 5. ADVANCED STORED PROCEDURES (Business Logic)
@@ -222,7 +210,7 @@ BEGIN
 END;
 $$;
 
--- Secure Server-Validated Checkout (From security schema, updated for new fields)
+-- Secure Server-Validated Checkout
 CREATE OR REPLACE FUNCTION public.create_secure_order(
   p_order_id TEXT,
   p_order_number TEXT,
@@ -299,12 +287,16 @@ $$;
 -- =========================================================
 CREATE INDEX IF NOT EXISTS idx_products_slug ON public.products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category);
+CREATE INDEX IF NOT EXISTS idx_products_status ON public.products(status);
+CREATE INDEX IF NOT EXISTS idx_products_icon_key ON public.products(icon_key);
 CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON public.orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_status ON public.orders(order_status);
+CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON public.orders(payment_status);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON public.order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON public.order_items(product_id);
-CREATE INDEX IF NOT EXISTS idx_tracking_info_order_id ON public.tracking_info(order_id);
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_orders_payment_reference ON public.orders(payment_reference) WHERE payment_reference IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_customers_email ON public.customers(email) WHERE email IS NOT NULL AND email != '';
 
 -- =========================================================
 -- 7. SECURITY: ROW LEVEL SECURITY (RLS) & PERMISSIONS
@@ -316,7 +308,6 @@ GRANT ALL ON public.products TO anon, authenticated, service_role;
 GRANT ALL ON public.customers TO anon, authenticated, service_role;
 GRANT ALL ON public.orders TO anon, authenticated, service_role;
 GRANT ALL ON public.order_items TO anon, authenticated, service_role;
-GRANT ALL ON public.tracking_info TO anon, authenticated, service_role;
 GRANT ALL ON public.supplier_sync_logs TO anon, authenticated, service_role;
 
 GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated, service_role;
@@ -329,20 +320,24 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tracking_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.supplier_sync_logs ENABLE ROW LEVEL SECURITY;
 
 -- Clean Up Old Conflicting Policies
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
 DROP POLICY IF EXISTS "Admins have full access to profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Public products view" ON public.products;
 DROP POLICY IF EXISTS "Admin products full access" ON public.products;
 DROP POLICY IF EXISTS "Allow public read products" ON public.products;
 DROP POLICY IF EXISTS "Anon customer insert" ON public.customers;
 DROP POLICY IF EXISTS "Admin customer full access" ON public.customers;
 DROP POLICY IF EXISTS "Anon orders insert" ON public.orders;
+DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
 DROP POLICY IF EXISTS "Admin orders full access" ON public.orders;
 DROP POLICY IF EXISTS "Anon order_items insert" ON public.order_items;
+DROP POLICY IF EXISTS "Users can view their own order items" ON public.order_items;
 DROP POLICY IF EXISTS "Admin order_items full access" ON public.order_items;
 DROP POLICY IF EXISTS "Admin logs full access" ON public.supplier_sync_logs;
 
@@ -354,41 +349,35 @@ CREATE POLICY "Admins have full access to profiles" ON public.profiles FOR ALL U
 
 -- Products Policies
 CREATE POLICY "Public products view" ON public.products FOR SELECT USING (true);
-CREATE POLICY "Admin products full access" ON public.products FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
+CREATE POLICY "Admin products full access" ON public.products FOR ALL USING (public.is_admin() OR auth.role() = 'service_role');
 
--- Secure sensitive columns from public (from security script)
+-- Secure sensitive columns from public (hide cost_price and supplier_sku from anon users)
 REVOKE SELECT ON public.products FROM anon;
 GRANT SELECT (
   id, title, slug, category, vendor, price, compare_at_price, sku, 
   stock_quantity, low_stock_threshold, allow_backorder, description, 
-  specifications, images, tags, status, is_featured, weight_kg, 
+  specifications, images, icon_key, tags, status, is_featured, weight_kg, 
   seo_title, seo_description, created_at, updated_at
 ) ON public.products TO anon;
 
 -- Customers Policies
 CREATE POLICY "Anon customer insert" ON public.customers FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admin customer full access" ON public.customers FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
+CREATE POLICY "Admin customer full access" ON public.customers FOR ALL USING (public.is_admin() OR auth.role() = 'service_role');
 
 -- Orders Policies
 CREATE POLICY "Anon orders insert" ON public.orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Users can view their own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Admin orders full access" ON public.orders FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
+CREATE POLICY "Admin orders full access" ON public.orders FOR ALL USING (public.is_admin() OR auth.role() = 'service_role');
 
 -- Order Items Policies
 CREATE POLICY "Anon order_items insert" ON public.order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Users can view their own order items" ON public.order_items FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid())
 );
-CREATE POLICY "Admin order_items full access" ON public.order_items FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
-
--- Tracking Info Policies
-CREATE POLICY "Users can view their own tracking info" ON public.tracking_info FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.orders WHERE orders.id = tracking_info.order_id AND orders.user_id = auth.uid())
-);
-CREATE POLICY "Admin tracking info full access" ON public.tracking_info FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
+CREATE POLICY "Admin order_items full access" ON public.order_items FOR ALL USING (public.is_admin() OR auth.role() = 'service_role');
 
 -- Logs Policies
-CREATE POLICY "Admin logs full access" ON public.supplier_sync_logs FOR ALL USING (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role');
+CREATE POLICY "Admin logs full access" ON public.supplier_sync_logs FOR ALL USING (public.is_admin() OR auth.role() = 'service_role');
 
 -- =========================================================
 -- 8. STORAGE BUCKETS & POLICIES
@@ -412,60 +401,27 @@ FOR SELECT USING ( bucket_id = 'product-images' );
 CREATE POLICY "Admin Upload Images" ON storage.objects 
 FOR INSERT WITH CHECK ( 
   bucket_id = 'product-images' 
-  AND (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role')
+  AND (public.is_admin() OR auth.role() = 'service_role')
 );
 
 -- Allow Admins to delete images
 CREATE POLICY "Admin Delete Images" ON storage.objects 
 FOR DELETE USING ( 
   bucket_id = 'product-images' 
-  AND (public.is_admin() OR auth.role() = 'authenticated' OR auth.role() = 'service_role')
+  AND (public.is_admin() OR auth.role() = 'service_role')
 );
 
 -- =========================================================
--- 9. SEED CORE CATALOG PRODUCTS (VybeTek & True Organics)
+-- 9. SEED CORE CATALOG PRODUCTS
+-- All 6 products from the CSV export, with consistent data.
+-- icon_key provides fallback Lucide icons when no real image URL exists.
+-- Images set to '[]' until real photos are uploaded via admin dashboard.
 -- =========================================================
 INSERT INTO public.products (
-  id, title, slug, category, vendor, price, compare_at_price, cost_price, sku, stock_quantity, description, specifications, images, tags, status, is_featured, source
+  id, title, slug, category, vendor, price, compare_at_price, cost_price,
+  sku, stock_quantity, low_stock_threshold, description,
+  specifications, images, icon_key, tags, status, is_featured, source
 ) VALUES 
-(
-  'vy-org-chl-500',
-  'True Organics Liquid Chlorophyll Juice (500 ml)',
-  'true-organics-liquid-chlorophyll-juice-500-ml',
-  'Supplements',
-  'True Organics',
-  150.00,
-  185.00,
-  75.00,
-  'TO-CHL-500ML',
-  85,
-  'True Organics Liquid Chlorophyll Juice 500ml – vegan-friendly antioxidant supplement in liquid form.',
-  '[{"key": "Form", "value": "Liquid Extract"}, {"key": "Volume", "value": "500 ml"}, {"key": "Dietary", "value": "Vegan, Non-GMO"}]'::jsonb,
-  '["https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80"]'::jsonb,
-  '["chlorophyll", "vegan", "antioxidant", "supplements", "liquid"]'::jsonb,
-  'active',
-  true,
-  'manual'
-),
-(
-  'vy-nc20-blk',
-  'Vybetek NeoCharge 20K Power Bank',
-  'vybetek-neocharge-20k-power-bank',
-  'Power Banks',
-  'VybeTek',
-  799.00,
-  949.00,
-  420.00,
-  'VY-NC20-BLK',
-  45,
-  'High-capacity 20,000mAh power bank with 22.5W Power Delivery. Features dual USB-A and USB-C inputs/outputs.',
-  '[{"key": "Capacity", "value": "20,000mAh Lithium Polymer"}, {"key": "Fast Charging", "value": "22.5W PD 3.0"}]'::jsonb,
-  '["powerbank"]'::jsonb,
-  '["powerbank", "fast-charge", "portable"]'::jsonb,
-  'active',
-  true,
-  'manual'
-),
 (
   'vy-wpp-wht',
   'Vybetek WavePods Pro Earbuds',
@@ -477,9 +433,11 @@ INSERT INTO public.products (
   650.00,
   'VY-WPP-WHT',
   12,
+  5,
   'Active Noise Cancelling (ANC) wireless earbuds with bluetooth 5.3. Up to 36 hours of total playtime.',
   '[{"key": "ANC Depth", "value": "Active Noise Cancellation up to 30dB"}, {"key": "Bluetooth", "value": "Version 5.3"}]'::jsonb,
-  '["earbuds"]'::jsonb,
+  '[]'::jsonb,
+  'earbuds',
   '["audio", "wireless", "anc"]'::jsonb,
   'active',
   true,
@@ -496,9 +454,11 @@ INSERT INTO public.products (
   950.00,
   'VY-TFV4-GRY',
   8,
+  5,
   'Premium smartwatch featuring 1.9" AMOLED display, blood oxygen monitoring, heart rate sensor, and GPS.',
   '[{"key": "Display", "value": "1.9 inch Always-on AMOLED"}, {"key": "Battery", "value": "10-day Endurance"}]'::jsonb,
-  '["smartwatch"]'::jsonb,
+  '[]'::jsonb,
+  'smartwatch',
   '["wearables", "smartwatch", "fitness"]'::jsonb,
   'active',
   true,
@@ -515,20 +475,94 @@ INSERT INTO public.products (
   280.00,
   'VY-SP65-GAN',
   90,
+  5,
   'Ultra-compact Gallium Nitride (GaN) wall charger with 2x USB-C PD ports and 1x USB-A port.',
   '[{"key": "Total Power", "value": "65W GaN Fast Delivery"}, {"key": "Ports", "value": "2x USB-C, 1x USB-A"}]'::jsonb,
-  '["charger"]'::jsonb,
+  '[]'::jsonb,
+  'charger',
   '["chargers", "gan", "fast-charge"]'::jsonb,
+  'active',
+  false,
+  'manual'
+),
+(
+  'vy-org-chl-500',
+  'True Organics Liquid Chlorophyll Juice (500 ml)',
+  'true-organics-liquid-chlorophyll-juice-500-ml',
+  'Supplements',
+  'True Organics',
+  150.00,
+  185.00,
+  75.00,
+  'TO-CHL-500ML',
+  85,
+  5,
+  'True Organics Liquid Chlorophyll Juice 500ml – vegan-friendly antioxidant supplement in liquid form.',
+  '[{"key": "Form", "value": "Liquid Extract"}, {"key": "Volume", "value": "500 ml"}, {"key": "Dietary", "value": "Vegan, Non-GMO"}]'::jsonb,
+  '[]'::jsonb,
+  'supplements',
+  '["chlorophyll", "vegan", "antioxidant", "supplements", "liquid"]'::jsonb,
+  'active',
+  true,
+  'manual'
+),
+(
+  'vy-nc20-blk',
+  'Vybetek NeoCharge 20K Power Bank',
+  'vybetek-neocharge-20k-power-bank',
+  'Power Banks',
+  'VybeTek',
+  799.00,
+  949.00,
+  420.00,
+  'VY-NC20-BLK',
+  45,
+  5,
+  'High-capacity 20,000mAh power bank with 22.5W Power Delivery. Features dual USB-A and USB-C inputs/outputs.',
+  '[{"key": "Capacity", "value": "20,000mAh Lithium Polymer"}, {"key": "Fast Charging", "value": "22.5W PD 3.0"}]'::jsonb,
+  '[]'::jsonb,
+  'powerbank',
+  '["powerbank", "fast-charge", "portable"]'::jsonb,
+  'active',
+  false,
+  'manual'
+),
+(
+  'vy-ka0shkj',
+  'Miiracare Miira-cell Plus -24 Days Stem Cell Therapy (24 Sachets) 60g',
+  'miiracare-miira-cell-plus-24-days-stem-cell-therapy-24-sachets-60-g',
+  'Supplements',
+  'CartMate',
+  700.00,
+  NULL,
+  350.00,
+  'VY-4394',
+  11,
+  5,
+  'Miira-cell Plus is a 24-day nutritional supplement supplied in convenient individual sachets. The powder contains vitamins and minerals and is designed for easy daily use. Each box contains 24 sachets (60 g) and is suitable for vegetarians.',
+  '[{"key": "Dietary", "value": "Vegan, Non-GMO"}, {"key": "Mass", "value": "60g"}]'::jsonb,
+  '[]'::jsonb,
+  'pills',
+  '[]'::jsonb,
   'active',
   false,
   'manual'
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  vendor = EXCLUDED.vendor,
   price = EXCLUDED.price,
   compare_at_price = EXCLUDED.compare_at_price,
+  cost_price = EXCLUDED.cost_price,
+  sku = EXCLUDED.sku,
   stock_quantity = EXCLUDED.stock_quantity,
+  low_stock_threshold = EXCLUDED.low_stock_threshold,
+  description = EXCLUDED.description,
+  specifications = EXCLUDED.specifications,
+  images = EXCLUDED.images,
+  icon_key = EXCLUDED.icon_key,
   tags = EXCLUDED.tags,
   status = EXCLUDED.status,
-  description = EXCLUDED.description,
-  specifications = EXCLUDED.specifications;
+  is_featured = EXCLUDED.is_featured;

@@ -41,7 +41,6 @@ export default function AdminDashboard() {
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
-  // Shopify-Style Form State
   const [productForm, setProductForm] = useState({
     title: '',
     slug: '',
@@ -58,6 +57,7 @@ export default function AdminDashboard() {
     low_stock_threshold: '5',
     allow_backorder: false,
     images: [] as string[],
+    icon_key: '',
     status: 'active' as 'active' | 'draft' | 'archived',
     is_featured: false,
     tags: [] as string[],
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
       } catch (e) {
         const { data: dbProducts } = await supabase
           .from('products')
-          .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
+          .select('id, title, slug, category, vendor, price, compare_at_price, sku, stock_quantity, low_stock_threshold, allow_backorder, description, specifications, images, icon_key, tags, status, is_featured, weight_kg, seo_title, seo_description, created_at, updated_at')
           .order('created_at', { ascending: false });
         if (dbProducts) setProducts(dbProducts as Product[]);
       }
@@ -250,6 +250,7 @@ export default function AdminDashboard() {
       low_stock_threshold: '5',
       allow_backorder: false,
       images: [],
+      icon_key: '',
       status: 'active',
       is_featured: false,
       tags: [],
@@ -300,6 +301,7 @@ export default function AdminDashboard() {
       low_stock_threshold: prod.low_stock_threshold !== undefined && prod.low_stock_threshold !== null ? String(prod.low_stock_threshold) : '5',
       allow_backorder: !!prod.allow_backorder,
       images: Array.isArray(prod.images) ? prod.images : (prod.images ? [prod.images] : []),
+      icon_key: prod.icon_key || '',
       status: (prod.status as 'active' | 'draft' | 'archived') || 'active',
       is_featured: !!prod.is_featured,
       tags: Array.isArray(prod.tags) ? prod.tags : [],
@@ -455,7 +457,8 @@ export default function AdminDashboard() {
       stock_quantity: stockQty,
       low_stock_threshold: lowStock,
       allow_backorder: productForm.allow_backorder,
-      images: productForm.images.length > 0 ? productForm.images : ['powerbank'],
+      images: productForm.images.length > 0 ? productForm.images : [],
+      icon_key: productForm.icon_key.trim() || null,
       status: productForm.status,
       is_featured: productForm.is_featured,
       tags: productForm.tags,
