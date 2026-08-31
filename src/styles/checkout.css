@@ -80,6 +80,14 @@
   gap: 16px;
 }
 
+.payment-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .payment-section-title {
   font-size: 0.95rem;
   font-weight: 700;
@@ -87,23 +95,23 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
 }
 
-/* Primary Payment Button (Card / Apple Pay / GPay) */
+/* Primary Payment Button */
 .payment-btn-primary {
   width: 100%;
   background: var(--orange);
   color: var(--navy);
   border: 1px solid var(--orange);
   border-radius: var(--radius);
-  padding: 14px 18px;
+  padding: 14px 20px;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
   transition: all 0.2s ease;
   box-shadow: 0 4px 14px rgba(251, 169, 25, 0.25);
   text-decoration: none;
@@ -123,24 +131,6 @@
 .payment-btn-primary:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.payment-btn-main-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--navy);
-}
-
-.payment-btn-badges-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
 }
 
 .payment-mini-tag {

@@ -289,9 +289,12 @@ export default function CheckoutPage() {
 
             {/* PAYMENT OPTIONS */}
             <div className="payment-section-wrapper">
-              <h3 className="payment-section-title">
-                <Lock size={16} /> Secure Payment Gateway
-              </h3>
+              <div className="payment-section-header">
+                <h3 className="payment-section-title">
+                  <Lock size={16} /> Secure Payment Gateway
+                </h3>
+                <PaymentBadges size="sm" />
+              </div>
               
               {/* PayFast Primary Payment Button */}
               <button 
@@ -299,13 +302,8 @@ export default function CheckoutPage() {
                 disabled={loadingPayFast || loadingWhatsApp}
                 className="payment-btn-primary"
               >
-                <div className="payment-btn-main-row">
-                  <ShieldCheck size={20} />
-                  <span>{loadingPayFast ? 'Connecting to PayFast...' : `Pay via PayFast • R${total.toFixed(2)}`}</span>
-                </div>
-                <div style={{ marginTop: '4px' }}>
-                  <PaymentBadges size="sm" />
-                </div>
+                <ShieldCheck size={18} />
+                <span>{loadingPayFast ? 'Connecting to PayFast...' : `Pay via PayFast • R${total.toFixed(2)}`}</span>
               </button>
 
               <div className="payment-divider">
