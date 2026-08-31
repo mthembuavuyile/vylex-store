@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -18,6 +18,29 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Prevent background page from scrolling when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -31,7 +54,12 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   return (
     <>
       <div className="mobile-nav-backdrop" onClick={onClose} />
-      <div className="mobile-nav-drawer-side">
+      <div 
+        className="mobile-nav-drawer-side"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation Menu"
+      >
         {/* Drawer Header */}
         <div className="mobile-drawer-header">
           <Link href="/" className="logo logo-light" onClick={onClose}>

@@ -56,6 +56,18 @@ export function ShopClient({ initialProducts }: ShopClientProps) {
     if (cat !== null) setSelectedCategory(cat);
   }, [searchParams]);
 
+  // Prevent background page from scrolling when mobile filter drawer is open
+  useEffect(() => {
+    if (isMobileFilterOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileFilterOpen]);
+
   // Handle Preset Price click
   const handlePricePresetChange = (preset: string) => {
     setPricePreset(preset);
