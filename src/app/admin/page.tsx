@@ -785,7 +785,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', background: 'rgba(251, 169, 25, 0.1)', borderRadius: '14px', marginBottom: '16px' }}>
               <img
                 src="/logo.png"
-                alt="Vybetek Logo"
+                alt="CartMate Logo"
                 width="34"
                 height="34"
                 style={{ objectFit: 'contain' }}
@@ -857,7 +857,7 @@ export default function AdminDashboard() {
           <Link href="/" className="admin-logo-link">
             <img
               src="/logo.png"
-              alt="Vybetek Logo"
+              alt="CartMate Logo"
               width="30"
               height="30"
               style={{ flexShrink: 0, objectFit: 'contain' }}
@@ -1107,7 +1107,7 @@ export default function AdminDashboard() {
                           {/* Category & Vendor */}
                           <td style={{ padding: '14px 16px' }}>
                             <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.85rem' }}>{p.category}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.vendor || 'VybeTek'}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.vendor || 'CartMate'}</div>
                           </td>
 
                           {/* Price & Compare-at */}
@@ -1849,10 +1849,10 @@ export default function AdminDashboard() {
                                 <span>https://store.vylex.co.za › product › {productForm.slug || 'product-handle'}</span>
                               </div>
                               <div className="serp-title-link">
-                                {productForm.seo_title || productForm.title || 'Product Title | Vybetek Store'}
+                                {productForm.seo_title || productForm.title || 'Product Title | CartMate Store'}
                               </div>
                               <div className="serp-description-snippet">
-                                {productForm.seo_description || productForm.description || 'Shop online at Vybetek Store with fast South African delivery.'}
+                                {productForm.seo_description || productForm.description || 'Shop online at CartMate Store with fast South African delivery.'}
                               </div>
                             </div>
                           </div>

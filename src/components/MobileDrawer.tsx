@@ -35,8 +35,8 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
         {/* Drawer Header */}
         <div className="mobile-drawer-header">
           <Link href="/" className="logo logo-light" onClick={onClose}>
-            <img src="/logo.png" alt="Vybetek Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
-            <span className="logo-text">vybetek</span>
+            <img src="/logo.png" alt="CartMate Logo" width="28" height="28" style={{ flexShrink: 0, objectFit: 'contain' }} />
+            <span className="logo-text">CartMate</span>
           </Link>
           <button className="mobile-drawer-close" onClick={onClose} aria-label="Close navigation menu">
             <X size={20} />
@@ -139,7 +139,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           {/* Direct WhatsApp Contact CTA */}
           <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
             <a
-              href="https://wa.me/27821234567?text=Hi%20Vybetek%20Store%20Support"
+              href="https://wa.me/27821234567?text=Hi%20CartMate%20Store%20Support"
               target="_blank"
               rel="noreferrer"
               className="btn"
